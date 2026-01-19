@@ -1,0 +1,92 @@
+import { describe, expect, it } from 'vitest';
+import type { TorrentState } from '../../src/api/types';
+import { GROUP_LIMIT, PAGE_SIZE, compareActivity, expansionAfter, groupOf, layoutGroups, type LayoutOptions } from '../../src/state/groups';
+import { makeTorrent } from '../fixtures/torrents';
+
+const base: LayoutOptions = { status: 'all', libraryTotal: 100, collapsed: {}, expanded: {} };
+const many = (n: number, state: TorrentState, progress = state.endsWith('UP') || state === 'uploading' ? 1 : 0.5) =>
+  Array.from({ length: n }, () => makeTorrent({ state, progress }));
+
+describe('groupOf', () => {
+  it.each<[TorrentState, number, string]>([
+    ['error', 0.3, 'attention'], ['missingFiles', 1, 'attention'],
+    ['downloading', 0.5, 'downloading'], ['forcedDL', 0.5, 'downloading'], ['metaDL', 0, 'downloading'],
+    ['forcedMetaDL', 0, 'downloading'], ['stalledDL', 0.5, 'downloading'], ['checkingDL', 0.5, 'downloading'],
+    ['queuedDL', 0, 'queued'], ['queuedUP', 1, 'queued'],
+    ['uploading', 1, 'seeding'], ['forcedUP', 1, 'seeding'], ['stalledUP', 1, 'seeding'], ['checkingUP', 1, 'seeding'],
+    ['stoppedDL', 0.4, 'stopped'], ['stoppedUP', 1, 'stopped'],
+    ['moving', 0.5, 'downloading'], ['moving', 1, 'seeding'],
+    ['checkingResumeData', 0.2, 'downloading'], ['checkingResumeData', 1, 'seeding'],
+    ['unknown', 0.2, 'downloading'], ['unknown', 1, 'seeding'],
+  ])('%s at progress %d → %s', (state, progress, group) => expect(groupOf({ state, progress })).toBe(group));
+});
+
+describe('compareActivity', () => {
+  it('orders by state rank, then queue position, then newest first', () => {
+    const forced = makeTorrent({ state: 'forcedDL', added_on: 1 });
+    const stalled = makeTorrent({ state: 'stalledDL', added_on: 9 });
+    const q2 = makeTorrent({ state: 'downloading', priority: 2, added_on: 1 });
+    const q1 = makeTorrent({ state: 'downloading', priority: 1, added_on: 1 });
+    const unqueuedNew = makeTorrent({ state: 'downloading', priority: 0, added_on: 50 });
+    const unqueuedOld = makeTorrent({ state: 'downloading', priority: 0, added_on: 40 });
+    const sorted = [stalled, unqueuedOld, q2, forced, unqueuedNew, q1].sort(compareActivity);
+    expect(sorted).toEqual([forced, q1, q2, unqueuedNew, unqueuedOld, stalled]);
+  });
+});
+
+describe('layoutGroups', () => {
+  it('returns groups in fixed order, skipping empty ones', () => {
+    const { groups } = layoutGroups([...many(1, 'uploading'), ...many(1, 'error'), ...many(1, 'downloading')], base);
+    expect(groups.map((g) => g.key)).toEqual(['attention', 'downloading', 'seeding']);
+    expect(groups[0]!.title).toBe('Needs Attention');
+  });
+
+  it('truncates each group to 8 rows when several groups are visible', () => {
+    const { single, groups } = layoutGroups([...many(30, 'uploading'), ...many(2, 'downloading')], base);
+    expect(single).toBe(false);
+    const seeding = groups.find((g) => g.key === 'seeding')!;
+    expect(seeding).toMatchObject({ total: 30, hidden: 30 - GROUP_LIMIT, collapsed: false });
+    expect(seeding.items).toHaveLength(GROUP_LIMIT);
+  });
+
+  it('collapses Stopped by default only when it has more than 8 items and the library has more than 25', () => {
+    const stopped = [...many(9, 'stoppedUP'), ...many(1, 'downloading')];
+    expect(layoutGroups(stopped, { ...base, libraryTotal: 26 }).groups.find((g) => g.key === 'stopped')!.collapsed).toBe(true);
+    expect(layoutGroups(stopped, { ...base, libraryTotal: 25 }).groups.find((g) => g.key === 'stopped')!.collapsed).toBe(false);
+    const eight = [...many(8, 'stoppedUP'), ...many(1, 'downloading')];
+    expect(layoutGroups(eight, base).groups.find((g) => g.key === 'stopped')!.collapsed).toBe(false);
+  });
+
+  it('respects explicit collapse and expansion choices', () => {
+    const list = [...many(9, 'stoppedUP'), ...many(12, 'uploading')];
+    const { groups } = layoutGroups(list, { ...base, collapsed: { stopped: false, seeding: true }, expanded: { stopped: Infinity } });
+    const stoppedGroup = groups.find((g) => g.key === 'stopped')!;
+    expect(stoppedGroup.collapsed).toBe(false);
+    expect(stoppedGroup.items).toHaveLength(9);
+    expect(groups.find((g) => g.key === 'seeding')).toMatchObject({ collapsed: true, items: [], hidden: 12 });
+  });
+
+  it('shows 100 at a time when only one group is visible and never collapses it', () => {
+    const { single, groups } = layoutGroups(many(250, 'stoppedUP'), base);
+    expect(single).toBe(true);
+    expect(groups[0]).toMatchObject({ collapsed: false, hidden: 150 });
+    expect(groups[0]!.items).toHaveLength(PAGE_SIZE);
+  });
+
+  it('maps status filters to groups', () => {
+    const list = [...many(1, 'error'), ...many(1, 'downloading'), ...many(1, 'queuedDL'), ...many(1, 'uploading'), ...many(1, 'stoppedDL')];
+    const keys = (status: LayoutOptions['status']) => layoutGroups(list, { ...base, status }).groups.map((g) => g.key);
+    expect(keys('downloading')).toEqual(['attention', 'downloading', 'queued']);
+    expect(keys('seeding')).toEqual(['seeding']);
+    expect(keys('stopped')).toEqual(['stopped']);
+    expect(layoutGroups(list, { ...base, status: 'downloading' }).single).toBe(true);
+  });
+});
+
+describe('expansionAfter', () => {
+  it('shows everything in multi-group mode and one more page in single-group mode', () => {
+    const { groups } = layoutGroups(many(250, 'stoppedUP'), base);
+    expect(expansionAfter(groups[0]!, true)).toBe(200);
+    expect(expansionAfter(groups[0]!, false)).toBe(Infinity);
+  });
+});
