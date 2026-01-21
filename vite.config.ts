@@ -2,7 +2,7 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { svelteTesting } from '@testing-library/svelte/vite';
-import { qbtProxy } from './vite.proxy';
+import { qbtProxy } from './vite.proxy.ts';
 
 const target = process.env.QBT_URL ?? 'http://127.0.0.1:9000';
 

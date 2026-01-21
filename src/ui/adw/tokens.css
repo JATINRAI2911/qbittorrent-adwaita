@@ -1,0 +1,88 @@
+:root {
+  --accent-bg-color: #3584e4;
+  --accent-fg-color: #ffffff;
+  --standalone-color-oklab: min(l, 0.5) a b;
+  --accent-color: oklab(from var(--accent-bg-color) var(--standalone-color-oklab));
+  --destructive-bg-color: #e01b24;
+  --destructive-fg-color: #ffffff;
+  --destructive-color: oklab(from var(--destructive-bg-color) var(--standalone-color-oklab));
+  --success-bg-color: #2ec27e;
+  --success-fg-color: #ffffff;
+  --success-color: oklab(from var(--success-bg-color) var(--standalone-color-oklab));
+  --warning-bg-color: #e5a50a;
+  --warning-fg-color: rgb(0 0 0 / 80%);
+  --warning-color: oklab(from var(--warning-bg-color) var(--standalone-color-oklab));
+  --error-bg-color: #e01b24;
+  --error-fg-color: #ffffff;
+  --error-color: oklab(from var(--error-bg-color) var(--standalone-color-oklab));
+
+  --window-bg-color: #fafafb;
+  --window-fg-color: rgb(0 0 6 / 80%);
+  --view-bg-color: #ffffff;
+  --view-fg-color: rgb(0 0 6 / 80%);
+  --headerbar-bg-color: #ffffff;
+  --headerbar-fg-color: rgb(0 0 6 / 80%);
+  --headerbar-shade-color: rgb(0 0 6 / 12%);
+  --card-bg-color: #ffffff;
+  --card-fg-color: rgb(0 0 6 / 80%);
+  --card-shade-color: rgb(0 0 6 / 7%);
+  --dialog-bg-color: #fafafb;
+  --popover-bg-color: #ffffff;
+  --popover-fg-color: rgb(0 0 6 / 80%);
+  --shade-color: rgb(0 0 6 / 7%);
+  --scrollbar-outline-color: #ffffff;
+
+  --border-opacity: 15%;
+  --dim-opacity: 55%;
+  --disabled-opacity: 50%;
+  --border-color: color-mix(in srgb, currentColor var(--border-opacity), transparent);
+  --hover-color: color-mix(in srgb, currentColor 7%, transparent);
+  --active-color: color-mix(in srgb, currentColor 16%, transparent);
+  --selected-color: color-mix(in srgb, currentColor 10%, transparent);
+  --selected-hover-color: color-mix(in srgb, currentColor 13%, transparent);
+  --view-hover-color: color-mix(in srgb, currentColor 4%, transparent);
+  --view-selected-color: color-mix(in srgb, var(--accent-bg-color) 25%, transparent);
+  --trough-color: color-mix(in srgb, currentColor 15%, transparent);
+  --button-color: color-mix(in srgb, currentColor 10%, transparent);
+  --button-hover-color: color-mix(in srgb, currentColor 15%, transparent);
+  --button-active-color: color-mix(in srgb, currentColor 30%, transparent);
+  --focus-ring-color: color-mix(in srgb, var(--accent-color) 50%, transparent);
+  --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  --font-family: "Adwaita Sans", system-ui, sans-serif;
+  --monospace-font-family: "Adwaita Mono", ui-monospace, monospace;
+  --monospace-font-size: 14.6667px;
+}
+
+:root[data-scheme="dark"] {
+  --standalone-color-oklab: max(l, 0.85) a b;
+  --destructive-bg-color: #c01c28;
+  --success-bg-color: #26a269;
+  --warning-bg-color: #cd9309;
+  --error-bg-color: #c01c28;
+  --window-bg-color: #222226;
+  --window-fg-color: #ffffff;
+  --view-bg-color: #1d1d20;
+  --view-fg-color: #ffffff;
+  --headerbar-bg-color: #2e2e32;
+  --headerbar-fg-color: #ffffff;
+  --headerbar-shade-color: rgb(0 0 6 / 36%);
+  --card-bg-color: rgb(255 255 255 / 8%);
+  --card-fg-color: #ffffff;
+  --card-shade-color: rgb(0 0 6 / 36%);
+  --dialog-bg-color: #36363a;
+  --popover-bg-color: #36363a;
+  --popover-fg-color: #ffffff;
+  --shade-color: rgb(0 0 6 / 25%);
+  --scrollbar-outline-color: rgb(0 0 12 / 95%);
+  color-scheme: dark;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border-opacity: 50%;
+    --dim-opacity: 90%;
+    --disabled-opacity: 40%;
+    --focus-ring-color: color-mix(in srgb, var(--accent-color) 80%, transparent);
+  }
+}
