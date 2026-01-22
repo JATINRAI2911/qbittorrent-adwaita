@@ -1,0 +1,35 @@
+.btn {
+  min-height: 34px; min-width: 34px; padding: 5px 10px;
+  border: none; border-radius: 9px; font-weight: 700;
+  background-color: var(--button-color);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;
+  transition: background 200ms var(--ease-out-quad), box-shadow 200ms var(--ease-out-quad), outline-color 200ms var(--ease-out-quad);
+}
+.btn:hover { background-color: var(--button-hover-color); }
+.btn:active { background-color: var(--button-active-color); }
+.btn:disabled { filter: opacity(var(--disabled-opacity)); }
+.btn.image-button { width: 34px; padding: 5px; }
+.btn.text-button { padding: 5px 17px; }
+.btn.image-text-button { padding: 5px 9px; gap: 4px; }
+.btn.image-text-button > .label { padding: 0 2px; }
+
+/* In header bars, icon / icon+text buttons are flat; text-only buttons stay raised. */
+.btn.flat,
+.headerbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action) { background: transparent; }
+.btn.flat:hover,
+.headerbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action):hover { background: var(--hover-color); }
+.btn.flat:active,
+.headerbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action):active { background: var(--active-color); }
+.btn.flat:disabled { filter: opacity(30%); }
+
+.btn.suggested-action { color: var(--accent-fg-color); background-color: var(--accent-bg-color); }
+.btn.suggested-action:hover { background-image: linear-gradient(color-mix(in srgb, currentColor 10%, transparent) 0 0); }
+.btn.suggested-action:active { background-image: linear-gradient(rgb(0 0 6 / 20%) 0 0); }
+.btn.suggested-action:focus-visible { outline-offset: 1px; }
+
+.btn.destructive-action { color: var(--destructive-color); background-color: color-mix(in srgb, currentColor 15%, transparent); }
+.btn.destructive-action:hover { background-color: color-mix(in srgb, currentColor 20%, transparent); }
+.btn.destructive-action:active { background-color: color-mix(in srgb, currentColor 35%, transparent); }
+
+.btn.pill { padding: 10px 32px; border-radius: 9999px; }
+.btn.circular { border-radius: 9999px; }

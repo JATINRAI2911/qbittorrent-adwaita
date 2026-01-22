@@ -1,0 +1,34 @@
+.spinner {
+  display: inline-block; flex: none; border-radius: 50%;
+  border-style: solid; border-color: currentColor; border-right-color: transparent;
+  animation: adw-spin 900ms linear infinite;
+}
+@keyframes adw-spin { to { transform: rotate(360deg); } }
+
+.progressbar { height: 8px; border-radius: 99px; background: var(--trough-color); overflow: hidden; }
+.progressbar.thin { height: 5px; }
+.progressbar > .fill { height: 100%; border-radius: 99px; background: var(--accent-bg-color); transition: width 600ms var(--ease-out-quad), background 200ms var(--ease-out-quad); }
+.progressbar > .fill.tone-inactive { background: color-mix(in srgb, var(--window-fg-color) 50%, transparent); }
+.progressbar > .fill.tone-warning { background: var(--warning-bg-color); }
+.progressbar > .fill.tone-error { background: var(--error-bg-color); }
+
+.status-page {
+  min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 36px; padding: 36px 12px; text-align: center;
+}
+.status-page .sp-icon { color: color-mix(in srgb, currentColor var(--dim-opacity), transparent); }
+.status-page .sp-icon svg.i { width: 128px; height: 128px; stroke-width: 0.9; }
+.status-page .sp-text { display: flex; flex-direction: column; gap: 12px; max-width: 440px; }
+.status-page.compact { gap: 24px; padding: 24px 12px; }
+.status-page.compact .sp-icon svg.i { width: 96px; height: 96px; stroke-width: 1.1; }
+
+.banner { --banner-color: #7d7d83; }
+.banner.tone-warning { --banner-color: var(--warning-bg-color); }
+.banner.tone-error { --banner-color: var(--error-bg-color); }
+.banner-inner {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 6px 12px; min-height: 46px;
+  background: color-mix(in srgb, var(--banner-color) 30%, var(--window-bg-color));
+  color: var(--window-fg-color);
+}
+.banner-title { font-weight: 700; text-align: center; min-width: 0; }
