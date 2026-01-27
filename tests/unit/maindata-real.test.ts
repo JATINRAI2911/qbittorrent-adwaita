@@ -1,11 +1,14 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { MaindataResponse } from '../../src/api/types';
 import { describeRow } from '../../src/features/list/describe';
 import { GROUP_ORDER, groupOf } from '../../src/state/groups';
 import { applyMaindata, emptySyncState } from '../../src/sync/maindata';
 
-const file = new URL('../fixtures/local/maindata-full.json', import.meta.url);
+// Not `new URL(..., import.meta.url)`: Vite rewrites that pattern into a dev-server asset URL.
+const file = join(dirname(fileURLToPath(import.meta.url)), '../fixtures/local/maindata-full.json');
 
 describe('recorded maindata from a real qBittorrent', () => {
   it.skipIf(!existsSync(file))('merges without desync and every torrent renders cleanly', () => {
