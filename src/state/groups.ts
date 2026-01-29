@@ -39,9 +39,14 @@ export function groupOf(t: Pick<Torrent, 'state' | 'progress'>): GroupKey {
   return GROUP_BY_STATE[t.state] ?? (t.progress >= 1 ? 'seeding' : 'downloading');
 }
 
+/**
+ * Only stable distinctions rank (forced, fetching metadata, checking, moving). Pairs that flip
+ * every few seconds on their own (downloading↔stalledDL, uploading↔stalledUP) share a rank,
+ * otherwise rows would jump on routine sync ticks.
+ */
 const STATE_RANK: Partial<Record<TorrentState, number>> = {
-  forcedDL: 0, downloading: 1, forcedMetaDL: 2, metaDL: 2, checkingDL: 3, checkingResumeData: 3, moving: 4, stalledDL: 5,
-  forcedUP: 0, uploading: 1, checkingUP: 2, stalledUP: 3,
+  forcedDL: 0, downloading: 1, stalledDL: 1, forcedMetaDL: 2, metaDL: 2, checkingDL: 3, checkingResumeData: 3, moving: 4,
+  forcedUP: 0, uploading: 1, stalledUP: 1, checkingUP: 2,
   error: 0, missingFiles: 1, queuedDL: 0, queuedUP: 1, stoppedDL: 0, stoppedUP: 1,
 };
 

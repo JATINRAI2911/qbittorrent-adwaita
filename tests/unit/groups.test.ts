@@ -32,6 +32,22 @@ describe('compareActivity', () => {
     const sorted = [stalled, unqueuedOld, q2, forced, unqueuedNew, q1].sort(compareActivity);
     expect(sorted).toEqual([forced, q1, q2, unqueuedNew, unqueuedOld, stalled]);
   });
+  it('keeps order when a torrent flips between active and stalled (live ticks never reorder rows)', () => {
+    const a = makeTorrent({ state: 'uploading', progress: 1, added_on: 30 });
+    const b = makeTorrent({ state: 'stalledUP', progress: 1, added_on: 20 });
+    const c = makeTorrent({ state: 'uploading', progress: 1, added_on: 10 });
+    const before = [c, a, b].sort(compareActivity);
+    b.state = 'uploading';
+    a.state = 'stalledUP';
+    expect([c, a, b].sort(compareActivity)).toEqual(before);
+
+    const d = makeTorrent({ state: 'downloading', added_on: 5 });
+    const e = makeTorrent({ state: 'stalledDL', added_on: 9 });
+    const order = [d, e].sort(compareActivity);
+    e.state = 'downloading';
+    d.state = 'stalledDL';
+    expect([d, e].sort(compareActivity)).toEqual(order);
+  });
 });
 
 describe('layoutGroups', () => {
