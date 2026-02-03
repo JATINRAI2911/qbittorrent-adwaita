@@ -65,6 +65,14 @@ describe('request', () => {
     await expect(pending).resolves.toMatchObject({ kind: 'timeout' });
   });
 
+  it('times out when the headers arrive but the body stalls (e.g. across sleep/wake)', async () => {
+    vi.useFakeTimers();
+    mockFetch(async () => new Response(new ReadableStream({ start() {} })));
+    const pending = getJson('sync/maindata', { rid: 1 }, { timeoutMs: 50 }).catch((e: unknown) => e);
+    await vi.advanceTimersByTimeAsync(50);
+    await expect(pending).resolves.toMatchObject({ kind: 'timeout' });
+  });
+
   it('reports caller aborts as aborted, not as timeouts', async () => {
     mockFetch(
       (_url, init) =>
