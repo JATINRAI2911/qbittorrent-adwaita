@@ -59,8 +59,9 @@ describe('TorrentRow', () => {
   });
 
   it('lets right-to-left names pick their own direction so they ellipsize at the correct end', () => {
-    render(TorrentRow, { torrent: makeTorrent({ name: 'שלום עולם '.repeat(40), state: 'downloading' }) });
-    expect(screen.getByTitle('שלום עולם '.repeat(40))).toHaveAttribute('dir', 'auto');
+    const name = 'שלום עולם '.repeat(40).trim();
+    render(TorrentRow, { torrent: makeTorrent({ name, state: 'downloading' }) });
+    expect(screen.getByTitle(name)).toHaveAttribute('dir', 'auto');
   });
 
   it('shows category and tags, the subtitle and an ETA', () => {
