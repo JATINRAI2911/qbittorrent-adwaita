@@ -16,7 +16,7 @@
   <Bubble torrent={t} />
   <div class="t-main">
     <div class="t-line">
-      <span class="t-name heading" title={t.name}>{t.name}</span>
+      <span class="t-name heading" title={t.name} dir="auto">{t.name}</span>
       {#if t.category || tags.length}
         <span class="t-meta caption">
           {#if t.category}<span class="t-m"><Icon name="folder" />{t.category}</span>{/if}
