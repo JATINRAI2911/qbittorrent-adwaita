@@ -9,6 +9,7 @@ export const DEFAULT_TORRENT: Torrent = {
   trackers_count: 0, dl_limit: 0, up_limit: 0, downloaded: 0, uploaded: 0, amount_left: 0,
   completed: 0, time_active: 0, seeding_time: 0, magnet_uri: '', infohash_v1: '', infohash_v2: '',
   comment: '', has_tracker_warning: false, has_tracker_error: false, has_other_announce_error: false,
+  ratio_limit: -2, seeding_time_limit: -2, inactive_seeding_time_limit: -2, share_limit_action: 'Default',
 };
 
 export interface SyncState {

@@ -59,6 +59,11 @@ export interface Torrent {
   has_tracker_warning: boolean;
   has_tracker_error: boolean;
   has_other_announce_error: boolean;
+  /** Share limits: -2 = use global, -1 = unlimited. Ratio is a number; the two times are minutes. */
+  ratio_limit: number;
+  seeding_time_limit: number;
+  inactive_seeding_time_limit: number;
+  share_limit_action: 'Default' | 'Stop' | 'Remove' | 'RemoveWithContent' | 'EnableSuperSeeding';
 }
 
 export interface Category {

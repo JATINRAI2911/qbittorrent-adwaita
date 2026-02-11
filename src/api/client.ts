@@ -123,3 +123,7 @@ export function postText(path: string, params?: Params, options: Omit<RequestOpt
 export async function post(path: string, params?: Params, options: Omit<RequestOptions, 'params' | 'method'> = {}): Promise<void> {
   await postText(path, params, options);
 }
+
+export function getBlob(path: string, params?: Params, options: Omit<RequestOptions, 'params' | 'method'> = {}): Promise<Blob> {
+  return call(path, { ...options, params }, (response) => response.blob());
+}
