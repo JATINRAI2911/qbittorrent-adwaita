@@ -18,6 +18,15 @@ const definitions = {
   'pan-end': [{ d: 'M5.8 3.2 10.6 8l-4.8 4.8' }],
   magnet: [{ d: 'M3.1 2.3h3v5.5a1.9 1.9 0 0 0 3.8 0V2.3h3v5.5a4.9 4.9 0 0 1-9.8 0z' }, { d: 'M3.1 5h3M9.9 5h3' }],
   offline: [{ d: 'M5 2.3v11.4M2.4 11.1 5 13.7l2.6-2.6M11 13.7V2.3M8.4 4.9 11 2.3l2.6 2.6' }, { d: 'M2 2l12 12' }],
+  close: [{ d: 'm3.8 3.8 8.4 8.4m0-8.4-8.4 8.4' }],
+  check: [{ d: 'M2.8 8.4 6.4 12l6.8-7.8' }],
+  'pan-start': [{ d: 'M10.2 3.2 5.4 8l4.8 4.8' }],
+  'open-menu': [{ d: 'M2.5 3.8h11M2.5 8h11M2.5 12.2h11' }],
+  'view-more': [{ d: `${circle(8, 3.2, 1.45)}${circle(8, 8, 1.45)}${circle(8, 12.8, 1.45)}`, fill: true }],
+  'selection-mode': [{ d: 'M4.5 2h7A2.5 2.5 0 0 1 14 4.5v7a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 11.5v-7A2.5 2.5 0 0 1 4.5 2z' }, { d: 'm5 8.2 2.1 2.1L11.2 6' }],
+  'list-add': [{ d: 'M8 3v10M3 8h10' }],
+  'list-remove': [{ d: 'M3 8h10' }],
+  trash: [{ d: 'M2.3 4.3h11.4M6 4.3V2.6h4v1.7M3.8 4.3l.8 9.3h6.8l.8-9.3' }],
 } satisfies Record<string, IconPath[]>;
 
 export type IconName = keyof typeof definitions;
