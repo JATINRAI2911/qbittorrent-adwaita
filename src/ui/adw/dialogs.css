@@ -1,0 +1,22 @@
+.dialog-host {
+  position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; padding: 24px;
+  background: rgb(from var(--shade-color) r g b / calc(alpha * 2)); animation: adw-fade 200ms var(--ease-out-quad);
+}
+@keyframes adw-fade { from { opacity: 0; } }
+.dialog {
+  max-width: 100%; max-height: calc(100vh - 48px); display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 15px; background: var(--window-bg-color); color: var(--window-fg-color);
+  box-shadow: 0 0 14px 2px rgb(0 0 6 / 3%), 0 0 5px 2px rgb(0 0 6 / 10%), 0 0 0 1px rgb(0 0 0 / 5%);
+  outline: 1px solid rgb(255 255 255 / 7%); outline-offset: -1px; animation: adw-dialog-in 250ms var(--ease-out-quad);
+}
+@keyframes adw-dialog-in { from { opacity: 0; transform: scale(0.96); } }
+.dialog-content { padding: 6px 24px 24px; overflow: auto; display: flex; flex-direction: column; gap: 24px; }
+.dialog-note { margin: -12px 4px 0; font-size: smaller; opacity: var(--dim-opacity); }
+.close-button { width: 24px; min-width: 24px; height: 24px; min-height: 24px; padding: 4px; margin: 5px; border-radius: 50%; background: var(--button-color); }
+.headerbar .btn.close-button { background: var(--button-color); }
+.headerbar .btn.close-button:hover { background: var(--button-hover-color); }
+.alert-dialog { width: 372px; background: var(--dialog-bg-color); border-radius: 18px; }
+.alert-dialog .message-area { padding: 32px 24px 9px; display: flex; flex-direction: column; gap: 10px; text-align: center; }
+.alert-dialog .alert-extra { margin-top: 8px; text-align: left; }
+.alert-dialog .response-area { display: flex; gap: 12px; padding: 12px 24px 24px; }
+.alert-dialog .response-area > .btn { flex: 1; min-height: 44px; padding: 10px 20px; border-radius: 12px; }
