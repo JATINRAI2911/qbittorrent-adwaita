@@ -51,6 +51,13 @@ describe('compareActivity', () => {
 });
 
 describe('layoutGroups', () => {
+  it('exposes every member of a group, even when collapsed or truncated', () => {
+    const { groups } = layoutGroups([...many(30, 'uploading'), ...many(10, 'stoppedUP')], base);
+    expect(groups.find((g) => g.key === 'seeding')!.members).toHaveLength(30);
+    expect(groups.find((g) => g.key === 'stopped')).toMatchObject({ collapsed: true, items: [] });
+    expect(groups.find((g) => g.key === 'stopped')!.members).toHaveLength(10);
+  });
+
   it('returns groups in fixed order, skipping empty ones', () => {
     const { groups } = layoutGroups([...many(1, 'uploading'), ...many(1, 'error'), ...many(1, 'downloading')], base);
     expect(groups.map((g) => g.key)).toEqual(['attention', 'downloading', 'seeding']);

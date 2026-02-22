@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { Torrent } from '../../src/api/types';
 import TorrentList from '../../src/features/list/TorrentList.svelte';
 import TorrentRow from '../../src/features/list/TorrentRow.svelte';
+import { ListModel } from '../../src/features/list/list-model.svelte';
 import { makeTorrent } from '../fixtures/torrents';
 
 const mapOf = (list: Torrent[]) => new Map(list.map((t) => [t.hash, t]));
@@ -11,21 +12,19 @@ const seeds = (n: number) => Array.from({ length: n }, () => makeTorrent({ state
 
 describe('TorrentList', () => {
   it('shows an empty status page when there are no torrents', () => {
-    render(TorrentList, { torrents: new Map() });
+    render(TorrentList, { model: new ListModel(new Map()) });
     expect(screen.getByRole('heading', { name: 'No Torrents' })).toBeInTheDocument();
   });
 
   it('renders groups in order with counts, problems first', () => {
-    render(TorrentList, {
-      torrents: mapOf([makeTorrent({ state: 'downloading', name: 'ubuntu.iso' }), makeTorrent({ state: 'error', name: 'broken.iso' })]),
-    });
+    render(TorrentList, { model: new ListModel(mapOf([makeTorrent({ state: 'downloading', name: 'ubuntu.iso' }), makeTorrent({ state: 'error', name: 'broken.iso' })])) });
     const headings = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent?.trim());
     expect(headings).toEqual(['Needs Attention', 'Downloading']);
     expect(screen.getByText('broken.iso')).toBeInTheDocument();
   });
 
   it('shows 8 rows per group and expands with Show All', async () => {
-    render(TorrentList, { torrents: mapOf([...seeds(30), makeTorrent({ state: 'downloading' })]) });
+    render(TorrentList, { model: new ListModel(mapOf([...seeds(30), makeTorrent({ state: 'downloading' })])) });
     const seeding = screen.getByRole('region', { name: 'Seeding' });
     expect(within(seeding).getAllByRole('listitem')).toHaveLength(8);
     await userEvent.click(within(seeding).getByRole('button', { name: 'Show All 30' }));
@@ -34,7 +33,7 @@ describe('TorrentList', () => {
 
   it('collapses a large Stopped group in a large library and reveals it on request', async () => {
     const stopped = Array.from({ length: 10 }, () => makeTorrent({ state: 'stoppedUP', progress: 1 }));
-    render(TorrentList, { torrents: mapOf([...stopped, ...seeds(20)]) });
+    render(TorrentList, { model: new ListModel(mapOf([...stopped, ...seeds(20)])) });
     const group = screen.getByRole('region', { name: 'Stopped' });
     expect(within(group).queryAllByRole('listitem')).toHaveLength(0);
     await userEvent.click(within(group).getByRole('button', { name: 'Show 10 Torrents' }));
@@ -42,7 +41,7 @@ describe('TorrentList', () => {
   });
 
   it('pages 100 at a time when only one group is visible', async () => {
-    render(TorrentList, { torrents: mapOf(seeds(150)) });
+    render(TorrentList, { model: new ListModel(mapOf(seeds(150))) });
     const group = screen.getByRole('region', { name: 'Seeding' });
     expect(within(group).getAllByRole('listitem')).toHaveLength(100);
     await userEvent.click(within(group).getByRole('button', { name: /Show 50 More/ }));

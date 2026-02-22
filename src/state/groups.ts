@@ -72,6 +72,8 @@ export interface GroupView {
   /** Torrents in the group not rendered (collapsed or beyond the limit). */
   hidden: number;
   collapsed: boolean;
+  /** Every torrent in the group, sorted - including collapsed or truncated ones. */
+  members: Torrent[];
 }
 
 export interface LayoutOptions {
@@ -103,7 +105,7 @@ export function layoutGroups(torrents: Iterable<Torrent>, options: LayoutOptions
       !single && (options.collapsed[key] ?? (key === 'stopped' && total > GROUP_LIMIT && options.libraryTotal > 25));
     const limit = options.expanded[key] ?? (single ? PAGE_SIZE : GROUP_LIMIT);
     const items = collapsed ? [] : sorted.slice(0, limit);
-    return { key, title: GROUP_TITLES[key], total, items, hidden: total - items.length, collapsed };
+    return { key, title: GROUP_TITLES[key], total, items, members: sorted, hidden: total - items.length, collapsed };
   });
   return { single, groups };
 }

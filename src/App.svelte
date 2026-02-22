@@ -2,6 +2,7 @@
   import { untrack } from 'svelte';
   import Login from './features/login/Login.svelte';
   import TorrentList from './features/list/TorrentList.svelte';
+  import { ListModel } from './features/list/list-model.svelte';
   import MainHeader from './features/shell/MainHeader.svelte';
   import { session as defaultSession, type Session } from './state/session.svelte';
   import Banner from './ui/adw/Banner.svelte';
@@ -13,6 +14,7 @@
 
   let scrolled = $state(false);
   const offline = $derived(session.connection === 'offline');
+  const list = untrack(() => new ListModel(session.torrents));
 
   $effect(() => {
     untrack(() => session.start());
@@ -29,7 +31,7 @@
       {/if}
     </div>
     <main class="content" class:offline onscroll={(event) => (scrolled = event.currentTarget.scrollTop > 0)}>
-      <TorrentList torrents={session.torrents} />
+      <TorrentList model={list} />
     </main>
   </div>
 {:else if offline}

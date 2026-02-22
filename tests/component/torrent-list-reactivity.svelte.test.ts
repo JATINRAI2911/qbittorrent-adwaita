@@ -4,6 +4,7 @@ import { SvelteMap } from 'svelte/reactivity';
 import { describe, expect, it } from 'vitest';
 import type { Torrent } from '../../src/api/types';
 import TorrentList from '../../src/features/list/TorrentList.svelte';
+import { ListModel } from '../../src/features/list/list-model.svelte';
 import { makeTorrent } from '../fixtures/torrents';
 
 describe('TorrentList reactivity', () => {
@@ -11,7 +12,7 @@ describe('TorrentList reactivity', () => {
     const torrent = $state<Torrent>(makeTorrent({ name: 'ubuntu.iso', state: 'downloading', size: 1000, completed: 100, progress: 0.1, dlspeed: 1000 }));
     const other = $state<Torrent>(makeTorrent({ state: 'stalledUP', progress: 1 }));
     const torrents = new SvelteMap([[torrent.hash, torrent], [other.hash, other]]);
-    render(TorrentList, { torrents });
+    render(TorrentList, { model: new ListModel(torrents) });
 
     expect(within(screen.getByRole('region', { name: 'Downloading' })).getByText('ubuntu.iso')).toBeInTheDocument();
     expect(screen.getByText(/↓ 1\.0 kB\/s/)).toBeInTheDocument();
