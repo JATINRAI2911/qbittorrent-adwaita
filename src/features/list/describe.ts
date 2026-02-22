@@ -1,6 +1,8 @@
 import type { Torrent } from '../../api/types';
 import { formatBytes, formatEta, formatPercent, formatRatio, formatSpeed } from '../../lib/format';
 
+export { parseTags } from '../../lib/tags';
+
 export type Tone = 'warning' | 'error';
 export interface Segment {
   text: string;
@@ -103,8 +105,4 @@ export function progressTone(t: Torrent): 'accent' | 'inactive' | 'warning' | 'e
   if (t.state === 'error' || t.state === 'missingFiles') return 'error';
   if (t.state === 'stalledDL') return 'warning';
   return isInactive(t) ? 'inactive' : 'accent';
-}
-
-export function parseTags(tags: string): string[] {
-  return tags.split(',').map((tag) => tag.trim()).filter(Boolean);
 }
