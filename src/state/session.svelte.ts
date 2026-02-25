@@ -81,6 +81,11 @@ export class Session implements SyncState {
     this.#poller.pokeNow();
   }
 
+  /** Drop torrents locally (e.g. right after the server confirmed their deletion). */
+  forget(hashes: readonly string[]): void {
+    for (const hash of hashes) this.torrents.delete(hash);
+  }
+
   async login(username: string, password: string): Promise<LoginOutcome> {
     let result: auth.LoginResult;
     try {
@@ -90,6 +95,8 @@ export class Session implements SyncState {
     }
     if (result !== 'ok') return result;
     this.rid = 0; // full resync: the server forgot our previous rid with the old session
+    // Leave 'login' now: if the first sync is still rejected, onAuthLost re-enters it with a fresh form.
+    this.connection = 'starting';
     this.start();
     return 'ok';
   }

@@ -127,4 +127,21 @@ describe('Poller', () => {
     poller.stop();
     error.mockRestore();
   });
+
+  it('ignores a stale response after stop→start and polls again immediately', async () => {
+    const resolvers: ((value: MaindataResponse) => void)[] = [];
+    const fetch = vi.fn(() => new Promise<MaindataResponse>((r) => resolvers.push(r)));
+    const { options, poller } = setup({ fetch });
+    poller.start();
+    poller.stop();
+    poller.start();
+    expect(fetch).toHaveBeenCalledTimes(2);
+    resolvers[0]!({ rid: 1 });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(options.apply).not.toHaveBeenCalled();
+    resolvers[1]!({ rid: 2 });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(options.apply).toHaveBeenCalledWith({ rid: 2 });
+    poller.stop();
+  });
 });

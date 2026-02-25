@@ -21,6 +21,8 @@ export class Poller {
   #running = false;
   #inFlight = false;
   #failures = 0;
+  /** Bumped by stop(); responses from an older generation are ignored. */
+  #generation = 0;
 
   constructor(options: PollerOptions) {
     this.#options = { intervalMs: 1000, hiddenIntervalMs: 5000, ...options };
@@ -39,6 +41,8 @@ export class Poller {
 
   stop(): void {
     this.#running = false;
+    this.#generation++;
+    this.#inFlight = false;
     clearTimeout(this.#timer);
     this.#timer = undefined;
   }
@@ -51,10 +55,11 @@ export class Poller {
 
   async #tick(): Promise<void> {
     if (!this.#running || this.#inFlight) return;
+    const generation = this.#generation;
     this.#inFlight = true;
     try {
       const response = await this.#options.fetch();
-      if (!this.#running) return;
+      if (generation !== this.#generation) return;
       try {
         this.#options.apply(response);
       } catch (error) {
@@ -64,7 +69,7 @@ export class Poller {
       this.#options.onOnline();
       this.#schedule(this.#options.isHidden() ? this.#options.hiddenIntervalMs : this.#options.intervalMs);
     } catch (error) {
-      if (!this.#running) return;
+      if (generation !== this.#generation) return;
       if (error instanceof ApiError && (error.kind === 'auth' || error.kind === 'banned')) {
         this.stop();
         this.#options.onAuthLost();
@@ -75,7 +80,7 @@ export class Poller {
       this.#options.onOffline(wait);
       this.#schedule(wait * 1000);
     } finally {
-      this.#inFlight = false;
+      if (generation === this.#generation) this.#inFlight = false;
     }
   }
 

@@ -47,4 +47,9 @@ describe('Login', () => {
     expect(onlogin).toHaveBeenCalledTimes(1);
     finish('ok');
   });
+
+  it('stays busy after a successful login until the app takes over', async () => {
+    await submitWith('ok');
+    expect(screen.getByRole('button', { name: 'Logging In…' })).toBeDisabled();
+  });
 });

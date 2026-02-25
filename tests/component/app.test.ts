@@ -76,4 +76,18 @@ describe('App', () => {
     expect(screen.getByText('ubuntu.iso')).toBeInTheDocument();
     unmount();
   });
+
+  it('offers the login form again when the first sync after a successful login is still rejected', async () => {
+    // e.g. the browser refused the session cookie: login says ok, but maindata keeps answering 403
+    const maindata = vi.fn<(rid: number) => Promise<MaindataResponse>>().mockRejectedValue(new ApiError('auth', 403, ''));
+    const { unmount } = render(App, { session: makeSession({ maindata }) });
+
+    await userEvent.type(await screen.findByLabelText('Username'), 'admin');
+    await userEvent.type(screen.getByLabelText('Password'), 'secret');
+    await userEvent.click(screen.getByRole('button', { name: 'Log In' }));
+
+    await vi.waitFor(() => expect(maindata).toHaveBeenCalledTimes(2));
+    expect(await screen.findByRole('button', { name: 'Log In' })).toBeEnabled();
+    unmount();
+  });
 });

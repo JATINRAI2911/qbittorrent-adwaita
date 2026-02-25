@@ -28,11 +28,10 @@
     pending = true;
     error = '';
     const outcome = await onlogin(user, pass);
+    if (outcome === 'ok') return; // stay busy: the overlay disappears once the first sync lands
     pending = false;
-    if (outcome !== 'ok') {
-      error = MESSAGES[outcome];
-      if (outcome === 'invalid') password = '';
-    }
+    error = MESSAGES[outcome];
+    if (outcome === 'invalid') password = '';
   }
 </script>
 

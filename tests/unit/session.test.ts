@@ -118,4 +118,13 @@ describe('Session', () => {
     expect(maindata).toHaveBeenCalledTimes(2);
     session.stop();
   });
+
+  it('forgets torrents removed locally', async () => {
+    const session = new Session(deps());
+    session.start();
+    await vi.advanceTimersByTimeAsync(0);
+    session.forget(['aaa']);
+    expect([...session.torrents.keys()]).toEqual(['bbb']);
+    session.stop();
+  });
 });
