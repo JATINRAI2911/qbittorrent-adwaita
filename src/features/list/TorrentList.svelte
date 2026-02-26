@@ -1,15 +1,42 @@
 <script lang="ts">
+  import { getAppContext, menuContext, targetTorrents } from '../../app-context';
   import StatusPage from '../../ui/adw/StatusPage.svelte';
+  import { torrentMenu } from '../actions/torrent-menu';
   import GroupSection from './GroupSection.svelte';
-  import type { ListModel } from './list-model.svelte';
 
-  let { model }: { model: ListModel } = $props();
+  const app = getAppContext();
+  const model = app.list;
+
+  function rowFrom(event: MouseEvent): string | null {
+    const target = event.target as Element;
+    if (target.closest('button')) return null;
+    return target.closest<HTMLElement>('[data-hash]')?.dataset.hash ?? null;
+  }
+
+  function onclick(event: MouseEvent) {
+    const hash = rowFrom(event);
+    if (hash) app.selection.click(hash, { shift: event.shiftKey, toggle: event.metaKey || event.ctrlKey }, model.order);
+  }
+
+  function oncontextmenu(event: MouseEvent) {
+    const hash = rowFrom(event);
+    if (!hash) return;
+    event.preventDefault();
+    const inSelection = app.selection.mode && app.selection.has(hash);
+    if (!app.selection.mode) app.selection.click(hash, { shift: false, toggle: false }, model.order);
+    const torrent = app.session.torrents.get(hash);
+    const targets = inSelection ? targetTorrents(app) : torrent ? [torrent] : [];
+    app.selection.menuTarget = hash;
+    app.popovers.openMenu(torrentMenu(targets, menuContext(app)), { x: event.clientX, y: event.clientY }, () => (app.selection.menuTarget = null));
+  }
 </script>
 
 {#if model.torrents.size === 0}
   <StatusPage icon="magnet" title="No Torrents" description="Torrents you add will appear here." />
 {:else}
-  <div class="page">
+  <!-- Rows are driven by pointer here; the keyboard equivalents are handled app-wide (see keyboard.ts). -->
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+  <div class="page" {onclick} {oncontextmenu}>
     {#each model.layout.groups as group (group.key)}
       <GroupSection view={group} single={model.layout.single} oncollapse={() => model.toggleCollapsed(group)} onexpand={() => model.expand(group)} />
     {/each}

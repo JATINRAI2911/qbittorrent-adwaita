@@ -1,20 +1,27 @@
 <script lang="ts">
   import { untrack } from 'svelte';
+  import { torrentsApi, type TorrentApi } from './api/torrents';
+  import { setAppContext } from './app-context';
+  import { createApp } from './app-setup';
   import Login from './features/login/Login.svelte';
   import TorrentList from './features/list/TorrentList.svelte';
-  import { ListModel } from './features/list/list-model.svelte';
   import MainHeader from './features/shell/MainHeader.svelte';
   import { session as defaultSession, type Session } from './state/session.svelte';
   import Banner from './ui/adw/Banner.svelte';
   import Button from './ui/adw/Button.svelte';
+  import DialogHost from './ui/adw/DialogHost.svelte';
+  import PopoverHost from './ui/adw/PopoverHost.svelte';
   import Spinner from './ui/adw/Spinner.svelte';
   import StatusPage from './ui/adw/StatusPage.svelte';
+  import ToastOverlay from './ui/adw/ToastOverlay.svelte';
 
-  let { session = defaultSession }: { session?: Session } = $props();
+  let { session = defaultSession, api = torrentsApi }: { session?: Session; api?: TorrentApi } = $props();
+
+  const app = setAppContext(untrack(() => createApp(session, api)));
+  const { selection, popovers, dialogs, toasts } = app;
 
   let scrolled = $state(false);
   const offline = $derived(session.connection === 'offline');
-  const list = untrack(() => new ListModel(session.torrents));
 
   $effect(() => {
     untrack(() => session.start());
@@ -23,7 +30,7 @@
 </script>
 
 {#if session.loaded}
-  <div class="window" inert={session.connection === 'login'}>
+  <div class="window" inert={session.connection === 'login' || dialogs.isOpen}>
     <div class="top-bar" class:raised={scrolled}>
       <MainHeader torrents={session.torrents} server={session.server} {offline} />
       {#if offline}
@@ -31,7 +38,7 @@
       {/if}
     </div>
     <main class="content" class:offline onscroll={(event) => (scrolled = event.currentTarget.scrollTop > 0)}>
-      <TorrentList model={list} />
+      <TorrentList />
     </main>
   </div>
 {:else if offline}
@@ -47,6 +54,10 @@
     <Login onlogin={(username, password) => session.login(username, password)} />
   </div>
 {/if}
+
+<PopoverHost store={popovers} />
+<DialogHost store={dialogs} />
+<ToastOverlay store={toasts} bottom={selection.mode ? 52 : 0} />
 
 <style>
   .window { position: fixed; inset: 0; display: flex; flex-direction: column; }

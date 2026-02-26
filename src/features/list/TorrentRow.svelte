@@ -1,5 +1,8 @@
 <script lang="ts">
   import type { Torrent } from '../../api/types';
+  import { getAppContext } from '../../app-context';
+  import Button from '../../ui/adw/Button.svelte';
+  import Check from '../../ui/adw/Check.svelte';
   import Icon from '../../ui/adw/Icon.svelte';
   import ProgressBar from '../../ui/adw/ProgressBar.svelte';
   import Bubble from './Bubble.svelte';
@@ -7,12 +10,25 @@
 
   let { torrent: t }: { torrent: Torrent } = $props();
 
+  const app = getAppContext();
+  const selected = $derived(app.selection.has(t.hash));
+  const stopped = $derived(t.state === 'stoppedDL' || t.state === 'stoppedUP');
+
   const segments = $derived(describeRow(t));
   const eta = $derived(etaText(t));
   const tags = $derived(parseTags(t.tags));
 </script>
 
-<div class="row torrent-row" class:inactive={isInactive(t)} role="listitem">
+<div
+  class="row torrent-row"
+  class:inactive={isInactive(t)}
+  class:selected
+  class:kfocus={app.selection.keyboard && app.selection.focus === t.hash}
+  class:menu-target={app.selection.menuTarget === t.hash}
+  data-hash={t.hash}
+  role="listitem"
+>
+  {#if app.selection.mode}<Check checked={selected} label="Select {t.name}" round />{/if}
   <Bubble torrent={t} />
   <div class="t-main">
     <div class="t-line">
@@ -36,6 +52,18 @@
       <ProgressBar value={t.progress} tone={progressTone(t)} thin label="Progress of {t.name}" />
     {/if}
   </div>
+  {#if !app.selection.mode}
+    <Button
+      variant="flat"
+      circular
+      icon={stopped ? 'play' : 'pause'}
+      title={stopped ? 'Start' : 'Stop'}
+      onclick={(event) => {
+        event.stopPropagation();
+        void app.commands.toggle([t]);
+      }}
+    />
+  {/if}
 </div>
 
 <style>
@@ -55,4 +83,9 @@
   .sep { margin: 0 6px; opacity: 0.7; }
   .inactive .t-name, .inactive .t-meta { color: color-mix(in srgb, var(--window-fg-color) 50%, transparent); }
   .torrent-row :global(.progressbar) { margin-top: 4px; }
+  .torrent-row:not(.selected):hover { background-color: color-mix(in srgb, currentColor 3%, transparent); }
+  .torrent-row.selected { background-color: var(--view-selected-color); }
+  .torrent-row.selected:hover { background-color: color-mix(in srgb, var(--accent-bg-color) 32%, transparent); }
+  .torrent-row.menu-target:not(.selected) { background-color: var(--view-hover-color); }
+  .torrent-row.kfocus { outline: 2px solid var(--focus-ring-color); outline-offset: -2px; }
 </style>
