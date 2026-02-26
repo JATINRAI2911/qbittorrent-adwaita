@@ -1,11 +1,12 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import { torrentsApi, type TorrentApi } from './api/torrents';
-  import { setAppContext } from './app-context';
+  import { setAppContext, targetTorrents } from './app-context';
   import { createApp } from './app-setup';
   import Login from './features/login/Login.svelte';
   import TorrentList from './features/list/TorrentList.svelte';
   import ActionBar from './features/shell/ActionBar.svelte';
+  import { isButtonTarget, isTypingTarget, keyCommand } from './features/shell/keyboard';
   import MainHeader from './features/shell/MainHeader.svelte';
   import { session as defaultSession, type Session } from './state/session.svelte';
   import Banner from './ui/adw/Banner.svelte';
@@ -19,7 +20,7 @@
   let { session = defaultSession, api = torrentsApi }: { session?: Session; api?: TorrentApi } = $props();
 
   const app = setAppContext(untrack(() => createApp(session, api)));
-  const { selection, popovers, dialogs, toasts } = app;
+  const { selection, list, commands, openers, popovers, dialogs, toasts } = app;
 
   let scrolled = $state(false);
   const offline = $derived(session.connection === 'offline');
@@ -28,7 +29,58 @@
     untrack(() => session.start());
     return () => session.stop();
   });
+
+  // Keep the selection pointing at torrents that still exist (deleted here or elsewhere).
+  $effect(() => {
+    const torrents = session.torrents;
+    void Array.from(torrents.keys());
+    untrack(() => selection.prune((hash) => torrents.has(hash)));
+  });
+
+  function scrollToRow(hash: string) {
+    document.querySelector(`[data-hash="${hash}"]`)?.scrollIntoView?.({ block: 'nearest' });
+  }
+
+  function handleKey(event: KeyboardEvent) {
+    const command = keyCommand(event, { typing: isTypingTarget(event.target), onButton: isButtonTarget(event.target) });
+    if (!command) return;
+    if (command === 'escape') {
+      if (popovers.current) popovers.close();
+      else if (dialogs.isOpen) dialogs.closeTop();
+      else if (selection.mode) selection.exit();
+      else selection.clear();
+      return;
+    }
+    if (popovers.current || dialogs.isOpen || session.connection !== 'online') return;
+    event.preventDefault();
+    const targets = targetTorrents(app);
+    switch (command) {
+      case 'focus-next':
+      case 'focus-previous':
+      case 'extend-next':
+      case 'extend-previous': {
+        const hash = selection.moveFocus(command.endsWith('next') ? 1 : -1, command.startsWith('extend'), list.order);
+        if (hash) scrollToRow(hash);
+        break;
+      }
+      case 'toggle':
+        if (selection.mode && selection.keyboard && selection.focus) selection.toggle(selection.focus);
+        else if (targets.length) void commands.toggle(targets);
+        break;
+      case 'delete':
+        openers.confirmDelete(targets);
+        break;
+      case 'rename':
+        if (targets.length === 1) openers.rename(targets[0]!);
+        break;
+      case 'select-all':
+        selection.selectAll(list.allHashes);
+        break;
+    }
+  }
 </script>
+
+<svelte:window onkeydown={handleKey} />
 
 {#if session.loaded}
   <div class="window" inert={session.connection === 'login' || dialogs.isOpen}>
