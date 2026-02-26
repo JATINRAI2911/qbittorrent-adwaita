@@ -20,8 +20,9 @@
 .combo-row select option { background: var(--popover-bg-color); color: var(--popover-fg-color); }
 .combo-row:focus-within { outline: 2px solid var(--focus-ring-color); outline-offset: -2px; }
 
-.check { width: 20px; height: 20px; padding: 3px; border-radius: 6px; flex: none; display: grid; place-items: center; color: var(--accent-fg-color); box-shadow: inset 0 0 0 2px var(--trough-color); transition: background 200ms var(--ease-out-quad), box-shadow 200ms var(--ease-out-quad); }
-.check svg.i { width: 14px; height: 14px; stroke-width: 2.4; opacity: 0; }
+/* The ring uses the row's currentColor (libadwaita: alpha(currentColor, .15)); only the tick is white. */
+.check { width: 20px; height: 20px; padding: 3px; border-radius: 6px; flex: none; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--trough-color); transition: background 200ms var(--ease-out-quad), box-shadow 200ms var(--ease-out-quad); }
+.check svg.i { width: 14px; height: 14px; stroke-width: 2.4; opacity: 0; color: var(--accent-fg-color); }
 .check.checked { background: var(--accent-bg-color); box-shadow: none; }
 .check.checked svg.i { opacity: 1; }
 .check.round { width: 28px; height: 28px; padding: 7px; border-radius: 100px; }
