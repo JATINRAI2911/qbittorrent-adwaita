@@ -13,13 +13,16 @@
 .btn.image-text-button { padding: 5px 9px; gap: 4px; }
 .btn.image-text-button > .label { padding: 0 2px; }
 
-/* In header bars, icon / icon+text buttons are flat; text-only buttons stay raised. */
+/* In header bars and action bars, icon / icon+text buttons are flat; text-only buttons stay raised. */
 .btn.flat,
-.headerbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action) { background: transparent; }
+.headerbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action),
+.actionbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action) { background: transparent; }
 .btn.flat:hover,
-.headerbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action):hover { background: var(--hover-color); }
+.headerbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action):hover,
+.actionbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action):hover { background: var(--hover-color); }
 .btn.flat:active,
-.headerbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action):active { background: var(--active-color); }
+.headerbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action):active,
+.actionbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action):active { background: var(--active-color); }
 .btn.flat:disabled { filter: opacity(30%); }
 
 .btn.suggested-action { color: var(--accent-fg-color); background-color: var(--accent-bg-color); }
@@ -33,3 +36,6 @@
 
 .btn.pill { padding: 10px 32px; border-radius: 9999px; }
 .btn.circular { border-radius: 9999px; }
+.headerbar .btn:is(.image-button, .image-text-button):disabled,
+.actionbar .btn:is(.image-button, .image-text-button):not(.destructive-action):disabled { filter: opacity(30%); }
+.title-menu { gap: 6px; padding: 5px 12px; }

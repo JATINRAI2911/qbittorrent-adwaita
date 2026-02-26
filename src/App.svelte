@@ -5,6 +5,7 @@
   import { createApp } from './app-setup';
   import Login from './features/login/Login.svelte';
   import TorrentList from './features/list/TorrentList.svelte';
+  import ActionBar from './features/shell/ActionBar.svelte';
   import MainHeader from './features/shell/MainHeader.svelte';
   import { session as defaultSession, type Session } from './state/session.svelte';
   import Banner from './ui/adw/Banner.svelte';
@@ -40,6 +41,7 @@
     <main class="content" class:offline onscroll={(event) => (scrolled = event.currentTarget.scrollTop > 0)}>
       <TorrentList />
     </main>
+    {#if selection.mode}<ActionBar />{/if}
   </div>
 {:else if offline}
   <StatusPage icon="offline" title="Can’t Reach qBittorrent" description="Retrying in {session.retryIn} s…">
