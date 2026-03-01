@@ -26,6 +26,18 @@ QBT_USER=admin QBT_PASS=… node scripts/record-maindata.mjs
 npm test   # tests/unit/maindata-real.test.ts now runs against it
 ```
 
+## Keyboard
+
+| Keys | Action |
+|---|---|
+| ↑ / ↓ | Move between torrents |
+| Shift + ↑ / ↓ | Extend the selection |
+| Space | Start or stop |
+| Delete / Backspace | Delete… |
+| F2 | Rename… |
+| Ctrl/Cmd + A | Select all |
+| Esc | Close menu or dialog, then leave selection mode |
+
 ## Design
 
 - libadwaita values: `docs/reference/adwaita-1.10-web-reference.md`
