@@ -4,7 +4,7 @@ import { safeFilename } from '../lib/download';
 import { formatCount } from '../lib/format';
 import { joinTags, parseTags } from '../lib/tags';
 import { isRunning, isStopped, needsStart } from '../lib/torrent-state';
-import { errorText, mutate, snapshot, type ToastApi } from './mutate';
+import { errorText, mutate as runMutation, snapshot, type MutationSpec, type ToastApi } from './mutate';
 
 export type TorrentOption = 'sequential' | 'firstLast' | 'autoManaged' | 'superSeeding';
 export type CopyKind = 'name' | 'hashV1' | 'hashV2' | 'magnet' | 'comment';
@@ -21,6 +21,8 @@ export interface CommandDeps {
   toast: ToastApi;
   /** Drop torrents from the local store (after the server removed them). */
   forget(hashes: readonly string[]): void;
+  /** Ask for a full sync after a failed request, so the store matches the server again. */
+  resync(): void;
   copyText(text: string): Promise<void>;
   download(blob: Blob, filename: string): void;
 }
@@ -79,6 +81,7 @@ const LIMIT_FIELD = {
 
 export function createTorrentCommands(deps: CommandDeps) {
   const { api, toast } = deps;
+  const mutate = <T extends object>(spec: MutationSpec<T>, toastApi: ToastApi) => runMutation(spec, toastApi, () => deps.resync());
 
   const markStopped = (ts: readonly Torrent[]) => () => {
     for (const t of ts) {
@@ -384,6 +387,7 @@ export function createTorrentCommands(deps: CommandDeps) {
         await api.remove(hashes, deleteFiles);
       } catch (error) {
         toast.show({ title: `Couldn’t delete: ${errorText(error)}` });
+        deps.resync();
         return false;
       }
       deps.forget(hashes);

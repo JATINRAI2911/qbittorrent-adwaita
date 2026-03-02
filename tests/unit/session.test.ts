@@ -127,4 +127,16 @@ describe('Session', () => {
     expect([...session.torrents.keys()]).toEqual(['bbb']);
     session.stop();
   });
+
+  it('resyncs from scratch on request', async () => {
+    const maindata = vi.fn(async (_rid: number) => full);
+    const session = new Session(deps({ maindata }));
+    session.start();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(session.rid).toBe(1);
+    session.resync();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(maindata).toHaveBeenLastCalledWith(0);
+    session.stop();
+  });
 });

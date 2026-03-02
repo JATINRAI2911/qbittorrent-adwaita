@@ -18,6 +18,7 @@ export function createApp(session: Session, api: TorrentApi): AppContext {
     api,
     toast: toasts,
     forget: (hashes) => session.forget(hashes),
+    resync: () => session.resync(),
     copyText: (text) => copyText(text),
     download: (blob, filename) => downloadBlob(blob, filename),
   });

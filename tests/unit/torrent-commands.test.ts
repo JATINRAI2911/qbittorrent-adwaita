@@ -12,6 +12,7 @@ function setup(overrides: Partial<CommandDeps> = {}) {
     api,
     toast: { show: (t) => toasts.push(t) },
     forget: vi.fn(),
+    resync: vi.fn(),
     copyText: vi.fn(async () => {}),
     download: vi.fn(),
     ...overrides,
@@ -63,6 +64,31 @@ describe('start and stop', () => {
     await expect(commands.start([makeTorrent({ state: 'downloading' })])).resolves.toBe(false);
     expect(api.start).not.toHaveBeenCalled();
     expect(toasts).toHaveLength(0);
+  });
+});
+
+describe('rollback against newer server data', () => {
+  it('keeps a value the server sent while the request was in flight, and asks for a resync', async () => {
+    const { api, commands, deps } = setup();
+    const t = makeTorrent({ category: 'Films' });
+    let fail!: (error: unknown) => void;
+    api.setCategory.mockImplementationOnce(() => new Promise<void>((_resolve, reject) => (fail = reject)));
+    const done = commands.setCategory([t], 'ISOs');
+    expect(t.category).toBe('ISOs');
+    t.category = 'Archive'; // a sync tick lands with what the server now has
+    fail(new ApiError('timeout', 0, 'Request timed out'));
+    await expect(done).resolves.toBe(false);
+    expect(t.category).toBe('Archive');
+    expect(deps.resync).toHaveBeenCalledTimes(1);
+  });
+
+  it('still restores untouched fields and resyncs after a plain rejection', async () => {
+    const { api, commands, deps } = setup();
+    api.stop.mockRejectedValueOnce(new ApiError('request', 409, 'nope'));
+    const t = makeTorrent({ state: 'uploading', progress: 1 });
+    await commands.stop([t]);
+    expect(t.state).toBe('uploading');
+    expect(deps.resync).toHaveBeenCalledTimes(1);
   });
 });
 

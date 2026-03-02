@@ -81,6 +81,12 @@ export class Session implements SyncState {
     this.#poller.pokeNow();
   }
 
+  /** Throw away the diff state and fetch everything again on the next poll, right now. */
+  resync(): void {
+    this.rid = 0;
+    this.#poller.pokeNow();
+  }
+
   /** Drop torrents locally (e.g. right after the server confirmed their deletion). */
   forget(hashes: readonly string[]): void {
     for (const hash of hashes) this.torrents.delete(hash);

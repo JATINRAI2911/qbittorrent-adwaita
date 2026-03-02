@@ -36,15 +36,28 @@ export interface MutationSpec<T extends object> {
   undo?: () => void;
 }
 
-/** Optimistic update → request → keep, or roll back and explain. */
-export async function mutate<T extends object>(spec: MutationSpec<T>, toast: ToastApi): Promise<boolean> {
-  const restore = snapshot(spec.items, spec.keys);
+/**
+ * Optimistic update → request → keep, or roll back and explain.
+ *
+ * Rollback only restores fields that still hold the optimistic value: a sync tick may have delivered
+ * newer server data meanwhile (e.g. the request timed out after the server applied it), and sync only
+ * sends changed fields, so clobbering it would leave the screen wrong for good. `resync` then asks for
+ * a full update so anything else that drifted is corrected.
+ */
+export async function mutate<T extends object>(spec: MutationSpec<T>, toast: ToastApi, resync?: () => void): Promise<boolean> {
+  const before = spec.items.map((item) => spec.keys.map((key) => item[key]));
   spec.optimistic?.();
+  const after = spec.items.map((item) => spec.keys.map((key) => item[key]));
   try {
     await spec.request();
   } catch (error) {
-    restore();
+    spec.items.forEach((item, i) =>
+      spec.keys.forEach((key, k) => {
+        if (Object.is(item[key], after[i]![k])) item[key] = before[i]![k]!;
+      }),
+    );
     toast.show({ title: `${spec.failure}: ${errorText(error)}` });
+    resync?.();
     return false;
   }
   if (spec.success) toast.show(spec.undo ? { title: spec.success, undo: spec.undo } : { title: spec.success });
