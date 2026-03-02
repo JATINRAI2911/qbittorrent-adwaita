@@ -66,6 +66,18 @@ describe('start and stop', () => {
   });
 });
 
+describe('torrents that need attention', () => {
+  it('starts error and missing-files torrents without faking a state the server will not report', async () => {
+    const { api, commands } = setup();
+    const missing = makeTorrent({ state: 'missingFiles' });
+    const failed = makeTorrent({ state: 'error' });
+    await commands.toggle([missing, failed]);
+    expect(api.start).toHaveBeenCalledWith([missing.hash, failed.hash]);
+    expect(api.stop).not.toHaveBeenCalled();
+    expect([missing.state, failed.state]).toEqual(['missingFiles', 'error']);
+  });
+});
+
 describe('categories and tags', () => {
   it('undo restores each torrent to its own previous category', async () => {
     const { api, commands, last } = setup();

@@ -3,6 +3,7 @@ import type { Torrent } from '../api/types';
 import { safeFilename } from '../lib/download';
 import { formatCount } from '../lib/format';
 import { joinTags, parseTags } from '../lib/tags';
+import { isRunning, isStopped, needsStart } from '../lib/torrent-state';
 import { errorText, mutate, snapshot, type ToastApi } from './mutate';
 
 export type TorrentOption = 'sequential' | 'firstLast' | 'autoManaged' | 'superSeeding';
@@ -22,7 +23,6 @@ export interface CommandDeps {
   download(blob: Blob, filename: string): void;
 }
 
-const isStopped = (t: Torrent) => t.state === 'stoppedDL' || t.state === 'stoppedUP';
 const hashesOf = (ts: readonly Torrent[]) => ts.map((t) => t.hash);
 const what = (ts: readonly Torrent[]) => (ts.length === 1 ? `“${ts[0]!.name}”` : `${formatCount(ts.length)} torrents`);
 
@@ -77,8 +77,9 @@ export function createTorrentCommands(deps: CommandDeps) {
       t.upspeed = 0;
     }
   };
+  // Error / missing-files torrents keep their state: the server keeps reporting it until a recheck says otherwise.
   const markStarted = (ts: readonly Torrent[]) => () => {
-    for (const t of ts) t.state = t.progress >= 1 ? 'uploading' : 'downloading';
+    for (const t of ts) if (isStopped(t)) t.state = t.progress >= 1 ? 'uploading' : 'downloading';
   };
 
   /** Undo = a silent mutation back to the pre-command values. */
@@ -87,7 +88,7 @@ export function createTorrentCommands(deps: CommandDeps) {
 
   const commands = {
     start(ts: readonly Torrent[]): Promise<boolean> {
-      const targets = ts.filter(isStopped);
+      const targets = ts.filter(needsStart);
       if (!targets.length) return Promise.resolve(false);
       const hashes = hashesOf(targets);
       return mutate(
@@ -105,7 +106,7 @@ export function createTorrentCommands(deps: CommandDeps) {
     },
 
     stop(ts: readonly Torrent[]): Promise<boolean> {
-      const targets = ts.filter((t) => !isStopped(t));
+      const targets = ts.filter(isRunning);
       if (!targets.length) return Promise.resolve(false);
       const hashes = hashesOf(targets);
       const before = snapshot(targets, RUN_KEYS);
@@ -124,7 +125,7 @@ export function createTorrentCommands(deps: CommandDeps) {
     },
 
     toggle(ts: readonly Torrent[]): Promise<boolean> {
-      return ts.some((t) => !isStopped(t)) ? commands.stop(ts) : commands.start(ts);
+      return ts.some(isRunning) ? commands.stop(ts) : commands.start(ts);
     },
 
     forceStart(ts: readonly Torrent[]): Promise<boolean> {

@@ -2,6 +2,7 @@ import type { Torrent } from '../../api/types';
 import type { TorrentCommands } from '../../commands/torrent-commands';
 import { formatCount } from '../../lib/format';
 import { parseTags } from '../../lib/tags';
+import { isRunning, needsStart } from '../../lib/torrent-state';
 import type { MenuModel } from '../../ui/adw/menu';
 import type { DialogOpeners } from './openers';
 
@@ -13,8 +14,6 @@ export interface TorrentMenuContext {
   /** Queue moves 409 unless qBittorrent's queueing is enabled. */
   queueing: boolean;
 }
-
-const isStopped = (t: Torrent) => t.state === 'stoppedDL' || t.state === 'stoppedUP';
 
 export function categoryMenu(ts: readonly Torrent[], ctx: TorrentMenuContext): MenuModel {
   const list = [...ts];
@@ -59,8 +58,8 @@ export function torrentMenu(ts: readonly Torrent[], ctx: TorrentMenuContext): Me
   return {
     sections: [
       [
-        { label: 'Start', accel: 'Space', disabled: !list.some(isStopped), action: () => void commands.start(list) },
-        { label: 'Stop', accel: 'Space', disabled: list.every(isStopped), action: () => void commands.stop(list) },
+        { label: 'Start', accel: 'Space', disabled: !list.some(needsStart), action: () => void commands.start(list) },
+        { label: 'Stop', accel: 'Space', disabled: !list.some(isRunning), action: () => void commands.stop(list) },
         { label: 'Force Start', disabled: list.every((t) => t.force_start), action: () => void commands.forceStart(list) },
       ],
       [

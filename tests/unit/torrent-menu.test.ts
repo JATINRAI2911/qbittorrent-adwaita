@@ -62,6 +62,14 @@ describe('torrentMenu', () => {
   });
 });
 
+describe('torrentMenu for torrents that need attention', () => {
+  it('offers Start, not Stop, for missing-files torrents', () => {
+    const menu = torrentMenu([makeTorrent({ state: 'missingFiles' })], context());
+    expect(item(menu, 'Start').disabled).toBe(false);
+    expect(item(menu, 'Stop').disabled).toBe(true);
+  });
+});
+
 describe('categoryMenu and tagMenu', () => {
   it('checks the category every target shares and offers New and Remove', () => {
     const ctx = context();

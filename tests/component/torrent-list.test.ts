@@ -71,6 +71,11 @@ describe('TorrentRow', () => {
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
   });
 
+  it('offers Start on torrents that need attention', () => {
+    renderRow(makeTorrent({ state: 'missingFiles' }));
+    expect(screen.getByRole('button', { name: 'Start' })).toBeInTheDocument();
+  });
+
   it('hides the progress bar for finished torrents', () => {
     renderRow(makeTorrent({ state: 'stalledUP', progress: 1 }));
     expect(screen.queryByRole('progressbar')).toBeNull();

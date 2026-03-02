@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Torrent } from '../../api/types';
   import { getAppContext } from '../../app-context';
+  import { needsStart } from '../../lib/torrent-state';
   import Button from '../../ui/adw/Button.svelte';
   import Check from '../../ui/adw/Check.svelte';
   import Icon from '../../ui/adw/Icon.svelte';
@@ -12,7 +13,7 @@
 
   const app = getAppContext();
   const selected = $derived(app.selection.has(t.hash));
-  const stopped = $derived(t.state === 'stoppedDL' || t.state === 'stoppedUP');
+  const stopped = $derived(needsStart(t));
 
   const segments = $derived(describeRow(t));
   const eta = $derived(etaText(t));
