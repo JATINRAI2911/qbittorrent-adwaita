@@ -78,6 +78,22 @@ describe('torrents that need attention', () => {
   });
 });
 
+describe('force start', () => {
+  it('undo stops torrents that were stopped, and un-forces ones that were running', async () => {
+    // qBittorrent's setForceStart(false) starts a torrent in auto-managed mode; it never stops it.
+    const { api, commands, last } = setup();
+    const stopped = makeTorrent({ state: 'stoppedDL', progress: 0.3 });
+    const running = makeTorrent({ state: 'downloading' });
+    await commands.forceStart([stopped, running]);
+    expect(api.setForceStart).toHaveBeenCalledWith([stopped.hash, running.hash], true);
+    last().undo!();
+    await vi.waitFor(() => expect(api.stop).toHaveBeenCalledWith([stopped.hash]));
+    expect(api.setForceStart).toHaveBeenCalledWith([running.hash], false);
+    expect(api.setForceStart).not.toHaveBeenCalledWith(expect.arrayContaining([stopped.hash]), false);
+    expect([stopped.state, running.state]).toEqual(['stoppedDL', 'downloading']);
+  });
+});
+
 describe('categories and tags', () => {
   it('undo restores each torrent to its own previous category', async () => {
     const { api, commands, last } = setup();
@@ -119,6 +135,20 @@ describe('options', () => {
     expect(off.seq_dl).toBe(false);
   });
 
+  it('undo of automatic management moves the data back to each old folder', async () => {
+    // Turning it on relocates files to the category folder; setLocation moves them back (and turns it off).
+    const { api, commands, last } = setup();
+    const a = makeTorrent({ auto_tmm: false, save_path: '/seed/a' });
+    const b = makeTorrent({ auto_tmm: false, save_path: '/seed/b' });
+    await commands.setOption([a, b], 'autoManaged', true);
+    expect(api.setAutoManagement).toHaveBeenCalledWith([a.hash, b.hash], true);
+    last().undo!();
+    await vi.waitFor(() => expect(api.setLocation).toHaveBeenCalledTimes(2));
+    expect(api.setLocation).toHaveBeenCalledWith([a.hash], '/seed/a');
+    expect(api.setLocation).toHaveBeenCalledWith([b.hash], '/seed/b');
+    expect([a.auto_tmm, a.save_path]).toEqual([false, '/seed/a']);
+  });
+
   it('sets automatic management with an explicit value', async () => {
     const { api, commands } = setup();
     await commands.setOption([makeTorrent({ auto_tmm: false, hash: 'x' })], 'autoManaged', true);
@@ -145,6 +175,20 @@ describe('queue, location, rename, limits', () => {
     await vi.waitFor(() => expect(api.setAutoManagement).toHaveBeenCalledWith([a.hash], true));
     expect(api.setLocation).toHaveBeenCalledWith([a.hash], '/a');
     expect(api.setLocation).toHaveBeenCalledWith([b.hash], '/b');
+  });
+
+  it('undo of a move re-enables automatic management only after the move back is done', async () => {
+    // setLocation turns automatic management off on the server, so re-enabling must come after it.
+    const { api, commands, last } = setup();
+    const a = makeTorrent({ save_path: '/a', auto_tmm: true });
+    await commands.setLocation([a], '/new');
+    let finishMove!: () => void;
+    api.setLocation.mockImplementationOnce(() => new Promise<void>((resolve) => (finishMove = resolve)));
+    last().undo!();
+    await vi.waitFor(() => expect(api.setLocation).toHaveBeenCalledWith([a.hash], '/a'));
+    expect(api.setAutoManagement).not.toHaveBeenCalled();
+    finishMove();
+    await vi.waitFor(() => expect(api.setAutoManagement).toHaveBeenCalledWith([a.hash], true));
   });
 
   it('ignores a rename to the same or an empty name', async () => {

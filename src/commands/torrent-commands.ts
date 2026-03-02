@@ -132,6 +132,8 @@ export function createTorrentCommands(deps: CommandDeps) {
       const targets = ts.filter((t) => !t.force_start);
       if (!targets.length) return Promise.resolve(false);
       const hashes = hashesOf(targets);
+      const wasIdle = hashesOf(targets.filter(needsStart));
+      const wasRunning = hashesOf(targets.filter(isRunning));
       const keys = ['force_start', 'state'] as const;
       const before = snapshot(targets, keys);
       return mutate(
@@ -147,7 +149,13 @@ export function createTorrentCommands(deps: CommandDeps) {
           request: () => api.setForceStart(hashes, true),
           success: `Force started ${what(targets)}`,
           failure: 'Couldn’t force start',
-          undo: undoTo(targets, keys, before, () => api.setForceStart(hashes, false)),
+          // setForceStart(false) restarts in auto-managed mode, so torrents that weren't running get stopped instead.
+          undo: undoTo(targets, keys, before, () =>
+            Promise.all([
+              ...(wasIdle.length ? [api.stop(wasIdle)] : []),
+              ...(wasRunning.length ? [api.setForceStart(wasRunning, false)] : []),
+            ]),
+          ),
         },
         toast,
       );
@@ -212,16 +220,23 @@ export function createTorrentCommands(deps: CommandDeps) {
             return api.setSuperSeeding(hashes, v);
         }
       };
-      const before = snapshot(targets, [field]);
+      // Turning automatic management on relocates the files to the category folder; undo moves them back
+      // (setLocation also turns it off again on the server).
+      const relocates = option === 'autoManaged' && value;
+      const keys: (keyof Torrent)[] = relocates ? [field, 'save_path'] : [field];
+      const oldFolders = groupBy(targets, (t) => t.save_path);
+      const before = snapshot(targets, keys);
       return mutate(
         {
           items: targets,
-          keys: [field],
+          keys,
           optimistic: () => targets.forEach((t) => (t[field] = value)),
           request: () => send(value),
           success: `${OPTION_LABEL[option]} ${value ? 'on' : 'off'} for ${what(targets)}`,
           failure: `Couldn’t change ${OPTION_LABEL[option].toLowerCase()}`,
-          undo: undoTo(targets, [field], before, () => send(!value)),
+          undo: undoTo(targets, keys, before, () =>
+            relocates ? Promise.all(oldFolders.map(([path, hs]) => api.setLocation(hs, path))) : send(!value),
+          ),
         },
         toast,
       );
@@ -263,9 +278,11 @@ export function createTorrentCommands(deps: CommandDeps) {
           request: () => api.setLocation(hashesOf(targets), path),
           success: `Moving ${what(targets)} to ${path}`,
           failure: 'Couldn’t move',
-          undo: undoTo(targets, keys, before, () =>
-            Promise.all([...previous.map(([p, hs]) => api.setLocation(hs, p)), ...(wasAuto.length ? [api.setAutoManagement(wasAuto, true)] : [])]),
-          ),
+          // setLocation turns automatic management off on the server, so re-enable it only once the moves are done.
+          undo: undoTo(targets, keys, before, async () => {
+            await Promise.all(previous.map(([p, hs]) => api.setLocation(hs, p)));
+            if (wasAuto.length) await api.setAutoManagement(wasAuto, true);
+          }),
         },
         toast,
       );
