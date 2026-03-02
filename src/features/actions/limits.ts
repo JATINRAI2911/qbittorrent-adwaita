@@ -1,6 +1,6 @@
 import type { ShareLimitAction, ShareLimits } from '../../api/torrents';
 import type { Torrent } from '../../api/types';
-import type { SpeedLimits } from '../../commands/torrent-commands';
+import type { LimitChanges, SpeedLimits } from '../../commands/torrent-commands';
 
 export type LimitMode = 'global' | 'unlimited' | 'custom';
 
@@ -45,4 +45,18 @@ export function limitsFromForm(form: LimitsForm): { speed: SpeedLimits; share: S
       shareLimitAction: form.action,
     },
   };
+}
+
+/** The fields that differ between the form the dialog opened with and the one being applied. */
+export function changedLimits(initial: LimitsForm, current: LimitsForm): LimitChanges {
+  const before = limitsFromForm(initial);
+  const after = limitsFromForm(current);
+  const changes: LimitChanges = {};
+  if (after.speed.download !== before.speed.download) changes.download = after.speed.download;
+  if (after.speed.upload !== before.speed.upload) changes.upload = after.speed.upload;
+  if (after.share.ratioLimit !== before.share.ratioLimit) changes.ratioLimit = after.share.ratioLimit;
+  if (after.share.seedingTimeLimit !== before.share.seedingTimeLimit) changes.seedingTimeLimit = after.share.seedingTimeLimit;
+  if (after.share.inactiveSeedingTimeLimit !== before.share.inactiveSeedingTimeLimit) changes.inactiveSeedingTimeLimit = after.share.inactiveSeedingTimeLimit;
+  if (after.share.shareLimitAction !== before.share.shareLimitAction) changes.shareLimitAction = after.share.shareLimitAction;
+  return changes;
 }

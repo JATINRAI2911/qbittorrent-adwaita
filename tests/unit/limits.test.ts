@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formFromTorrent, limitsFromForm } from '../../src/features/actions/limits';
+import { changedLimits, formFromTorrent, limitsFromForm } from '../../src/features/actions/limits';
 import { makeTorrent } from '../fixtures/torrents';
 
 describe('limits form', () => {
@@ -21,5 +21,11 @@ describe('limits form', () => {
       speed: { download: 1536, upload: 0 },
       share: { ratioLimit: 2.5, seedingTimeLimit: -2, inactiveSeedingTimeLimit: -1, shareLimitAction: 'Default' },
     });
+  });
+
+  it('reports only the fields that differ from the starting form', () => {
+    const initial = formFromTorrent(makeTorrent({ seeding_time_limit: 90 }));
+    expect(changedLimits(initial, { ...initial })).toEqual({});
+    expect(changedLimits(initial, { ...initial, uploadKiB: 2, ratioMode: 'unlimited' })).toEqual({ upload: 2048, ratioLimit: -1 });
   });
 });

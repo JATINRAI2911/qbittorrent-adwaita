@@ -1,23 +1,28 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import type { ShareLimitAction, ShareLimits } from '../../api/torrents';
+  import type { ShareLimitAction } from '../../api/torrents';
   import type { Torrent } from '../../api/types';
-  import type { SpeedLimits } from '../../commands/torrent-commands';
+  import type { LimitChanges } from '../../commands/torrent-commands';
+  import { formatCount } from '../../lib/format';
   import BoxedList from '../../ui/adw/BoxedList.svelte';
   import ComboRow from '../../ui/adw/ComboRow.svelte';
   import Dialog from '../../ui/adw/Dialog.svelte';
   import SpinRow from '../../ui/adw/SpinRow.svelte';
-  import { formFromTorrent, limitsFromForm, type LimitMode } from './limits';
+  import { changedLimits, formFromTorrent, type LimitMode } from './limits';
 
   interface Props {
     torrents: Torrent[];
-    onconfirm: (limits: { speed: SpeedLimits; share: ShareLimits }) => void;
+    onconfirm: (changes: LimitChanges) => void;
     close: () => void;
   }
   let { torrents, onconfirm, close }: Props = $props();
 
   // The form starts from the first torrent's current limits; later syncs must not overwrite edits.
-  const form = $state(untrack(() => formFromTorrent(torrents[0]!)));
+  // Only fields the user changes are sent, so a multi-torrent selection keeps everything else.
+  const initial = untrack(() => formFromTorrent(torrents[0]!));
+  const form = $state({ ...initial });
+  const changes = $derived(changedLimits(initial, form));
+  const unchanged = $derived(Object.keys(changes).length === 0);
   const MODES: { value: LimitMode; label: string }[] = [
     { value: 'global', label: 'Use global limit' },
     { value: 'unlimited', label: 'Unlimited' },
@@ -36,12 +41,14 @@
   title="Speed and Share Limits"
   confirmLabel="Apply"
   width={480}
+  confirmDisabled={unchanged}
   {close}
   onconfirm={() => {
-    onconfirm(limitsFromForm(form));
+    onconfirm(changes);
     close();
   }}
 >
+  {#if torrents.length > 1}<p class="dialog-note limits-note">Only the values you change are applied to all {formatCount(torrents.length)} torrents.</p>{/if}
   <section class="limits-group" aria-label="Speed">
     <h3 class="heading">Speed</h3>
     <BoxedList>
@@ -66,4 +73,5 @@
 <style>
   .limits-group { display: flex; flex-direction: column; gap: 12px; }
   .limits-group h3 { margin: 0 4px; }
+  .limits-note { margin: 0 4px; }
 </style>

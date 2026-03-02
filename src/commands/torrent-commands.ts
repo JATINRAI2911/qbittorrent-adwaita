@@ -13,6 +13,8 @@ export interface SpeedLimits {
   download: number;
   upload: number;
 }
+/** Only the limits the user changed; everything left out stays as each torrent has it. */
+export type LimitChanges = Partial<SpeedLimits & ShareLimits>;
 
 export interface CommandDeps {
   api: TorrentApi;
@@ -65,7 +67,15 @@ const COPY_VALUE: Record<CopyKind, (t: Torrent) => string> = {
   comment: (t) => t.comment,
 };
 const RUN_KEYS = ['state', 'dlspeed', 'upspeed'] as const;
-const LIMIT_KEYS = ['dl_limit', 'up_limit', 'ratio_limit', 'seeding_time_limit', 'inactive_seeding_time_limit', 'share_limit_action'] as const;
+const SHARE_KEYS = ['ratioLimit', 'seedingTimeLimit', 'inactiveSeedingTimeLimit', 'shareLimitAction'] as const;
+const LIMIT_FIELD = {
+  download: 'dl_limit',
+  upload: 'up_limit',
+  ratioLimit: 'ratio_limit',
+  seedingTimeLimit: 'seeding_time_limit',
+  inactiveSeedingTimeLimit: 'inactive_seeding_time_limit',
+  shareLimitAction: 'share_limit_action',
+} as const satisfies Record<keyof LimitChanges, keyof Torrent>;
 
 export function createTorrentCommands(deps: CommandDeps) {
   const { api, toast } = deps;
@@ -307,37 +317,59 @@ export function createTorrentCommands(deps: CommandDeps) {
       );
     },
 
-    setLimits(ts: readonly Torrent[], speed: SpeedLimits, share: ShareLimits): Promise<boolean> {
-      if (!ts.length) return Promise.resolve(false);
+    setLimits(ts: readonly Torrent[], changes: LimitChanges): Promise<boolean> {
+      const keys = (Object.keys(changes) as (keyof LimitChanges)[]).filter((key) => changes[key] !== undefined).map((key) => LIMIT_FIELD[key]);
+      if (!ts.length || !keys.length) return Promise.resolve(false);
       const hashes = hashesOf(ts);
+      const shareChanged = SHARE_KEYS.some((key) => changes[key] !== undefined);
+      const shareOf = (t: Torrent): ShareLimits => ({
+        ratioLimit: t.ratio_limit,
+        seedingTimeLimit: t.seeding_time_limit,
+        inactiveSeedingTimeLimit: t.inactive_seeding_time_limit,
+        shareLimitAction: t.share_limit_action,
+      });
+      // setShareLimits needs all four values, so torrents are grouped by what they end up with.
+      const shareRequests = (pick: (t: Torrent) => ShareLimits) =>
+        groupBy(ts, (t) => JSON.stringify(pick(t))).map(([json, hs]) => api.setShareLimits(hs, JSON.parse(json) as ShareLimits));
+      const newShare = (t: Torrent): ShareLimits => {
+        const { download: _download, upload: _upload, ...share } = changes;
+        return { ...shareOf(t), ...share };
+      };
+      const oldShare = new Map(ts.map((t) => [t.hash, shareOf(t)]));
       const downloads = groupBy(ts, (t) => t.dl_limit);
       const uploads = groupBy(ts, (t) => t.up_limit);
-      const shares = groupBy(ts, (t) =>
-        JSON.stringify({ ratioLimit: t.ratio_limit, seedingTimeLimit: t.seeding_time_limit, inactiveSeedingTimeLimit: t.inactive_seeding_time_limit, shareLimitAction: t.share_limit_action }),
-      );
-      const before = snapshot(ts, LIMIT_KEYS);
+      const before = snapshot(ts, keys);
       return mutate(
         {
           items: ts,
-          keys: LIMIT_KEYS,
+          keys,
           optimistic: () => {
             for (const t of ts) {
-              t.dl_limit = speed.download;
-              t.up_limit = speed.upload;
+              const share = newShare(t);
+              if (changes.download !== undefined) t.dl_limit = changes.download;
+              if (changes.upload !== undefined) t.up_limit = changes.upload;
               t.ratio_limit = share.ratioLimit;
               t.seeding_time_limit = share.seedingTimeLimit;
               t.inactive_seeding_time_limit = share.inactiveSeedingTimeLimit;
               t.share_limit_action = share.shareLimitAction;
             }
           },
-          request: () => Promise.all([api.setDownloadLimit(hashes, speed.download), api.setUploadLimit(hashes, speed.upload), api.setShareLimits(hashes, share)]),
+          request: () => {
+            const pending = ts.map(newShare);
+            const byHash = new Map(ts.map((t, i) => [t.hash, pending[i]!]));
+            return Promise.all([
+              ...(changes.download !== undefined ? [api.setDownloadLimit(hashes, changes.download)] : []),
+              ...(changes.upload !== undefined ? [api.setUploadLimit(hashes, changes.upload)] : []),
+              ...(shareChanged ? shareRequests((t) => byHash.get(t.hash)!) : []),
+            ]);
+          },
           success: `Updated limits for ${what(ts)}`,
           failure: 'Couldn’t update limits',
-          undo: undoTo(ts, LIMIT_KEYS, before, () =>
+          undo: undoTo(ts, keys, before, () =>
             Promise.all([
-              ...downloads.map(([limit, hs]) => api.setDownloadLimit(hs, limit)),
-              ...uploads.map(([limit, hs]) => api.setUploadLimit(hs, limit)),
-              ...shares.map(([json, hs]) => api.setShareLimits(hs, JSON.parse(json) as ShareLimits)),
+              ...(changes.download !== undefined ? downloads.map(([limit, hs]) => api.setDownloadLimit(hs, limit)) : []),
+              ...(changes.upload !== undefined ? uploads.map(([limit, hs]) => api.setUploadLimit(hs, limit)) : []),
+              ...(shareChanged ? shareRequests((t) => oldShare.get(t.hash)!) : []),
             ]),
           ),
         },

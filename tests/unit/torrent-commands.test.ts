@@ -199,16 +199,42 @@ describe('queue, location, rename, limits', () => {
     expect(api.rename).not.toHaveBeenCalled();
   });
 
-  it('sets speed and share limits together in one change', async () => {
+  it('sends only the limits that changed', async () => {
     const { api, commands, last } = setup();
     const t = makeTorrent({ dl_limit: 0, up_limit: 0 });
-    const share = { ratioLimit: 2, seedingTimeLimit: -2, inactiveSeedingTimeLimit: -1, shareLimitAction: 'Stop' as const };
-    await commands.setLimits([t], { download: 1024, upload: 0 }, share);
+    await commands.setLimits([t], { download: 1024, ratioLimit: 2, shareLimitAction: 'Stop' });
     expect(api.setDownloadLimit).toHaveBeenCalledWith([t.hash], 1024);
-    expect(api.setUploadLimit).toHaveBeenCalledWith([t.hash], 0);
-    expect(api.setShareLimits).toHaveBeenCalledWith([t.hash], share);
+    expect(api.setUploadLimit).not.toHaveBeenCalled();
+    expect(api.setShareLimits).toHaveBeenCalledWith([t.hash], { ratioLimit: 2, seedingTimeLimit: -2, inactiveSeedingTimeLimit: -2, shareLimitAction: 'Stop' });
     expect(t).toMatchObject({ dl_limit: 1024, ratio_limit: 2, share_limit_action: 'Stop' });
     expect(last().title).toBe(`Updated limits for “${t.name}”`);
+  });
+
+  it('keeps each torrent’s own share limits when only a speed limit changes', async () => {
+    const { api, commands } = setup();
+    const a = makeTorrent({ seeding_time_limit: 60 });
+    const b = makeTorrent({ seeding_time_limit: 600 });
+    await commands.setLimits([a, b], { upload: 2048 });
+    expect(api.setUploadLimit).toHaveBeenCalledWith([a.hash, b.hash], 2048);
+    expect(api.setShareLimits).not.toHaveBeenCalled();
+    expect([a.seeding_time_limit, b.seeding_time_limit]).toEqual([60, 600]);
+  });
+
+  it('changes one share field per torrent without touching the others', async () => {
+    const { api, commands } = setup();
+    const a = makeTorrent({ seeding_time_limit: 60 });
+    const b = makeTorrent({ seeding_time_limit: 600 });
+    await commands.setLimits([a, b], { ratioLimit: 3 });
+    expect(api.setShareLimits).toHaveBeenCalledTimes(2);
+    expect(api.setShareLimits).toHaveBeenCalledWith([a.hash], expect.objectContaining({ ratioLimit: 3, seedingTimeLimit: 60 }));
+    expect(api.setShareLimits).toHaveBeenCalledWith([b.hash], expect.objectContaining({ ratioLimit: 3, seedingTimeLimit: 600 }));
+  });
+
+  it('does nothing when no limit changed', async () => {
+    const { api, commands, toasts } = setup();
+    await expect(commands.setLimits([makeTorrent()], {})).resolves.toBe(false);
+    expect(api.setShareLimits).not.toHaveBeenCalled();
+    expect(toasts).toHaveLength(0);
   });
 });
 

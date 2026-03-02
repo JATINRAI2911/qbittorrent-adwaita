@@ -58,18 +58,21 @@ describe('RenameDialog', () => {
 });
 
 describe('LimitsDialog', () => {
-  it('shows the custom ratio field only for a custom ratio, and returns API values', async () => {
+  it('shows the custom ratio field only for a custom ratio, and returns only what changed', async () => {
     const onconfirm = vi.fn();
     render(LimitsDialog, { torrents: [makeTorrent({ dl_limit: 0, ratio_limit: -2 })], onconfirm, close: vi.fn() });
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeDisabled();
     expect(screen.queryByRole('textbox', { name: 'Ratio' })).toBeNull();
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Ratio limit' }), 'custom');
     expect(screen.getByRole('textbox', { name: 'Ratio' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Increase Download limit' }));
     await userEvent.click(screen.getByRole('button', { name: 'Apply' }));
-    expect(onconfirm).toHaveBeenCalledWith({
-      speed: { download: 1024, upload: 0 },
-      share: { ratioLimit: 1, seedingTimeLimit: -2, inactiveSeedingTimeLimit: -2, shareLimitAction: 'Default' },
-    });
+    expect(onconfirm).toHaveBeenCalledWith({ download: 1024, ratioLimit: 1 });
+  });
+
+  it('explains that only changed values apply when several torrents are selected', () => {
+    render(LimitsDialog, { torrents: [makeTorrent(), makeTorrent()], onconfirm: vi.fn(), close: vi.fn() });
+    expect(screen.getByText('Only the values you change are applied to all 2 torrents.')).toBeInTheDocument();
   });
 });
 

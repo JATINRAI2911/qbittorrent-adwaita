@@ -31,7 +31,7 @@ export function createDialogOpeners(dialogs: DialogStore, commands: TorrentComma
     },
     limits(torrents) {
       if (!torrents.length) return;
-      dialogs.open(LimitsDialog, { torrents, onconfirm: ({ speed, share }) => void commands.setLimits(torrents, speed, share) });
+      dialogs.open(LimitsDialog, { torrents, onconfirm: (changes) => void commands.setLimits(torrents, changes) });
     },
     newCategory(torrents) {
       dialogs.open(NameDialog, {
