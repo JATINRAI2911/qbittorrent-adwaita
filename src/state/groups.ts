@@ -114,3 +114,33 @@ export function layoutGroups(torrents: Iterable<Torrent>, options: LayoutOptions
 export function expansionAfter(view: GroupView, single: boolean): number {
   return single ? view.items.length + PAGE_SIZE : Number.POSITIVE_INFINITY;
 }
+export type ListSort = 'activity' | 'name' | 'added' | 'size' | 'progress' | 'ratio';
+
+export const LIST_SORTS: { value: ListSort; label: string }[] = [
+  { value: 'activity', label: 'Activity' },
+  { value: 'name', label: 'Name' },
+  { value: 'added', label: 'Date Added' },
+  { value: 'size', label: 'Size' },
+  { value: 'progress', label: 'Progress' },
+  { value: 'ratio', label: 'Ratio' },
+];
+
+const byName = (a: Torrent, b: Torrent) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+const largestFirst = (value: (t: Torrent) => number) => (a: Torrent, b: Torrent) => value(b) - value(a) || byName(a, b);
+
+export function compareBy(sort: ListSort): (a: Torrent, b: Torrent) => number {
+  switch (sort) {
+    case 'activity':
+      return compareActivity;
+    case 'name':
+      return byName;
+    case 'added':
+      return largestFirst((t) => t.added_on);
+    case 'size':
+      return largestFirst((t) => t.size);
+    case 'progress':
+      return largestFirst((t) => t.progress);
+    case 'ratio':
+      return largestFirst((t) => t.ratio);
+  }
+}

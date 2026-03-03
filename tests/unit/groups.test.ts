@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { TorrentState } from '../../src/api/types';
-import { GROUP_LIMIT, PAGE_SIZE, compareActivity, expansionAfter, groupOf, layoutGroups, type LayoutOptions } from '../../src/state/groups';
+import { GROUP_LIMIT, LIST_SORTS, PAGE_SIZE, compareActivity, compareBy, expansionAfter, groupOf, layoutGroups, type LayoutOptions } from '../../src/state/groups';
 import { makeTorrent } from '../fixtures/torrents';
 
 const base: LayoutOptions = { status: 'all', libraryTotal: 100, collapsed: {}, expanded: {} };
@@ -111,5 +111,30 @@ describe('expansionAfter', () => {
     const { groups } = layoutGroups(many(250, 'stoppedUP'), base);
     expect(expansionAfter(groups[0]!, true)).toBe(200);
     expect(expansionAfter(groups[0]!, false)).toBe(Infinity);
+  });
+});
+
+describe('compareBy', () => {
+  const a = makeTorrent({ name: 'file 10', added_on: 5, size: 100, progress: 0.2, ratio: 3 });
+  const b = makeTorrent({ name: 'File 9', added_on: 9, size: 300, progress: 0.9, ratio: 1 });
+  const order = (sort: Parameters<typeof compareBy>[0]) => [a, b].sort(compareBy(sort)).map((t) => t.name);
+
+  it('offers the six list sorts, Activity first', () => {
+    expect(LIST_SORTS.map((s) => s.label)).toEqual(['Activity', 'Name', 'Date Added', 'Size', 'Progress', 'Ratio']);
+  });
+
+  it('sorts names naturally and case-insensitively', () => {
+    expect(order('name')).toEqual(['File 9', 'file 10']);
+  });
+
+  it('sorts dates, sizes, progress and ratio largest first', () => {
+    expect(order('added')).toEqual(['File 9', 'file 10']);
+    expect(order('size')).toEqual(['File 9', 'file 10']);
+    expect(order('progress')).toEqual(['File 9', 'file 10']);
+    expect(order('ratio')).toEqual(['file 10', 'File 9']);
+  });
+
+  it('uses the stable activity order by default', () => {
+    expect(compareBy('activity')).toBe(compareActivity);
   });
 });
