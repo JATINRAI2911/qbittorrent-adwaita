@@ -27,6 +27,11 @@ const definitions = {
   'list-add': [{ d: 'M8 3v10M3 8h10' }],
   'list-remove': [{ d: 'M3 8h10' }],
   trash: [{ d: 'M2.3 4.3h11.4M6 4.3V2.6h4v1.7M3.8 4.3l.8 9.3h6.8l.8-9.3' }],
+  search: [{ d: circle(6.8, 6.8, 4.3) }, { d: 'm10 10 3.8 3.8' }],
+  'view-list': [{ d: 'M5.8 3.5h7.7M5.8 8h7.7M5.8 12.5h7.7' }, { d: `${circle(3, 3.5, 1)}${circle(3, 8, 1)}${circle(3, 12.5, 1)}`, fill: true }],
+  'view-columns': [{ d: 'M2.5 2.5h11v11h-11z' }, { d: 'M6.2 2.5v11M9.8 2.5v11' }],
+  'pan-up': [{ d: 'M3.2 10.2 8 5.4l4.8 4.8' }],
+  network: [{ d: circle(8, 8, 5.8) }, { d: 'M2.2 8h11.6M8 2.2c-2.2 2.4-2.2 9.2 0 11.6M8 2.2c2.2 2.4 2.2 9.2 0 11.6' }],
 } satisfies Record<string, IconPath[]>;
 
 export type IconName = keyof typeof definitions;

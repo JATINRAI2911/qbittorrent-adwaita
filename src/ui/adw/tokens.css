@@ -42,6 +42,10 @@
   --selected-hover-color: color-mix(in srgb, currentColor 13%, transparent);
   --view-hover-color: color-mix(in srgb, currentColor 4%, transparent);
   --view-selected-color: color-mix(in srgb, var(--accent-bg-color) 25%, transparent);
+  --view-active-color: color-mix(in srgb, currentColor 8%, transparent);
+  --view-selected-hover-color: color-mix(in srgb, var(--accent-bg-color) 32%, transparent);
+  --active-toggle-bg-color: #ffffff;
+  --active-toggle-fg-color: rgb(0 0 6 / 80%);
   --trough-color: color-mix(in srgb, currentColor 15%, transparent);
   --button-color: color-mix(in srgb, currentColor 10%, transparent);
   --button-hover-color: color-mix(in srgb, currentColor 15%, transparent);
@@ -75,6 +79,8 @@
   --popover-fg-color: #ffffff;
   --shade-color: rgb(0 0 6 / 25%);
   --scrollbar-outline-color: rgb(0 0 12 / 95%);
+  --active-toggle-bg-color: rgb(255 255 255 / 20%);
+  --active-toggle-fg-color: #ffffff;
   color-scheme: dark;
 }
 
