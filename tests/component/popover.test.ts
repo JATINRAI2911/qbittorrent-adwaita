@@ -1,8 +1,11 @@
 import { render, screen } from '@testing-library/svelte';
 import { createRawSnippet, flushSync } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import Popover from '../../src/ui/adw/Popover.svelte';
+import PopoverHost from '../../src/ui/adw/PopoverHost.svelte';
 import { PopoverStore } from '../../src/ui/adw/popovers.svelte';
+import PanelProbe from '../fixtures/PanelProbe.svelte';
 
 const body = createRawSnippet(() => ({ render: () => '<p>Popover body</p>' }));
 
@@ -83,5 +86,42 @@ describe('PopoverStore', () => {
     store.openMenu({ sections: [] }, { x: 2, y: 2 });
     store.close();
     expect(onclose).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('PopoverStore panels', () => {
+  it('shows one popover at a time: a panel replaces a menu and vice versa', () => {
+    const store = new PopoverStore();
+    const onMenuClose = vi.fn();
+    store.openMenu({ sections: [] }, { x: 1, y: 1 }, onMenuClose);
+    store.openPanel(PanelProbe, { text: 'Hi' }, { x: 2, y: 2 });
+    expect(onMenuClose).toHaveBeenCalledTimes(1);
+    expect(store.current).toBeNull();
+    expect(store.isOpen).toBe(true);
+    store.openMenu({ sections: [] }, { x: 3, y: 3 });
+    expect(store.panel).toBeNull();
+    store.close();
+    expect(store.isOpen).toBe(false);
+  });
+
+  it('toggles a panel on the same anchor', () => {
+    const store = new PopoverStore();
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    store.togglePanel(PanelProbe, { text: 'Hi' }, anchor);
+    expect(store.panel).not.toBeNull();
+    store.togglePanel(PanelProbe, { text: 'Hi' }, anchor);
+    expect(store.panel).toBeNull();
+    expect(document.activeElement).toBe(anchor);
+    anchor.remove();
+  });
+
+  it('renders the panel with an injected close', async () => {
+    const store = new PopoverStore();
+    render(PopoverHost, { store });
+    store.openPanel(PanelProbe, { text: 'Panel body' }, { x: 5, y: 5 });
+    await vi.waitFor(() => expect(screen.getByText('Panel body')).toBeInTheDocument());
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }));
+    expect(store.isOpen).toBe(false);
   });
 });

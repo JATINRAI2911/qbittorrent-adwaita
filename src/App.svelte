@@ -45,13 +45,13 @@
     const command = keyCommand(event, { typing: isTypingTarget(event.target), onButton: isButtonTarget(event.target) });
     if (!command) return;
     if (command === 'escape') {
-      if (popovers.current) popovers.close();
+      if (popovers.isOpen) popovers.close();
       else if (dialogs.isOpen) dialogs.closeTop();
       else if (selection.mode) selection.exit();
       else selection.clear();
       return;
     }
-    if (popovers.current || dialogs.isOpen || session.connection !== 'online') return;
+    if (popovers.isOpen || dialogs.isOpen || session.connection !== 'online') return;
     event.preventDefault();
     const targets = targetTorrents(app);
     switch (command) {

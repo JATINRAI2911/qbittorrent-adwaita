@@ -12,4 +12,11 @@
       <Menu model={store.current.model} onclose={() => store.close()} />
     </Popover>
   {/key}
+{:else if store.panel}
+  {@const Panel = store.panel.component}
+  {#key store.panel.id}
+    <Popover anchor={store.panel.anchor} onclose={() => store.close()} class="panel-popover">
+      <Panel {...store.panel.props} close={() => store.close()} />
+    </Popover>
+  {/key}
 {/if}
