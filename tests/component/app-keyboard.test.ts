@@ -72,4 +72,22 @@ describe('App keyboard', () => {
     await vi.waitFor(() => expect(screen.queryByRole('button', { name: /Selected/ })).toBeNull(), { timeout: 3000 });
     unmount();
   });
+
+  it('in selection mode, Space toggles the focused row instead of acting on the whole selection', async () => {
+    const { api, unmount } = renderApp(async (rid) => (rid === 0 ? full : { rid: 2 }));
+    const user = userEvent.setup();
+    const row = (name: string) => screen.getByText(name).closest('[data-hash]') as HTMLElement;
+    await screen.findByText('first.iso');
+    await user.click(row('first.iso'));
+    await user.keyboard('{Control>}');
+    await user.click(row('second.iso'));
+    await user.keyboard('{/Control}');
+    expect(screen.getByRole('button', { name: /2 Selected/ })).toBeInTheDocument();
+    (document.activeElement as HTMLElement | null)?.blur();
+    await user.keyboard(' ');
+    expect(api.stop).not.toHaveBeenCalled();
+    expect(api.start).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /1 Selected/ })).toBeInTheDocument();
+    unmount();
+  });
 });

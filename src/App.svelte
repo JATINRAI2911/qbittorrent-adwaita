@@ -64,8 +64,10 @@
         break;
       }
       case 'toggle':
-        if (selection.mode && selection.keyboard && selection.focus) selection.toggle(selection.focus);
-        else if (targets.length) void commands.toggle(targets);
+        // In selection mode Space toggles the focused row; it never starts/stops the selection.
+        if (selection.mode) {
+          if (selection.focus) selection.toggle(selection.focus);
+        } else if (targets.length) void commands.toggle(targets);
         break;
       case 'delete':
         openers.confirmDelete(targets);
