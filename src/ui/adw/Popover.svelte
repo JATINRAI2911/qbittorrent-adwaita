@@ -12,11 +12,13 @@
   let { anchor, onclose, class: className = '', children }: Props = $props();
 
   let element: HTMLDivElement;
+  let contents: HTMLDivElement;
   let placement = $state<Placement | null>(null);
   const anchored = $derived('element' in anchor);
 
-  $effect(() => {
-    const size = { width: element.offsetWidth, height: element.offsetHeight };
+  function place() {
+    // scrollHeight is the natural height even while max-height is capping the scroll container.
+    const size = { width: element.offsetWidth, height: contents.scrollHeight };
     const viewport = { width: window.innerWidth, height: window.innerHeight };
     if ('element' in anchor) {
       const r = anchor.element.getBoundingClientRect();
@@ -24,6 +26,20 @@
     } else {
       placement = placePopover({ anchor, size, viewport });
     }
+  }
+
+  // Re-place when the content changes size (a submenu slides in) or the window resizes.
+  $effect(() => {
+    void anchor;
+    place();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => place());
+    observer?.observe(contents);
+    if (contents.firstElementChild) observer?.observe(contents.firstElementChild);
+    window.addEventListener('resize', place);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', place);
+    };
   });
 
   $effect(() => {
@@ -47,5 +63,7 @@
   style:top="{placement?.top ?? -9999}px"
   style:--arrow-x="{placement?.arrowX ?? 0}px"
 >
-  <div class="contents">{@render children()}</div>
+  <div class="contents" bind:this={contents} style:max-height={placement?.maxHeight != null ? `${placement.maxHeight}px` : undefined}>
+    {@render children()}
+  </div>
 </div>

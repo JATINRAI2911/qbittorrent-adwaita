@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/svelte';
-import { createRawSnippet } from 'svelte';
-import { describe, expect, it, vi } from 'vitest';
+import { createRawSnippet, flushSync } from 'svelte';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import Popover from '../../src/ui/adw/Popover.svelte';
 import { PopoverStore } from '../../src/ui/adw/popovers.svelte';
 
@@ -21,6 +21,44 @@ describe('Popover', () => {
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     expect(onclose).toHaveBeenCalledTimes(1);
     anchor.remove();
+  });
+});
+
+describe('Popover placement', () => {
+  const observers: { callback: () => void; observed: Element[] }[] = [];
+  class FakeResizeObserver {
+    observed: Element[] = [];
+    constructor(readonly callback: () => void) {
+      observers.push(this);
+    }
+    observe(element: Element) {
+      this.observed.push(element);
+    }
+    disconnect() {}
+  }
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    observers.length = 0;
+  });
+
+  it('re-places itself when its content grows, e.g. when a submenu replaces the root', () => {
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    render(Popover, { props: { anchor: { x: 10, y: 700 }, onclose: vi.fn(), children: body } });
+    const popover = document.querySelector<HTMLElement>('.popover')!;
+    const contents = popover.querySelector<HTMLElement>('.contents')!;
+    expect(popover.style.top).toBe('700px');
+    expect(observers[0]!.observed).toContain(contents);
+
+    Object.defineProperty(contents, 'scrollHeight', { configurable: true, get: () => 300 });
+    observers[0]!.callback();
+    flushSync();
+    expect(popover.style.top).toBe(`${700 - 300}px`);
+
+    Object.defineProperty(contents, 'scrollHeight', { configurable: true, get: () => 5000 });
+    observers[0]!.callback();
+    flushSync();
+    expect(popover.style.top).toBe('8px');
+    expect(contents.style.maxHeight).toBe(`${window.innerHeight - 16}px`);
   });
 });
 
