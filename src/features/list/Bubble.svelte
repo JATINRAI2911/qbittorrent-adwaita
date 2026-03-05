@@ -4,13 +4,13 @@
   import Spinner from '../../ui/adw/Spinner.svelte';
   import { bubbleKind } from './describe';
 
-  let { torrent }: { torrent: Torrent } = $props();
+  let { torrent, small = false }: { torrent: Torrent; small?: boolean } = $props();
   const kind = $derived(bubbleKind(torrent));
 </script>
 
-<div class="bubble {kind}" aria-hidden="true">
+<div class="bubble {kind}" class:small aria-hidden="true">
   {#if kind === 'busy'}
-    <Spinner size={16} />
+    <Spinner size={small ? 12 : 16} />
   {:else if kind === 'queued'}
     <span class="bubble-num">{torrent.priority > 0 ? torrent.priority : '·'}</span>
   {:else if kind === 'error'}
@@ -34,4 +34,7 @@
   .bubble.idle { background: color-mix(in srgb, var(--accent-bg-color) 22%, transparent); color: var(--accent-color); }
   .bubble :global(svg.i) { stroke-width: 2; }
   .bubble-num { font-weight: 800; font-size: 13px; }
+  .bubble.small { width: 20px; height: 20px; }
+  .bubble.small :global(svg.i) { width: 12px; height: 12px; }
+  .bubble.small .bubble-num { font-size: 10px; }
 </style>

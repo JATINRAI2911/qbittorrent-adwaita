@@ -47,6 +47,16 @@ describe('TorrentList', () => {
     await userEvent.click(within(group).getByRole('button', { name: /Show 50 More/ }));
     expect(within(group).getAllByRole('listitem')).toHaveLength(150);
   });
+
+  it('shows No Results Found with Clear Filters when filters hide everything', async () => {
+    const app = makeAppContext([makeTorrent({ name: 'ubuntu.iso', state: 'downloading' })]);
+    app.list.setFilters({ search: 'zzz' });
+    render(TorrentList, { context: withApp(app) });
+    expect(screen.getByRole('heading', { name: 'No Results Found' })).toBeInTheDocument();
+    expect(screen.getByText('No torrents match “zzz”.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Clear Filters' }));
+    expect(screen.getByText('ubuntu.iso')).toBeInTheDocument();
+  });
 });
 
 describe('TorrentRow', () => {

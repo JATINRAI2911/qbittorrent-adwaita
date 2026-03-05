@@ -6,6 +6,7 @@
   import { createApp } from './app-setup';
   import Login from './features/login/Login.svelte';
   import TorrentList from './features/list/TorrentList.svelte';
+  import TableView from './features/table/TableView.svelte';
   import ActionBar from './features/shell/ActionBar.svelte';
   import { isButtonTarget, isTypingTarget, keyCommand } from './features/shell/keyboard';
   import MainHeader from './features/shell/MainHeader.svelte';
@@ -98,8 +99,8 @@
         <Banner tone="error" title="Can’t reach qBittorrent. Retrying in {session.retryIn} s…" actionLabel="Retry Now" onaction={() => session.retryNow()} />
       {/if}
     </div>
-    <main class="content" class:offline onscroll={(event) => (scrolled = event.currentTarget.scrollTop > 0)}>
-      <TorrentList />
+    <main class="content" class:offline class:table={prefs.view === 'table'} onscroll={(event) => (scrolled = event.currentTarget.scrollTop > 0)}>
+      {#if prefs.view === 'table'}<TableView />{:else}<TorrentList />{/if}
     </main>
     {#if selection.mode}<ActionBar />{/if}
   </div>
@@ -126,6 +127,7 @@
   .top-bar { flex: none; position: relative; z-index: 2; transition: box-shadow 200ms var(--ease-out-quad); }
   .top-bar.raised { box-shadow: 0 1px color-mix(in srgb, var(--shade-color) 75%, transparent); }
   .content { flex: 1; min-height: 0; overflow: auto; }
+  .content.table { overflow: hidden; }
   .content.offline { filter: saturate(0.3); opacity: 0.6; pointer-events: none; transition: opacity 300ms var(--ease-out-quad); }
   .loading { position: fixed; inset: 0; display: grid; place-items: center; color: var(--accent-color); }
   .login-layer { position: fixed; inset: 0; z-index: 10; overflow: auto; background: var(--window-bg-color); }

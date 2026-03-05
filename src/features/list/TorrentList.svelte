@@ -3,6 +3,7 @@
   import StatusPage from '../../ui/adw/StatusPage.svelte';
   import { torrentMenu } from '../actions/torrent-menu';
   import GroupSection from './GroupSection.svelte';
+  import NoResults from './NoResults.svelte';
 
   const app = getAppContext();
   const model = app.list;
@@ -33,6 +34,8 @@
 
 {#if model.torrents.size === 0}
   <StatusPage icon="magnet" title="No Torrents" description="Torrents you add will appear here." />
+{:else if model.layout.groups.length === 0}
+  <NoResults />
 {:else}
   <!-- Rows are driven by pointer here; the keyboard equivalents are handled app-wide (see keyboard.ts). -->
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
