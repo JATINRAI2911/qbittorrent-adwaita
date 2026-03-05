@@ -1,5 +1,6 @@
 <script lang="ts">
   import { untrack } from 'svelte';
+  import type { ClientDataApi } from './api/clientdata';
   import { torrentsApi, type TorrentApi } from './api/torrents';
   import { setAppContext, targetTorrents } from './app-context';
   import { createApp } from './app-setup';
@@ -17,10 +18,10 @@
   import StatusPage from './ui/adw/StatusPage.svelte';
   import ToastOverlay from './ui/adw/ToastOverlay.svelte';
 
-  let { session = defaultSession, api = torrentsApi }: { session?: Session; api?: TorrentApi } = $props();
+  let { session = defaultSession, api = torrentsApi, clientdata }: { session?: Session; api?: TorrentApi; clientdata?: ClientDataApi } = $props();
 
-  const app = setAppContext(untrack(() => createApp(session, api)));
-  const { selection, list, commands, openers, popovers, dialogs, toasts } = app;
+  const app = setAppContext(untrack(() => createApp(session, api, clientdata)));
+  const { selection, list, prefs, commands, openers, popovers, dialogs, toasts } = app;
 
   let scrolled = $state(false);
   const offline = $derived(session.connection === 'offline');
@@ -28,6 +29,11 @@
   $effect(() => {
     untrack(() => session.start());
     return () => session.stop();
+  });
+
+  // UI preferences live on the server: load them once we're authenticated.
+  $effect(() => {
+    if (session.loaded) untrack(() => void prefs.load());
   });
 
   // Keep the selection pointing at torrents that still exist (deleted here or elsewhere).

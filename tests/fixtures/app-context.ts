@@ -5,10 +5,14 @@ import { APP_CONTEXT_KEY, type AppContext } from '../../src/app-context';
 import type { TorrentCommands } from '../../src/commands/torrent-commands';
 import type { DialogOpeners } from '../../src/features/actions/openers';
 import { ListModel } from '../../src/features/list/list-model.svelte';
+import { TableModel } from '../../src/features/table/table-model.svelte';
+import { UiPrefs } from '../../src/state/prefs.svelte';
 import { Selection } from '../../src/state/selection.svelte';
+import { TrackerIndex } from '../../src/state/tracker-index.svelte';
 import { DialogStore } from '../../src/ui/adw/dialogs.svelte';
 import { PopoverStore } from '../../src/ui/adw/popovers.svelte';
 import { ToastStore } from '../../src/ui/adw/toast.svelte';
+import { fakeClientData } from './fake-clientdata';
 
 export type Mocked<T> = { [K in keyof T]: T[K] extends (...args: infer A) => infer R ? Mock<(...args: A) => R> : T[K] };
 
@@ -21,15 +25,22 @@ export function makeAppContext(torrents: Torrent[] = [], overrides: Partial<AppC
     torrents: map,
     categories: new SvelteMap<string, Category>(),
     tags: new SvelteSet<string>(),
+    trackers: new SvelteMap<string, string[]>(),
     server: {},
     logout: vi.fn(async () => {}),
   };
+  const prefs = new UiPrefs({ api: fakeClientData() });
+  const trackers = new TrackerIndex(session.trackers);
+  const list = new ListModel(map, { hosts: () => trackers.byHash, sort: () => prefs.listSort });
   const commands = lazyMocks<TorrentCommands>(async () => true);
   const openers = lazyMocks<DialogOpeners>(() => undefined);
   const context = {
     session,
     selection: new Selection(),
-    list: new ListModel(map),
+    list,
+    table: new TableModel(list, () => prefs.tableSort),
+    prefs,
+    trackers,
     commands,
     openers,
     popovers: new PopoverStore(),

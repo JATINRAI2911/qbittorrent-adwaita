@@ -4,7 +4,10 @@ import type { TorrentCommands } from './commands/torrent-commands';
 import type { DialogOpeners } from './features/actions/openers';
 import type { TorrentMenuContext } from './features/actions/torrent-menu';
 import type { ListModel } from './features/list/list-model.svelte';
+import type { TableModel } from './features/table/table-model.svelte';
+import type { UiPrefs } from './state/prefs.svelte';
 import type { Selection } from './state/selection.svelte';
+import type { TrackerIndex } from './state/tracker-index.svelte';
 import type { DialogStore } from './ui/adw/dialogs.svelte';
 import type { PopoverStore } from './ui/adw/popovers.svelte';
 import type { ToastStore } from './ui/adw/toast.svelte';
@@ -14,6 +17,7 @@ export interface SessionView {
   readonly torrents: ReadonlyMap<string, Torrent>;
   readonly categories: ReadonlyMap<string, Category>;
   readonly tags: ReadonlySet<string>;
+  readonly trackers: ReadonlyMap<string, readonly string[]>;
   readonly server: Partial<ServerState>;
   logout(): Promise<void>;
 }
@@ -22,6 +26,9 @@ export interface AppContext {
   session: SessionView;
   selection: Selection;
   list: ListModel;
+  table: TableModel;
+  prefs: UiPrefs;
+  trackers: TrackerIndex;
   commands: TorrentCommands;
   openers: DialogOpeners;
   popovers: PopoverStore;
@@ -55,4 +62,14 @@ export function menuContext(app: AppContext): TorrentMenuContext {
     tags: [...app.session.tags].sort(byName),
     queueing: app.session.server.queueing ?? false,
   };
+}
+
+/** Rendered rows, top to bottom, in the current view - what arrows and Shift-click ranges walk. */
+export function viewOrder(app: AppContext): string[] {
+  return app.prefs.view === 'table' ? app.table.order : app.list.order;
+}
+
+/** Everything the current view shows, including collapsed groups - what Select All selects. */
+export function viewHashes(app: AppContext): string[] {
+  return app.prefs.view === 'table' ? app.table.order : app.list.allHashes;
 }
