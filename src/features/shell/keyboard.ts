@@ -7,7 +7,11 @@ export type KeyCommand =
   | 'toggle'
   | 'delete'
   | 'rename'
-  | 'select-all';
+  | 'select-all'
+  | 'search'
+  | 'view-list'
+  | 'view-table'
+  | 'type';
 
 export interface KeyInput {
   key: string;
@@ -21,7 +25,14 @@ export interface KeyInput {
 export function keyCommand(event: KeyInput, context: { typing: boolean; onButton: boolean }): KeyCommand | null {
   if (event.key === 'Escape') return 'escape';
   if (context.typing || event.altKey) return null;
-  if (event.ctrlKey || event.metaKey) return event.key.toLowerCase() === 'a' ? 'select-all' : null;
+  if (event.ctrlKey || event.metaKey) {
+    const key = event.key.toLowerCase();
+    if (key === 'a') return 'select-all';
+    if (key === 'f') return 'search';
+    if (event.key === '1') return 'view-list';
+    if (event.key === '2') return 'view-table';
+    return null;
+  }
   switch (event.key) {
     case 'ArrowDown':
       return event.shiftKey ? 'extend-next' : 'focus-next';
@@ -35,7 +46,8 @@ export function keyCommand(event: KeyInput, context: { typing: boolean; onButton
     case 'F2':
       return 'rename';
     default:
-      return null;
+      // GNOME type-to-search: any printable character while nothing is focused.
+      return [...event.key].length === 1 && !context.onButton ? 'type' : null;
   }
 }
 

@@ -2,7 +2,7 @@
   import { untrack } from 'svelte';
   import type { ClientDataApi } from './api/clientdata';
   import { torrentsApi, type TorrentApi } from './api/torrents';
-  import { setAppContext, targetTorrents } from './app-context';
+  import { setAppContext, targetTorrents, viewHashes, viewOrder } from './app-context';
   import { createApp } from './app-setup';
   import Login from './features/login/Login.svelte';
   import TorrentList from './features/list/TorrentList.svelte';
@@ -10,6 +10,7 @@
   import ActionBar from './features/shell/ActionBar.svelte';
   import { isButtonTarget, isTypingTarget, keyCommand } from './features/shell/keyboard';
   import MainHeader from './features/shell/MainHeader.svelte';
+  import SearchBar from './features/shell/SearchBar.svelte';
   import { session as defaultSession, type Session } from './state/session.svelte';
   import Banner from './ui/adw/Banner.svelte';
   import Button from './ui/adw/Button.svelte';
@@ -22,9 +23,10 @@
   let { session = defaultSession, api = torrentsApi, clientdata }: { session?: Session; api?: TorrentApi; clientdata?: ClientDataApi } = $props();
 
   const app = setAppContext(untrack(() => createApp(session, api, clientdata)));
-  const { selection, list, prefs, commands, openers, popovers, dialogs, toasts } = app;
+  const { selection, list, table, prefs, commands, openers, popovers, dialogs, toasts } = app;
 
   let scrolled = $state(false);
+  let content = $state<HTMLElement>();
   const offline = $derived(session.connection === 'offline');
 
   $effect(() => {
@@ -37,15 +39,29 @@
     if (session.loaded) untrack(() => void prefs.load());
   });
 
-  // Keep the selection pointing at torrents that still exist (deleted here or elsewhere).
+  // Actions only reach what the user can see: drop torrents that were deleted or are now filtered out.
   $effect(() => {
-    const torrents = session.torrents;
-    void Array.from(torrents.keys());
-    untrack(() => selection.prune((hash) => torrents.has(hash)));
+    const visible = new Set(viewHashes(app));
+    untrack(() => selection.prune((hash) => visible.has(hash)));
   });
 
-  function scrollToRow(hash: string) {
-    document.querySelector(`[data-hash="${hash}"]`)?.scrollIntoView?.({ block: 'nearest' });
+  // A new filter starts at the top (the table view resets its own scroller).
+  $effect(() => {
+    void list.filterKey;
+    untrack(() => {
+      if (content) content.scrollTop = 0;
+    });
+  });
+
+  function reveal(hash: string) {
+    if (prefs.view === 'table') table.reveal(hash);
+    else document.querySelector(`[data-hash="${hash}"]`)?.scrollIntoView?.({ block: 'nearest' });
+  }
+
+  function focusFirstRow() {
+    selection.focus = null;
+    const hash = selection.moveFocus(1, false, viewOrder(app));
+    if (hash) reveal(hash);
   }
 
   function handleKey(event: KeyboardEvent) {
@@ -54,6 +70,8 @@
     if (command === 'escape') {
       if (popovers.isOpen) popovers.close();
       else if (dialogs.isOpen) dialogs.closeTop();
+      else if (list.filters.search) list.setFilters({ search: '' });
+      else if (list.searchOpen) list.closeSearch();
       else if (selection.mode) selection.exit();
       else selection.clear();
       return;
@@ -66,8 +84,8 @@
       case 'focus-previous':
       case 'extend-next':
       case 'extend-previous': {
-        const hash = selection.moveFocus(command.endsWith('next') ? 1 : -1, command.startsWith('extend'), list.order);
-        if (hash) scrollToRow(hash);
+        const hash = selection.moveFocus(command.endsWith('next') ? 1 : -1, command.startsWith('extend'), viewOrder(app));
+        if (hash) reveal(hash);
         break;
       }
       case 'toggle':
@@ -83,7 +101,20 @@
         if (targets.length === 1) openers.rename(targets[0]!);
         break;
       case 'select-all':
-        selection.selectAll(list.allHashes);
+        selection.selectAll(viewHashes(app));
+        break;
+      case 'search':
+        list.openSearch();
+        break;
+      case 'type':
+        list.setFilters({ search: list.searchOpen ? list.filters.search + event.key : event.key });
+        list.openSearch(false);
+        break;
+      case 'view-list':
+        prefs.setView('list');
+        break;
+      case 'view-table':
+        prefs.setView('table');
         break;
     }
   }
@@ -98,8 +129,9 @@
       {#if offline}
         <Banner tone="error" title="Can’t reach qBittorrent. Retrying in {session.retryIn} s…" actionLabel="Retry Now" onaction={() => session.retryNow()} />
       {/if}
+      {#if list.searchOpen}<SearchBar onleave={focusFirstRow} />{/if}
     </div>
-    <main class="content" class:offline class:table={prefs.view === 'table'} onscroll={(event) => (scrolled = event.currentTarget.scrollTop > 0)}>
+    <main class="content" bind:this={content} class:offline class:table={prefs.view === 'table'} onscroll={(event) => (scrolled = event.currentTarget.scrollTop > 0)}>
       {#if prefs.view === 'table'}<TableView />{:else}<TorrentList />{/if}
     </main>
     {#if selection.mode}<ActionBar />{/if}

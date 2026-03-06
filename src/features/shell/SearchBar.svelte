@@ -1,0 +1,42 @@
+<script lang="ts">
+  import { tick } from 'svelte';
+  import { getAppContext } from '../../app-context';
+  import SearchEntry from '../../ui/adw/SearchEntry.svelte';
+
+  let { onleave }: { onleave: () => void } = $props();
+
+  const app = getAppContext();
+  let input = $state<HTMLInputElement>();
+
+  // Focus when opened, and whenever Ctrl+F / type-to-search asks again.
+  $effect(() => {
+    const request = app.list.searchFocus;
+    void tick().then(() => {
+      input?.focus();
+      if (request.select) input?.select();
+    });
+  });
+</script>
+
+<div class="searchbar">
+  <div class="clamp">
+    <SearchEntry
+      label="Search torrents"
+      placeholder="Search torrents"
+      bind:input
+      bind:value={() => app.list.filters.search, (search) => app.list.setFilters({ search })}
+      onkeydown={(event) => {
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          input?.blur();
+          onleave();
+        }
+      }}
+    />
+  </div>
+</div>
+
+<style>
+  .searchbar { padding: 0 6px 6px; background: var(--headerbar-bg-color); }
+  .clamp { max-width: 400px; margin: 0 auto; }
+</style>

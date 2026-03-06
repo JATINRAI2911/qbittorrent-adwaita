@@ -19,6 +19,12 @@ describe('keyCommand', () => {
     ['a', { ctrlKey: true }, 'select-all'],
     ['A', { metaKey: true }, 'select-all'],
     ['Escape', {}, 'escape'],
+    ['f', { ctrlKey: true }, 'search'],
+    ['F', { metaKey: true }, 'search'],
+    ['1', { ctrlKey: true }, 'view-list'],
+    ['2', { metaKey: true }, 'view-table'],
+    ['u', {}, 'type'],
+    ['É', {}, 'type'],
   ] as const)('%s %j → %s', (k, mods, expected) => expect(keyCommand(key(k, mods), free)).toBe(expected));
 
   it('ignores everything but Escape while typing', () => {
@@ -32,10 +38,18 @@ describe('keyCommand', () => {
     expect(keyCommand(key('ArrowDown'), { typing: false, onButton: true })).toBe('focus-next');
   });
 
-  it('ignores Alt chords and unrelated keys', () => {
+  it('ignores Alt chords, unrelated Ctrl chords and non-printable keys', () => {
     expect(keyCommand(key('ArrowDown', { altKey: true }), free)).toBeNull();
-    expect(keyCommand(key('x'), free)).toBeNull();
+    expect(keyCommand(key('u', { altKey: true }), free)).toBeNull();
     expect(keyCommand(key('c', { ctrlKey: true }), free)).toBeNull();
+    expect(keyCommand(key('Tab'), free)).toBeNull();
+    expect(keyCommand(key('Enter'), free)).toBeNull();
+  });
+
+  it('starts type-to-search only when nothing is focused', () => {
+    expect(keyCommand(key('u'), { typing: true, onButton: false })).toBeNull();
+    expect(keyCommand(key('u'), { typing: false, onButton: true })).toBeNull();
+    expect(keyCommand(key('f', { ctrlKey: true }), { typing: true, onButton: false })).toBeNull();
   });
 });
 
