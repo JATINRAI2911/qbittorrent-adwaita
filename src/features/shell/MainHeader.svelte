@@ -1,12 +1,15 @@
 <script lang="ts">
   import type { ServerState, Torrent } from '../../api/types';
-  import { getAppContext } from '../../app-context';
+  import { getAppContext, viewHashes } from '../../app-context';
   import { formatCount } from '../../lib/format';
+  import { LIST_SORTS } from '../../state/groups';
   import { subtitleText, summarize } from '../../state/summary';
   import Button from '../../ui/adw/Button.svelte';
   import HeaderBar from '../../ui/adw/HeaderBar.svelte';
   import Icon from '../../ui/adw/Icon.svelte';
+  import type { MenuModel } from '../../ui/adw/menu';
   import WindowTitle from '../../ui/adw/WindowTitle.svelte';
+  import { COLUMN_IDS, COLUMNS } from '../table/columns';
 
   interface Props {
     torrents: ReadonlyMap<string, Torrent>;
@@ -32,13 +35,50 @@
       {
         sections: [
           [
-            { label: 'Select All', accel: 'Ctrl+A', action: () => app.selection.selectAll(app.list.allHashes) },
+            { label: 'Select All', accel: 'Ctrl+A', action: () => app.selection.selectAll(viewHashes(app)) },
             { label: 'Select None', action: () => app.selection.selected.clear() },
           ],
         ],
       },
       event.currentTarget as HTMLElement,
     );
+  }
+
+  const table = $derived(app.prefs.view === 'table');
+
+  function viewMenu(): MenuModel {
+    if (!table) {
+      return { sections: [LIST_SORTS.map((s) => ({ label: s.label, checked: app.prefs.listSort === s.value, action: () => app.prefs.setListSort(s.value) }))] };
+    }
+    const sort = app.prefs.tableSort;
+    return {
+      sections: [
+        [
+          {
+            label: 'Columns',
+            submenu: () => ({
+              title: 'Columns',
+              sections: [
+                COLUMN_IDS.filter((id) => id !== 'name').map((id) => ({
+                  label: COLUMNS[id].title,
+                  checked: app.prefs.columns.includes(id),
+                  action: () => app.prefs.toggleColumn(id),
+                })),
+              ],
+            }),
+          },
+        ],
+        [
+          { label: 'Ascending', checked: !sort.descending, action: () => app.prefs.setTableSort({ ...sort, descending: false }) },
+          { label: 'Descending', checked: sort.descending, action: () => app.prefs.setTableSort({ ...sort, descending: true }) },
+        ],
+      ],
+    };
+  }
+
+  function toggleSearch() {
+    if (app.list.searchOpen) app.list.closeSearch();
+    else app.list.openSearch();
   }
 </script>
 
@@ -56,8 +96,17 @@
   <HeaderBar>
     {#snippet title()}<WindowTitle title="qBittorrent" {subtitle} />{/snippet}
     {#snippet end()}
-      <Button icon="selection-mode" title="Select" onclick={() => app.selection.enter()} />
       <Button icon="open-menu" title="Main Menu" onclick={openMainMenu} />
+      <div class="split-button">
+        <Button icon={table ? 'view-list' : 'view-columns'} title={table ? 'List View' : 'Table View'} onclick={() => app.prefs.setView(table ? 'list' : 'table')} />
+        <button type="button" class="btn image-button arrow" aria-label="View Options" aria-haspopup="menu" onclick={(event) => app.popovers.toggleMenu(viewMenu(), event.currentTarget, 'end')}>
+          <Icon name="pan-down" />
+        </button>
+      </div>
+      <button type="button" class="btn image-button" class:checked={app.list.searchOpen} aria-label="Search" title="Search" aria-pressed={app.list.searchOpen} onclick={toggleSearch}>
+        <Icon name="search" />
+      </button>
+      <Button icon="selection-mode" title="Select" onclick={() => app.selection.enter()} />
     {/snippet}
   </HeaderBar>
 {/if}

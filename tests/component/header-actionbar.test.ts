@@ -37,6 +37,48 @@ describe('MainHeader', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(app.selection.mode).toBe(false);
   });
+
+  it('switches between list and table from the split button', async () => {
+    const { app } = header();
+    await userEvent.click(screen.getByRole('button', { name: 'Table View' }));
+    expect(app.prefs.view).toBe('table');
+    await userEvent.click(screen.getByRole('button', { name: 'List View' }));
+    expect(app.prefs.view).toBe('list');
+  });
+
+  it('offers the list sorts in the view menu, checking the current one', async () => {
+    const { app } = header();
+    await userEvent.click(screen.getByRole('button', { name: 'View Options' }));
+    const items = app.popovers.current!.model.sections.flat();
+    expect(items.map((i) => i.label)).toEqual(['Activity', 'Name', 'Date Added', 'Size', 'Progress', 'Ratio']);
+    expect(items.find((i) => i.label === 'Activity')!.checked).toBe(true);
+    items.find((i) => i.label === 'Ratio')!.action!();
+    expect(app.prefs.listSort).toBe('ratio');
+  });
+
+  it('offers columns and sort direction in the view menu of the table', async () => {
+    const { app } = header();
+    app.prefs.setView('table');
+    flushSync();
+    await userEvent.click(screen.getByRole('button', { name: 'View Options' }));
+    const model = app.popovers.current!.model;
+    const columns = model.sections.flat().find((i) => i.label === 'Columns')!.submenu!();
+    columns.sections.flat().find((i) => i.label === 'Size')!.action!();
+    expect(app.prefs.columns).not.toContain('size');
+    model.sections.flat().find((i) => i.label === 'Ascending')!.action!();
+    expect(app.prefs.tableSort.descending).toBe(false);
+  });
+
+  it('toggles search', async () => {
+    const { app } = header();
+    const search = screen.getByRole('button', { name: 'Search' });
+    expect(search).toHaveAttribute('aria-pressed', 'false');
+    await userEvent.click(search);
+    expect(app.list.searchOpen).toBe(true);
+    expect(search).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(search);
+    expect(app.list.searchOpen).toBe(false);
+  });
 });
 
 describe('ActionBar', () => {
