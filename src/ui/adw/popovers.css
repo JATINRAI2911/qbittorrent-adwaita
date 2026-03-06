@@ -30,3 +30,9 @@
 .menu-back { font-weight: 700; }
 .menu-back svg.i { opacity: 30%; margin-left: -2px; }
 .menu-back span { flex: 1; text-align: center; padding-right: 16px; }
+.panel-popover > .contents { padding: 6px; }
+.facet { width: 300px; display: flex; flex-direction: column; outline: none; }
+.facet-search { padding: 0 0 6px; }
+.facet-list { max-height: min(420px, 60vh); overflow: auto; display: flex; flex-direction: column; }
+.facet-count { margin-left: 12px; opacity: var(--dim-opacity); }
+.menu-empty { margin: 0; padding: 12px; text-align: center; opacity: var(--dim-opacity); }

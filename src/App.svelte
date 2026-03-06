@@ -4,6 +4,7 @@
   import { torrentsApi, type TorrentApi } from './api/torrents';
   import { setAppContext, targetTorrents, viewHashes, viewOrder } from './app-context';
   import { createApp } from './app-setup';
+  import FilterBar from './features/filters/FilterBar.svelte';
   import Login from './features/login/Login.svelte';
   import TorrentList from './features/list/TorrentList.svelte';
   import TableView from './features/table/TableView.svelte';
@@ -130,6 +131,7 @@
         <Banner tone="error" title="Can’t reach qBittorrent. Retrying in {session.retryIn} s…" actionLabel="Retry Now" onaction={() => session.retryNow()} />
       {/if}
       {#if list.searchOpen}<SearchBar onleave={focusFirstRow} />{/if}
+      {#if !selection.mode && (session.torrents.size > 10 || list.filtering)}<FilterBar />{/if}
     </div>
     <main class="content" bind:this={content} class:offline class:table={prefs.view === 'table'} onscroll={(event) => (scrolled = event.currentTarget.scrollTop > 0)}>
       {#if prefs.view === 'table'}<TableView />{:else}<TorrentList />{/if}

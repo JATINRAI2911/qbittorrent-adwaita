@@ -83,4 +83,23 @@ describe('App search', () => {
     expect(screen.queryByRole('grid')).toBeNull();
     unmount();
   });
+
+  it('shows the filter bar only when a filter is active for a small library, and hides it in selection mode', async () => {
+    const { unmount } = await renderApp();
+    expect(screen.queryByRole('radiogroup', { name: 'Status' })).toBeNull();
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.keyboard('first');
+    expect(screen.getByRole('radiogroup', { name: 'Status' })).toBeInTheDocument();
+    // Keep a filter active (status), drop the search, then enter selection mode: the bar must hide.
+    await userEvent.click(screen.getByRole('radio', { name: 'Seeding' }));
+    await userEvent.keyboard('{Escape}');
+    screen.getByRole('searchbox').focus();
+    await userEvent.keyboard('{Escape}{Escape}');
+    expect(screen.getByRole('radiogroup', { name: 'Status' })).toBeInTheDocument();
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.keyboard('{Control>}a{/Control}');
+    expect(screen.getByRole('button', { name: /Selected/ })).toBeInTheDocument();
+    expect(screen.queryByRole('radiogroup', { name: 'Status' })).toBeNull();
+    unmount();
+  });
 });
