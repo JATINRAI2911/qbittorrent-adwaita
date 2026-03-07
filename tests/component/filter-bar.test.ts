@@ -4,6 +4,8 @@ import { flushSync } from 'svelte';
 import { describe, expect, it, vi } from 'vitest';
 import FacetPopover from '../../src/features/filters/FacetPopover.svelte';
 import FilterBar from '../../src/features/filters/FilterBar.svelte';
+import PopoverHost from '../../src/ui/adw/PopoverHost.svelte';
+import { PopoverStore } from '../../src/ui/adw/popovers.svelte';
 import type { FacetItem } from '../../src/state/filters';
 import { makeAppContext, withApp } from '../fixtures/app-context';
 import { makeTorrent } from '../fixtures/torrents';
@@ -40,6 +42,19 @@ describe('FacetPopover', () => {
     await vi.waitFor(() => expect(screen.getByRole('menuitemradio', { name: 'All Tags' })).toHaveFocus());
     await userEvent.keyboard('{ArrowDown}');
     expect(screen.getByRole('menuitemradio', { name: /Cat 0/ })).toHaveFocus();
+  });
+});
+
+describe('FacetPopover inside the popover host', () => {
+  it('still reports the choice after closing itself', async () => {
+    // Panels get their props through the host; closing clears the store before onselect runs.
+    const store = new PopoverStore();
+    const onselect = vi.fn();
+    render(PopoverHost, { store });
+    store.openPanel(FacetPopover, { title: 'Tracker', allLabel: 'All Trackers', items: items(2), selected: null, onselect }, { x: 5, y: 5 });
+    await userEvent.click(await screen.findByRole('menuitemradio', { name: /Cat 1/ }));
+    expect(onselect).toHaveBeenCalledWith('c1');
+    expect(store.isOpen).toBe(false);
   });
 });
 
