@@ -53,10 +53,14 @@ export class UiPrefs {
   #timer: ReturnType<typeof setTimeout> | undefined;
   #loading: Promise<void> | undefined;
   #dirty = false;
+  /** The local copy has changes the server hasn't confirmed (debounce pending, or a write failed). */
+  #pending = false;
 
   constructor(deps: PrefsDeps) {
     this.#deps = deps;
-    this.#apply(this.#readLocal());
+    const local = this.#readLocal();
+    this.#apply(local.data);
+    this.#pending = local.pending;
   }
 
   get data(): UiPrefsData {
@@ -67,6 +71,12 @@ export class UiPrefs {
   load(): Promise<void> {
     this.#loading ??= (async () => {
       try {
+        // An unsynced local copy is newer than the server's (reloaded within the debounce, or the last
+        // write failed): keep it and send it again instead of taking the older server copy.
+        if (this.#pending) {
+          if (!this.#dirty) await this.flush();
+          return;
+        }
         const result = await this.#deps.api.load([PREFS_KEY]);
         if (!this.#dirty && result[PREFS_KEY] !== undefined) {
           this.#apply(sanitizePrefs(result[PREFS_KEY]));
@@ -104,18 +114,26 @@ export class UiPrefs {
     this.setColumns(this.columns.includes(id) ? this.columns.filter((c) => c !== id) : [...this.columns, id]);
   }
 
-  /** Write to the server now (tests, page hide). */
+  /** Write to the server now. On failure the local copy stays marked unsynced, so the next load re-sends it. */
   async flush(): Promise<void> {
     clearTimeout(this.#timer);
     try {
       await this.#deps.api.store({ [PREFS_KEY]: this.data });
+      this.#pending = false;
+      this.#writeLocal();
     } catch {
-      // best effort; localStorage already has it
+      // best effort; localStorage already has it, marked unsynced
     }
+  }
+
+  /** For page hide: send a change still waiting on the debounce. */
+  flushIfPending(): Promise<void> {
+    return this.#pending ? this.flush() : Promise.resolve();
   }
 
   #changed(): void {
     this.#dirty = true;
+    this.#pending = true;
     this.#writeLocal();
     clearTimeout(this.#timer);
     this.#timer = setTimeout(() => void this.flush(), this.#deps.delayMs ?? 1000);
@@ -128,18 +146,20 @@ export class UiPrefs {
     this.columns = data.columns;
   }
 
-  #readLocal(): UiPrefsData {
+  #readLocal(): { data: UiPrefsData; pending: boolean } {
     try {
       const raw = this.#deps.storage?.getItem(STORAGE_KEY);
-      return sanitizePrefs(raw ? JSON.parse(raw) : null);
+      const value: unknown = raw ? JSON.parse(raw) : null;
+      const pending = value !== null && typeof value === 'object' && (value as { pending?: unknown }).pending === true;
+      return { data: sanitizePrefs(value), pending };
     } catch {
-      return sanitizePrefs(null);
+      return { data: sanitizePrefs(null), pending: false };
     }
   }
 
   #writeLocal(): void {
     try {
-      this.#deps.storage?.setItem(STORAGE_KEY, JSON.stringify(this.data));
+      this.#deps.storage?.setItem(STORAGE_KEY, JSON.stringify({ ...this.data, pending: this.#pending }));
     } catch {
       // storage blocked: the server copy still works
     }

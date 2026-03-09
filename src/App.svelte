@@ -40,6 +40,20 @@
     if (session.loaded) untrack(() => void prefs.load());
   });
 
+  // Don't lose a change still waiting on the 1 s debounce when the tab is closed or hidden.
+  $effect(() => {
+    const flush = () => void prefs.flushIfPending();
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  });
+
   // Actions only reach what the user can see: drop torrents that were deleted or are now filtered out.
   $effect(() => {
     const visible = new Set(viewHashes(app));

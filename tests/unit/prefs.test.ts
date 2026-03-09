@@ -90,4 +90,46 @@ describe('UiPrefs', () => {
     prefs.setView('table');
     await expect(prefs.flush()).resolves.toBeUndefined();
   });
+
+  it('keeps an unsynced local change across a reload and re-sends it', async () => {
+    const storage = memoryStorage();
+    new UiPrefs({ api: fakeClientData(), storage }).setView('table'); // reload before the 1 s write
+    const api = fakeClientData({ [PREFS_KEY]: { view: 'list' } });
+    const reloaded = new UiPrefs({ api, storage });
+    await reloaded.load();
+    expect(reloaded.view).toBe('table');
+    expect(api.store).toHaveBeenCalledWith({ [PREFS_KEY]: expect.objectContaining({ view: 'table' }) });
+  });
+
+  it('keeps the local change when the server write failed', async () => {
+    const storage = memoryStorage();
+    const failing = fakeClientData();
+    failing.store.mockRejectedValue(new Error('down'));
+    new UiPrefs({ api: failing, storage }).setView('table');
+    await vi.advanceTimersByTimeAsync(1000);
+    const reloaded = new UiPrefs({ api: fakeClientData({ [PREFS_KEY]: { view: 'list' } }), storage });
+    await reloaded.load();
+    expect(reloaded.view).toBe('table');
+  });
+
+  it('takes the server copy once the local copy was synced', async () => {
+    const storage = memoryStorage();
+    new UiPrefs({ api: fakeClientData(), storage }).setView('table');
+    await vi.advanceTimersByTimeAsync(1000);
+    const reloaded = new UiPrefs({ api: fakeClientData({ [PREFS_KEY]: { view: 'list' } }), storage });
+    await reloaded.load();
+    expect(reloaded.view).toBe('list');
+  });
+
+  it('flushes right away when asked while a change is pending, and not otherwise', async () => {
+    const api = fakeClientData();
+    const prefs = new UiPrefs({ api, storage: memoryStorage() });
+    await prefs.flushIfPending();
+    expect(api.store).not.toHaveBeenCalled();
+    prefs.setView('table');
+    await prefs.flushIfPending();
+    expect(api.store).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(api.store).toHaveBeenCalledTimes(1);
+  });
 });

@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/svelte';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import App from '../../src/App.svelte';
 import type { MaindataResponse } from '../../src/api/types';
@@ -23,6 +24,23 @@ describe('App preferences', () => {
     await screen.findByText('ubuntu.iso');
     await vi.waitFor(() => expect(clientdata.load).toHaveBeenCalledWith(['adwaita-ui']));
     expect(clientdata.load).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+
+  it('sends a pending preference change when the page is hidden, without waiting for the debounce', async () => {
+    const clientdata = fakeClientData();
+    const session = new Session({
+      login: vi.fn(async () => 'ok' as const),
+      logout: vi.fn(async () => {}),
+      maindata: vi.fn(async (rid: number) => (rid === 0 ? full : { rid: 2 })),
+      isHidden: () => false,
+      onVisible: () => () => {},
+    });
+    const { unmount } = render(App, { session, api: fakeTorrentApi(), clientdata });
+    await screen.findByText('ubuntu.iso');
+    await userEvent.click(screen.getByRole('button', { name: 'Table View' }));
+    window.dispatchEvent(new Event('pagehide'));
+    await vi.waitFor(() => expect(clientdata.store).toHaveBeenCalledWith({ 'adwaita-ui': expect.objectContaining({ view: 'table' }) }), { timeout: 400 });
     unmount();
   });
 });
