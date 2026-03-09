@@ -144,3 +144,23 @@ export function compareBy(sort: ListSort): (a: Torrent, b: Torrent) => number {
       return largestFirst((t) => t.ratio);
   }
 }
+
+/**
+ * The part of a torrent's sort position that only changes when someone acts on it (rename, queue
+ * move, force start…). Live values (progress, ratio) are left out so a sync tick never reorders rows.
+ */
+export function sortSignature(t: Torrent, sort: ListSort): string {
+  switch (sort) {
+    case 'activity':
+      return `${STATE_RANK[t.state] ?? 9}|${t.priority}|${t.added_on}|${t.name}`;
+    case 'name':
+      return t.name;
+    case 'added':
+      return String(t.added_on);
+    case 'size':
+      return String(t.size);
+    case 'progress':
+    case 'ratio':
+      return '';
+  }
+}

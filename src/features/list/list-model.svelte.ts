@@ -1,7 +1,7 @@
 import { untrack } from 'svelte';
 import type { Torrent } from '../../api/types';
 import { isFiltering, matches, NO_FILTERS, type Filters } from '../../state/filters';
-import { compareBy, expansionAfter, layoutGroups, type GroupKey, type GroupView, type ListSort, type StatusFilter } from '../../state/groups';
+import { compareBy, expansionAfter, groupOf, layoutGroups, sortSignature, type GroupKey, type GroupView, type ListSort, type StatusFilter } from '../../state/groups';
 
 export interface ListModelOptions {
   /** hash → tracker hosts, for the tracker filter. */
@@ -46,17 +46,29 @@ export class ListModel {
   /** Changes whenever what's shown is narrowed differently - for "scroll to top" and selection pruning. */
   readonly filterKey = $derived(JSON.stringify([this.status, this.filters]));
 
-  // Sort comparisons are untracked: live values (progress, ratio) never reorder rows on a tick;
-  // membership changes (grouping fields, filters) and sort-key changes do.
+  /**
+   * Changes only when the grouped order has to change: membership (hash, group) or a sort key someone
+   * controls. A $derived string that comes out equal doesn't notify, so live ticks - progress, speeds,
+   * downloading↔stalled flips - never re-sort the list.
+   */
+  readonly #orderKey = $derived.by(() => {
+    const sort = this.#sort();
+    let key = sort;
+    for (const t of this.matching) key += `\u0001${t.hash}\u0002${groupOf(t)}\u0002${sortSignature(t, sort)}`;
+    return key;
+  });
+
   readonly layout = $derived.by(() => {
+    void this.#orderKey;
     const compare = compareBy(this.#sort());
-    return layoutGroups(this.matching, {
+    const options = {
       status: this.status,
       libraryTotal: this.torrents.size,
-      collapsed: this.collapsed,
-      expanded: this.expanded,
-      compare: (a, b) => untrack(() => compare(a, b)),
-    });
+      collapsed: { ...this.collapsed },
+      expanded: { ...this.expanded },
+      compare,
+    };
+    return untrack(() => layoutGroups(this.matching, options));
   });
 
   /** Hashes of rendered rows, top to bottom - what arrow keys and Shift-click ranges walk. */

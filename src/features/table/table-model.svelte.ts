@@ -1,7 +1,7 @@
 import { untrack } from 'svelte';
 import { groupOf, STATUS_GROUPS } from '../../state/groups';
 import type { ListModel } from '../list/list-model.svelte';
-import { sortRows, type TableSort } from './columns';
+import { COLUMNS, sortRows, type TableSort } from './columns';
 
 const DEFAULT_SORT: TableSort = { column: 'added', descending: true };
 
@@ -18,13 +18,28 @@ export class TableModel {
     this.#sort = sort;
   }
 
-  // Membership (status groups, filters) and the sort key are tracked; the values being compared are
-  // not, so live speeds never reorder rows under the pointer.
+  /**
+   * Changes only when the row order has to change: membership, the sort, or a value people control in
+   * the sorted column. Live columns (speeds, progress, seeds…) and state flips never re-sort.
+   */
+  readonly #orderKey = $derived.by(() => {
+    const status = this.list.status;
+    const sort = this.#sort();
+    const stable = COLUMNS[sort.column].stable;
+    let key = `${status}|${sort.column}|${sort.descending}`;
+    for (const t of this.list.matching) key += `\u0001${t.hash}\u0002${status === 'all' ? '' : groupOf(t)}\u0002${stable ? stable(t) : ''}`;
+    return key;
+  });
+
   readonly rows = $derived.by(() => {
-    const groups = STATUS_GROUPS[this.list.status];
-    const members = this.list.matching.filter((t) => groups.includes(groupOf(t)));
+    void this.#orderKey;
+    const status = this.list.status;
     const sort = { ...this.#sort() };
-    return untrack(() => sortRows(members, sort));
+    return untrack(() => {
+      const groups = STATUS_GROUPS[status];
+      const members = status === 'all' ? this.list.matching : this.list.matching.filter((t) => groups.includes(groupOf(t)));
+      return sortRows(members, sort);
+    });
   });
 
   readonly order = $derived(this.rows.map((t) => t.hash));

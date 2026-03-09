@@ -45,4 +45,23 @@ describe('TableModel', () => {
     table.reveal('x');
     expect(table.revealHash).toBe('x');
   });
+
+  it('does not re-sort by speed when another torrent flips state', () => {
+    const a = live({ state: 'downloading', dlspeed: 100 });
+    const b = live({ state: 'downloading', dlspeed: 50 });
+    const table = new TableModel(new ListModel(new SvelteMap([[a.hash, a], [b.hash, b]])), () => ({ column: 'down', descending: true }));
+    expect(table.order).toEqual([a.hash, b.hash]);
+    b.dlspeed = 900;
+    a.state = 'stalledDL';
+    expect(table.order).toEqual([a.hash, b.hash]);
+  });
+
+  it('re-sorts when a user-controlled key changes (rename under Name)', () => {
+    const a = live({ name: 'a' });
+    const b = live({ name: 'b' });
+    const table = new TableModel(new ListModel(new SvelteMap([[a.hash, a], [b.hash, b]])), () => ({ column: 'name', descending: false }));
+    expect(table.order).toEqual([a.hash, b.hash]);
+    a.name = 'z';
+    expect(table.order).toEqual([b.hash, a.hash]);
+  });
 });

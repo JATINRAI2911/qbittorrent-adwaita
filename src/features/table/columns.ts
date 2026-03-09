@@ -22,6 +22,8 @@ export interface Column {
   /** Direction of the first click on this header. */
   defaultDescending: boolean;
   compare(a: Torrent, b: Torrent): number;
+  /** For columns sorted by a value only people change (name, size…): the sort re-runs when it changes. Live columns leave it out. */
+  stable?: (t: Torrent) => string;
 }
 
 const NOT_CONNECTED: ReadonlySet<TorrentState> = new Set<TorrentState>(['stoppedDL', 'stoppedUP', 'queuedDL', 'queuedUP', 'error', 'missingFiles', 'metaDL', 'forcedMetaDL']);
@@ -69,19 +71,19 @@ const column = (id: ColumnId, title: string, width: string, compare: Column['com
 });
 
 export const COLUMNS: Record<ColumnId, Column> = {
-  name: column('name', 'Name', 'minmax(260px, 3fr)', byText((t) => t.name)),
+  name: column('name', 'Name', 'minmax(260px, 3fr)', byText((t) => t.name), { stable: (t) => t.name }),
   status: column('status', 'Status', '140px', byText(statusText)),
   progress: column('progress', 'Progress', '150px', byNumber((t) => t.progress), { defaultDescending: true }),
-  size: column('size', 'Size', '90px', byNumber((t) => t.size), { align: 'end', defaultDescending: true }),
+  size: column('size', 'Size', '90px', byNumber((t) => t.size), { align: 'end', defaultDescending: true, stable: (t) => String(t.size) }),
   down: column('down', 'Down', '96px', byNumber((t) => t.dlspeed), { align: 'end', defaultDescending: true }),
   up: column('up', 'Up', '96px', byNumber((t) => t.upspeed), { align: 'end', defaultDescending: true }),
   eta: column('eta', 'ETA', '120px', byNumber((t) => t.eta)),
   seeds: column('seeds', 'Seeds', '90px', byNumber((t) => connectedSeeds(t) * 1e6 + t.num_complete), { align: 'end', defaultDescending: true }),
   peers: column('peers', 'Peers', '90px', byNumber((t) => connectedPeers(t) * 1e6 + t.num_incomplete), { align: 'end', defaultDescending: true }),
   ratio: column('ratio', 'Ratio', '70px', byNumber((t) => t.ratio), { align: 'end', defaultDescending: true }),
-  category: column('category', 'Category', '130px', byText((t) => t.category)),
-  tags: column('tags', 'Tags', '150px', byText((t) => t.tags)),
-  added: column('added', 'Added', '160px', byNumber((t) => t.added_on), { defaultDescending: true }),
+  category: column('category', 'Category', '130px', byText((t) => t.category), { stable: (t) => t.category }),
+  tags: column('tags', 'Tags', '150px', byText((t) => t.tags), { stable: (t) => t.tags }),
+  added: column('added', 'Added', '160px', byNumber((t) => t.added_on), { defaultDescending: true, stable: (t) => String(t.added_on) }),
 };
 
 export function sortRows(ts: readonly Torrent[], sort: TableSort): Torrent[] {

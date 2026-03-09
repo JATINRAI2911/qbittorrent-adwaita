@@ -91,4 +91,37 @@ describe('ListModel sort', () => {
     map.set(c.hash, c);
     expect(model.order).toEqual([a.hash, b.hash, c.hash]);
   });
+
+  it('does not reorder when an unrelated torrent flips between downloading and stalled', () => {
+    const a = live({ state: 'downloading', progress: 0.2 });
+    const b = live({ state: 'downloading', progress: 0.5 });
+    const other = live({ state: 'downloading', progress: 0 });
+    const model = new ListModel(new SvelteMap([a, b, other].map((t) => [t.hash, t] as const)), { sort: () => 'progress' });
+    expect(model.order).toEqual([b.hash, a.hash, other.hash]);
+    a.progress = 0.9;
+    other.state = 'stalledDL';
+    expect(model.order).toEqual([b.hash, a.hash, other.hash]);
+  });
+
+  it('follows queue moves under the Activity sort', () => {
+    const q1 = live({ state: 'queuedDL', priority: 1 });
+    const q2 = live({ state: 'queuedDL', priority: 2 });
+    const q3 = live({ state: 'queuedDL', priority: 3 });
+    const model = new ListModel(new SvelteMap([q1, q2, q3].map((t) => [t.hash, t] as const)));
+    expect(model.order).toEqual([q1.hash, q2.hash, q3.hash]);
+    // "Move to Top" on q3: qBittorrent renumbers without any state change.
+    q3.priority = 1;
+    q1.priority = 2;
+    q2.priority = 3;
+    expect(model.order).toEqual([q3.hash, q1.hash, q2.hash]);
+  });
+
+  it('re-sorts right away when a torrent is renamed under the Name sort', () => {
+    const a = live({ name: 'a', state: 'downloading' });
+    const b = live({ name: 'b', state: 'downloading' });
+    const model = new ListModel(new SvelteMap([[a.hash, a], [b.hash, b]]), { sort: () => 'name' });
+    expect(model.order).toEqual([a.hash, b.hash]);
+    a.name = 'z';
+    expect(model.order).toEqual([b.hash, a.hash]);
+  });
 });
