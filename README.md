@@ -36,7 +36,9 @@ npm test   # tests/unit/maindata-real.test.ts now runs against it
 | Delete / Backspace | Delete… |
 | F2 | Rename… |
 | Ctrl/Cmd + A | Select all |
-| Esc | Close menu or dialog, then leave selection mode |
+| Ctrl/Cmd + F · type anywhere | Search |
+| Ctrl/Cmd + 1 / 2 | List / Table view |
+| Esc | Close menu or dialog → clear search → close search → leave selection mode |
 
 ## Design
 
