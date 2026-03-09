@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { flushSync } from 'svelte';
 import { describe, expect, it } from 'vitest';
+import { gridMinWidth } from '../../src/features/table/columns';
 import TableView from '../../src/features/table/TableView.svelte';
 import { makeAppContext, withApp } from '../fixtures/app-context';
 import { makeTorrent } from '../fixtures/torrents';
@@ -69,6 +70,12 @@ describe('TableView', () => {
     const { app } = setup();
     await userEvent.pointer({ keys: '[MouseRight]', target: screen.getByText('t002') });
     expect(app.popovers.current?.model.sections.flat().some((i) => i.label === 'Delete…')).toBe(true);
+  });
+
+  it('gives the grid a fixed minimum width so long names ellipsize instead of widening it', () => {
+    const { app } = setup();
+    const inner = document.querySelector<HTMLElement>('.cv-inner')!;
+    expect(inner.style.minWidth).toBe(`${gridMinWidth(app.prefs.columns)}px`);
   });
 
   it('renders only a window of rows for large libraries', () => {

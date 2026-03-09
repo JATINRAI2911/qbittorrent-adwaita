@@ -4,7 +4,7 @@
   import Icon from '../../ui/adw/Icon.svelte';
   import type { MenuModel } from '../../ui/adw/menu';
   import { torrentMenu } from '../actions/torrent-menu';
-  import { COLUMN_IDS, COLUMNS, gridTemplate, type ColumnId } from './columns';
+  import { COLUMN_IDS, COLUMNS, gridMinWidth, gridTemplate, type ColumnId } from './columns';
   import TableRow from './TableRow.svelte';
   import { scrollToReveal, virtualWindow } from './virtual';
 
@@ -101,7 +101,7 @@
   bind:this={scroller}
   onscroll={() => (scrollTop = scroller.scrollTop)}
 >
-  <div class="cv-inner">
+  <div class="cv-inner" style:min-width="{gridMinWidth(columns)}px">
     <div
       class="cv-header"
       role="row"
@@ -135,7 +135,7 @@
 
 <style>
   .columnview { height: 100%; overflow: auto; background: var(--view-bg-color); color: var(--view-fg-color); outline: none; }
-  .cv-inner { width: max-content; min-width: 100%; }
+  .cv-inner { width: 100%; }
   .cv-header { position: sticky; top: 0; z-index: 2; display: grid; padding: 0 6px; background: var(--view-bg-color); transition: box-shadow 200ms var(--ease-out-quad); }
   .scrolled .cv-header { box-shadow: 0 1px color-mix(in srgb, var(--shade-color) 75%, transparent); }
   .cv-h {

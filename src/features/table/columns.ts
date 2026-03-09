@@ -71,7 +71,7 @@ const column = (id: ColumnId, title: string, width: string, compare: Column['com
 });
 
 export const COLUMNS: Record<ColumnId, Column> = {
-  name: column('name', 'Name', 'minmax(260px, 3fr)', byText((t) => t.name), { stable: (t) => t.name }),
+  name: column('name', 'Name', 'minmax(260px, 1fr)', byText((t) => t.name), { stable: (t) => t.name }),
   status: column('status', 'Status', '140px', byText(statusText)),
   progress: column('progress', 'Progress', '150px', byNumber((t) => t.progress), { defaultDescending: true }),
   size: column('size', 'Size', '90px', byNumber((t) => t.size), { align: 'end', defaultDescending: true, stable: (t) => String(t.size) }),
@@ -96,3 +96,14 @@ export function sortRows(ts: readonly Torrent[], sort: TableSort): Torrent[] {
 }
 
 export const gridTemplate = (ids: readonly ColumnId[]) => ids.map((id) => COLUMNS[id].width).join(' ');
+
+/** Row horizontal padding (6px each side), matching `.cv-row` / `.cv-header`. */
+const ROW_PADDING = 12;
+
+/**
+ * The grid's minimum width: the sum of each track's minimum. The grid is otherwise 100% wide, so Name
+ * takes the leftover space and ellipsizes; a max-content grid would instead grow with whichever long
+ * name happens to be rendered, shifting every column while scrolling.
+ */
+export const gridMinWidth = (ids: readonly ColumnId[]) =>
+  ids.reduce((sum, id) => sum + Number(/(\d+(?:\.\d+)?)px/.exec(COLUMNS[id].width)?.[1] ?? 0), ROW_PADDING);

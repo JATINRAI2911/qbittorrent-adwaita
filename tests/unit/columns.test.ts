@@ -5,6 +5,7 @@ import {
   connectedPeers,
   connectedSeeds,
   gridTemplate,
+  gridMinWidth,
   isColumnId,
   peersText,
   sortRows,
@@ -43,5 +44,11 @@ describe('columns', () => {
     expect(sortRows([b, c, a], { column: 'size', descending: false }).map((t) => t.name)).toEqual(['a', 'c', 'b']);
     expect(sortRows([b, c, a], { column: 'size', descending: true }).map((t) => t.name)).toEqual(['b', 'c', 'a']);
     expect(sortRows([b, c, a], { column: 'name', descending: false }).map((t) => t.name)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('sizes the grid from the column minimums, independent of any name length', () => {
+    // Name 260 + Size 90 + Ratio 70 + 12px of row padding.
+    expect(gridMinWidth(['name', 'size', 'ratio'])).toBe(432);
+    expect(COLUMNS.name.width).toBe('minmax(260px, 1fr)');
   });
 });
