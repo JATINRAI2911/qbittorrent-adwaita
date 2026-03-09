@@ -20,7 +20,11 @@ describe('hostOf and trackerHosts', () => {
   it('groups tracker URLs by host and survives malformed URLs', () => {
     expect(hostOf('https://tracker.example.org:443/a/PASSKEY/announce')).toBe('tracker.example.org');
     expect(hostOf('udp://open.demonii.com:1337/announce')).toBe('open.demonii.com');
-    expect(hostOf('not a url')).toBe('not a url');
+    expect(hostOf('not a url')).toBe('Unknown tracker');
+    // Malformed private-tracker URLs must never surface their path (it carries the passkey).
+    expect(hostOf('http://t.example:abc/PASSKEY/announce')).toBe('t.example');
+    expect(hostOf('https://user:secret@t.example:99999/PASSKEY')).toBe('t.example');
+    expect(hostOf('t.example/PASSKEY/announce')).toBe('Unknown tracker');
     const hosts = trackerHosts(
       new Map([
         ['https://t.example/a/announce', ['h1', 'h2']],

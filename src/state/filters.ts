@@ -23,12 +23,19 @@ export interface FacetItem {
 
 const byName = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
 
+/**
+ * The host of a tracker URL. Never falls back to the raw URL: private-tracker URLs carry the passkey in
+ * their path, and this string is shown in the Tracker dropdown.
+ */
 export function hostOf(url: string): string {
   try {
-    return new URL(url).hostname || url;
+    const host = new URL(url).hostname;
+    if (host) return host;
   } catch {
-    return url;
+    // malformed (e.g. a bad port): take the authority by hand below
   }
+  const authority = /^[a-z][a-z0-9+.-]*:\/\/(?:[^@/?#]*@)?(\[[^\]]*\]|[^:/?#]+)/i.exec(url)?.[1];
+  return authority || 'Unknown tracker';
 }
 
 /** hash → tracker hosts, from maindata's `trackers` (url → hashes). */
