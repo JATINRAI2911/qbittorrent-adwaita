@@ -99,7 +99,7 @@
   aria-label="Torrents"
   aria-rowcount={table.rows.length + 1}
   bind:this={scroller}
-  onscroll={() => (scrollTop = scroller.scrollTop)}
+  onscroll={(event) => (scrollTop = event.currentTarget.scrollTop)}
 >
   <div class="cv-inner" style:min-width="{gridMinWidth(columns)}px">
     <div

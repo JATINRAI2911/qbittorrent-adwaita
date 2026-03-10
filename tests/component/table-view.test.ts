@@ -90,4 +90,21 @@ describe('TableView', () => {
     render(TableView, { context: withApp(app) });
     expect(screen.getByRole('heading', { name: 'No Results Found' })).toBeInTheDocument();
   });
+
+  it('ignores a scroll event that arrives after the grid was removed', () => {
+    const { app } = setup();
+    const grid = screen.getByRole('grid');
+    const errors: unknown[] = [];
+    const onError = (event: ErrorEvent) => {
+      errors.push(event.error);
+      event.preventDefault();
+    };
+    window.addEventListener('error', onError);
+    app.list.setFilters({ search: 'nothing matches' });
+    flushSync();
+    expect(screen.queryByRole('grid')).toBeNull();
+    grid.dispatchEvent(new Event('scroll'));
+    window.removeEventListener('error', onError);
+    expect(errors).toEqual([]);
+  });
 });
