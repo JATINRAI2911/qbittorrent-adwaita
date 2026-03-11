@@ -1,0 +1,15 @@
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; display: flex; flex-direction: column; min-height: 0;
+  background: var(--window-bg-color); border-radius: 15px 15px 0 0;
+  box-shadow: 0 0 14px 2px rgb(0 0 6 / 3%), 0 0 5px 2px rgb(0 0 6 / 10%), 0 0 0 1px rgb(0 0 0 / 5%);
+  outline: 1px solid rgb(255 255 255 / 7%); outline-offset: -1px;
+  animation: adw-sheet-up 250ms var(--ease-out-quad); transition: height 200ms var(--ease-out-quad);
+}
+.sheet.dragging { transition: none; }
+@keyframes adw-sheet-up { from { transform: translateY(40%); opacity: 0.3; } }
+.sheet-bar { flex-direction: row; align-items: center; gap: 6px; height: 64px; padding: 0 12px 0 0; }
+.drag-handle-area { flex: none; height: 36px; display: grid; place-items: center; cursor: ns-resize; border-radius: 15px 15px 0 0; touch-action: none; }
+.drag-handle-area:hover { background: var(--view-hover-color); }
+.drag-handle-area:focus-visible { outline: 2px solid var(--focus-ring-color); outline-offset: -2px; }
+.drag-handle { width: 54px; height: 6px; border-radius: 99px; background: color-mix(in srgb, currentColor 25%, transparent); }
+.sheet-body { flex: 1; min-height: 0; overflow: auto; }

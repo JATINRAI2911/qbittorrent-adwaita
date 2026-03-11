@@ -3,7 +3,7 @@
 
   interface Props {
     label: string;
-    options: { value: T; label: string }[];
+    options: { value: T; label: string; badge?: string }[];
     value: T;
     onchange: (value: T) => void;
   }
@@ -28,9 +28,10 @@
       class:checked={option.value === value}
       role="radio"
       aria-checked={option.value === value}
+      aria-label={option.badge ? `${option.label}, ${option.badge}` : undefined}
       tabindex={option.value === value ? 0 : -1}
       onclick={() => onchange(option.value)}
-      {onkeydown}>{option.label}</button
+      {onkeydown}>{option.label}{#if option.badge}<span class="toggle-badge" aria-hidden="true"></span>{/if}</button
     >
   {/each}
 </div>
