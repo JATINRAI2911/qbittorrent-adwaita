@@ -18,8 +18,18 @@ describe('sanitizePrefs', () => {
       listSort: 'ratio',
       tableSort: DEFAULT_PREFS.tableSort,
       columns: ['name', 'size'],
+      sheetHeight: 0.5,
     });
     expect(sanitizePrefs({ view: 'table', columns: 'size' }).columns).toEqual(DEFAULT_PREFS.columns);
+  });
+});
+
+describe('sanitizePrefs sheet height', () => {
+  it('clamps the sheet height and falls back to one half', () => {
+    expect(sanitizePrefs({ sheetHeight: 0.7 }).sheetHeight).toBe(0.7);
+    expect(sanitizePrefs({ sheetHeight: 5 }).sheetHeight).toBe(0.92);
+    expect(sanitizePrefs({ sheetHeight: 0.01 }).sheetHeight).toBe(0.22);
+    expect(sanitizePrefs({ sheetHeight: 'tall' }).sheetHeight).toBe(0.5);
   });
 });
 
@@ -131,5 +141,23 @@ describe('UiPrefs', () => {
     expect(api.store).toHaveBeenCalledTimes(1);
     await vi.advanceTimersByTimeAsync(1000);
     expect(api.store).toHaveBeenCalledTimes(1);
+  });
+
+  it('sets the sheet height within its limits and saves it', async () => {
+    const api = fakeClientData();
+    const prefs = new UiPrefs({ api });
+    prefs.setSheetHeight(0.99);
+    expect(prefs.sheetHeight).toBe(0.92);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(api.store).toHaveBeenCalledWith({ [PREFS_KEY]: expect.objectContaining({ sheetHeight: 0.92 }) });
+  });
+
+  it('keeps keys it does not know when writing back', async () => {
+    const api = fakeClientData({ [PREFS_KEY]: { view: 'list', futureKey: { a: 1 } } });
+    const prefs = new UiPrefs({ api, storage: memoryStorage() });
+    await prefs.load();
+    prefs.setView('table');
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(api.store).toHaveBeenLastCalledWith({ [PREFS_KEY]: expect.objectContaining({ view: 'table', futureKey: { a: 1 } }) });
   });
 });

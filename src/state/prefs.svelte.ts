@@ -9,6 +9,8 @@ export interface UiPrefsData {
   listSort: ListSort;
   tableSort: TableSort;
   columns: ColumnId[];
+  /** details sheet height as a fraction of the window */
+  sheetHeight: number;
 }
 
 export const PREFS_KEY = 'adwaita-ui';
@@ -19,9 +21,21 @@ export const DEFAULT_PREFS: UiPrefsData = {
   listSort: 'activity',
   tableSort: { column: 'added', descending: true },
   columns: [...DEFAULT_COLUMNS],
+  sheetHeight: 0.5,
 };
 
 const withName = (columns: ColumnId[]) => (columns.includes('name') ? columns : ['name' as const, ...columns]);
+
+export const SHEET_MIN = 0.22;
+export const SHEET_MAX = 0.92;
+const clampSheet = (value: number) => Math.min(SHEET_MAX, Math.max(SHEET_MIN, value));
+const KNOWN_KEYS = new Set(['view', 'listSort', 'tableSort', 'columns', 'sheetHeight', 'pending']);
+
+/** Keys a newer or older build stored that this one doesn't know: kept and written back unchanged. */
+function unknownKeys(raw: unknown): Record<string, unknown> {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  return Object.fromEntries(Object.entries(raw).filter(([key]) => !KNOWN_KEYS.has(key)));
+}
 
 /** Accept whatever is stored, field by field; anything unknown falls back to the default. */
 export function sanitizePrefs(raw: unknown): UiPrefsData {
@@ -33,6 +47,7 @@ export function sanitizePrefs(raw: unknown): UiPrefsData {
     tableSort:
       isColumnId(sort.column) && typeof sort.descending === 'boolean' ? { column: sort.column, descending: sort.descending } : { ...DEFAULT_PREFS.tableSort },
     columns: Array.isArray(value.columns) ? withName([...new Set(value.columns.filter(isColumnId))]) : [...DEFAULT_PREFS.columns],
+    sheetHeight: typeof value.sheetHeight === 'number' && Number.isFinite(value.sheetHeight) ? clampSheet(value.sheetHeight) : DEFAULT_PREFS.sheetHeight,
   };
 }
 
@@ -49,6 +64,8 @@ export class UiPrefs {
   listSort = $state<ListSort>(DEFAULT_PREFS.listSort);
   tableSort = $state<TableSort>({ ...DEFAULT_PREFS.tableSort });
   columns = $state<ColumnId[]>([...DEFAULT_PREFS.columns]);
+  sheetHeight = $state(DEFAULT_PREFS.sheetHeight);
+  #extra: Record<string, unknown> = {};
   readonly #deps: PrefsDeps;
   #timer: ReturnType<typeof setTimeout> | undefined;
   #loading: Promise<void> | undefined;
@@ -61,10 +78,11 @@ export class UiPrefs {
     const local = this.#readLocal();
     this.#apply(local.data);
     this.#pending = local.pending;
+    this.#extra = local.extra;
   }
 
   get data(): UiPrefsData {
-    return { view: this.view, listSort: this.listSort, tableSort: { ...this.tableSort }, columns: [...this.columns] };
+    return { ...this.#extra, view: this.view, listSort: this.listSort, tableSort: { ...this.tableSort }, columns: [...this.columns], sheetHeight: this.sheetHeight };
   }
 
   /** Once per app: the server copy wins, unless the user already changed something meanwhile. */
@@ -80,6 +98,7 @@ export class UiPrefs {
         const result = await this.#deps.api.load([PREFS_KEY]);
         if (!this.#dirty && result[PREFS_KEY] !== undefined) {
           this.#apply(sanitizePrefs(result[PREFS_KEY]));
+          this.#extra = unknownKeys(result[PREFS_KEY]);
           this.#writeLocal();
         }
       } catch {
@@ -106,6 +125,11 @@ export class UiPrefs {
 
   setColumns(columns: readonly ColumnId[]): void {
     this.columns = withName(COLUMN_IDS.filter((id) => columns.includes(id)));
+    this.#changed();
+  }
+
+  setSheetHeight(fraction: number): void {
+    this.sheetHeight = clampSheet(fraction);
     this.#changed();
   }
 
@@ -144,16 +168,17 @@ export class UiPrefs {
     this.listSort = data.listSort;
     this.tableSort = data.tableSort;
     this.columns = data.columns;
+    this.sheetHeight = data.sheetHeight;
   }
 
-  #readLocal(): { data: UiPrefsData; pending: boolean } {
+  #readLocal(): { data: UiPrefsData; pending: boolean; extra: Record<string, unknown> } {
     try {
       const raw = this.#deps.storage?.getItem(STORAGE_KEY);
       const value: unknown = raw ? JSON.parse(raw) : null;
       const pending = value !== null && typeof value === 'object' && (value as { pending?: unknown }).pending === true;
-      return { data: sanitizePrefs(value), pending };
+      return { data: sanitizePrefs(value), pending, extra: unknownKeys(value) };
     } catch {
-      return { data: sanitizePrefs(null), pending: false };
+      return { data: sanitizePrefs(null), pending: false, extra: {} };
     }
   }
 
