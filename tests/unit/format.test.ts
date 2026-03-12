@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ETA_INFINITY, formatBytes, formatCount, formatEta, formatPercent, formatRatio, formatSpeed } from '../../src/lib/format';
+import { ETA_INFINITY, formatBytes, formatCount, formatEta, formatPercent, formatRatio, formatSpeed, formatDuration, formatIn } from '../../src/lib/format';
 
 describe('formatBytes (GLib g_format_size style)', () => {
   it.each([
@@ -59,4 +59,23 @@ describe('formatRatio', () => {
 
 describe('formatCount', () => {
   it('formats small counts plainly', () => expect(formatCount(42)).toBe('42'));
+});
+
+describe('formatDuration', () => {
+  it('shows the two largest units', () => {
+    expect(formatDuration(2_402_363)).toBe('27 days, 19 hours');
+    expect(formatDuration(3700)).toBe('1 hour, 1 minute');
+    expect(formatDuration(300)).toBe('5 minutes');
+    expect(formatDuration(20)).toBe('20 seconds');
+    expect(formatDuration(-1)).toBe('–');
+  });
+});
+
+describe('formatIn', () => {
+  it('describes a time from now compactly', () => {
+    expect(formatIn(45)).toBe('in 45 s');
+    expect(formatIn(24 * 60)).toBe('in 24 min');
+    expect(formatIn(2 * 3600 + 60)).toBe('in 2 h');
+    expect(formatIn(0)).toBe('now');
+  });
 });

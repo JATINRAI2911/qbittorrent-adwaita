@@ -47,3 +47,31 @@ const countFormat = new Intl.NumberFormat();
 export function formatCount(n: number): string {
   return countFormat.format(n);
 }
+const DURATION_UNITS: [number, string][] = [
+  [86400, 'day'],
+  [3600, 'hour'],
+  [60, 'minute'],
+  [1, 'second'],
+];
+
+/** "27 days, 19 hours": the two largest non-zero units. */
+export function formatDuration(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return '–';
+  const parts: string[] = [];
+  let rest = Math.floor(seconds);
+  for (const [size, name] of DURATION_UNITS) {
+    const n = Math.floor(rest / size);
+    rest -= n * size;
+    if (n > 0 || (size === 1 && parts.length === 0)) parts.push(`${n} ${name}${n === 1 ? '' : 's'}`);
+    if (parts.length === 2) break;
+  }
+  return parts.join(', ');
+}
+
+/** "in 24 min": a compact time from now. */
+export function formatIn(seconds: number): string {
+  if (seconds <= 0) return 'now';
+  if (seconds < 60) return `in ${Math.round(seconds)} s`;
+  if (seconds < 3600) return `in ${Math.round(seconds / 60)} min`;
+  return `in ${Math.floor(seconds / 3600)} h`;
+}
