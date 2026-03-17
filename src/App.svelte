@@ -32,7 +32,10 @@
 
   $effect(() => {
     untrack(() => session.start());
-    return () => session.stop();
+    return () => {
+      session.stop();
+      app.details.dispose();
+    };
   });
 
   // UI preferences live on the server: load them once we're authenticated.

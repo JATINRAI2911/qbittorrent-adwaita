@@ -1,8 +1,11 @@
 import { clientdataApi, type ClientDataApi } from './api/clientdata';
+import { detailsApi, type DetailsApi } from './api/details';
 import type { TorrentApi } from './api/torrents';
 import type { AppContext } from './app-context';
+import { createDetailCommands } from './commands/detail-commands';
 import { createTorrentCommands } from './commands/torrent-commands';
 import { createDialogOpeners } from './features/actions/openers';
+import { DetailsModel } from './features/details/details.svelte';
 import { ListModel } from './features/list/list-model.svelte';
 import { TableModel } from './features/table/table-model.svelte';
 import { copyText } from './lib/clipboard';
@@ -23,7 +26,13 @@ function browserStorage(): Storage | undefined {
   }
 }
 
-export function createApp(session: Session, api: TorrentApi, clientdata: ClientDataApi = clientdataApi, storage = browserStorage()): AppContext {
+export function createApp(
+  session: Session,
+  api: TorrentApi,
+  clientdata: ClientDataApi = clientdataApi,
+  storage = browserStorage(),
+  details: DetailsApi = detailsApi,
+): AppContext {
   const toasts = new ToastStore();
   const dialogs = new DialogStore();
   const prefs = new UiPrefs({ api: clientdata, storage });
@@ -37,6 +46,24 @@ export function createApp(session: Session, api: TorrentApi, clientdata: ClientD
     copyText: (text) => copyText(text),
     download: (blob, filename) => downloadBlob(blob, filename),
   });
+  const detailModel = new DetailsModel({
+    api: details,
+    isHidden: () => document.hidden,
+    onVisible: (callback) => {
+      const handler = () => {
+        if (!document.hidden) callback();
+      };
+      document.addEventListener('visibilitychange', handler);
+      return () => document.removeEventListener('visibilitychange', handler);
+    },
+  });
+  const detailCommands = createDetailCommands({
+    api: details,
+    toast: toasts,
+    refresh: () => detailModel.refresh(),
+    resync: () => session.resync(),
+    copyText: (text) => copyText(text),
+  });
   return {
     session,
     selection: new Selection(),
@@ -44,6 +71,8 @@ export function createApp(session: Session, api: TorrentApi, clientdata: ClientD
     table: new TableModel(list, () => prefs.tableSort),
     prefs,
     trackers,
+    details: detailModel,
+    detailCommands,
     commands,
     openers: createDialogOpeners(dialogs, commands),
     popovers: new PopoverStore(),

@@ -1,7 +1,9 @@
 import { getContext, setContext } from 'svelte';
 import type { Category, ServerState, Torrent } from './api/types';
+import type { DetailCommands } from './commands/detail-commands';
 import type { TorrentCommands } from './commands/torrent-commands';
 import type { DialogOpeners } from './features/actions/openers';
+import type { DetailsModel } from './features/details/details.svelte';
 import type { TorrentMenuContext } from './features/actions/torrent-menu';
 import type { ListModel } from './features/list/list-model.svelte';
 import type { TableModel } from './features/table/table-model.svelte';
@@ -29,6 +31,8 @@ export interface AppContext {
   table: TableModel;
   prefs: UiPrefs;
   trackers: TrackerIndex;
+  details: DetailsModel;
+  detailCommands: DetailCommands;
   commands: TorrentCommands;
   openers: DialogOpeners;
   popovers: PopoverStore;
