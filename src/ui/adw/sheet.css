@@ -13,3 +13,19 @@
 .drag-handle-area:focus-visible { outline: 2px solid var(--focus-ring-color); outline-offset: -2px; }
 .drag-handle { width: 54px; height: 6px; border-radius: 99px; background: color-mix(in srgb, currentColor 25%, transparent); }
 .sheet-body { flex: 1; min-height: 0; overflow: auto; }
+.pref-group { margin-bottom: 24px; }
+.pref-group:last-child { margin-bottom: 0; }
+.pg-header { display: flex; align-items: center; gap: 6px; min-height: 34px; margin-bottom: 6px; padding: 0 2px 0 4px; }
+.pg-header > div:first-child { flex: 1; min-width: 0; }
+.pg-header h4 { margin: 0; }
+.pg-desc { margin: 6px 0 0; opacity: var(--dim-opacity); font-size: inherit; }
+.tab-loading { display: grid; place-items: center; min-height: 160px; color: var(--accent-color); }
+.ov-cols { columns: 3 300px; column-gap: 24px; }
+.ov-cols.two { columns: 2 340px; }
+.ov-cols > .pref-group { break-inside: avoid; margin-bottom: 24px; }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: color-mix(in srgb, currentColor 30%, transparent); }
+.status-dot.ok { background: var(--success-bg-color); }
+.status-dot.bad { background: var(--error-bg-color); }
+.status-dot.updating { background: var(--warning-bg-color); }
+.status-dot.disabled { background: transparent; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 30%, transparent); }
