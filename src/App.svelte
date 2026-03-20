@@ -1,9 +1,11 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import type { ClientDataApi } from './api/clientdata';
+  import type { DetailsApi } from './api/details';
   import { torrentsApi, type TorrentApi } from './api/torrents';
   import { setAppContext, targetTorrents, viewHashes, viewOrder } from './app-context';
   import { createApp } from './app-setup';
+  import DetailsSheet from './features/details/DetailsSheet.svelte';
   import FilterBar from './features/filters/FilterBar.svelte';
   import Login from './features/login/Login.svelte';
   import TorrentList from './features/list/TorrentList.svelte';
@@ -21,13 +23,30 @@
   import StatusPage from './ui/adw/StatusPage.svelte';
   import ToastOverlay from './ui/adw/ToastOverlay.svelte';
 
-  let { session = defaultSession, api = torrentsApi, clientdata }: { session?: Session; api?: TorrentApi; clientdata?: ClientDataApi } = $props();
+  let {
+    session = defaultSession,
+    api = torrentsApi,
+    clientdata,
+    details: detailsClient,
+  }: { session?: Session; api?: TorrentApi; clientdata?: ClientDataApi; details?: DetailsApi } = $props();
 
-  const app = setAppContext(untrack(() => createApp(session, api, clientdata)));
-  const { selection, list, table, prefs, commands, openers, popovers, dialogs, toasts } = app;
+  const app = setAppContext(untrack(() => createApp(session, api, clientdata, undefined, detailsClient)));
+  const { selection, list, table, prefs, details, commands, openers, popovers, dialogs, toasts } = app;
 
   let scrolled = $state(false);
   let content = $state<HTMLElement>();
+  let viewportHeight = $state(0);
+
+  // The sheet overlays the bottom of the content: pad the content by its height so rows can scroll above it.
+  const sheetInset = $derived(
+    selection.mode || details.sheet === 'closed' ? 0 : details.sheet === 'bar' ? 64 : Math.round(prefs.sheetHeight * viewportHeight),
+  );
+
+  // Close the sheet when its torrent is gone (deleted here or elsewhere).
+  $effect(() => {
+    const hash = details.hash;
+    if (hash && !session.torrents.has(hash)) untrack(() => details.close());
+  });
   const offline = $derived(session.connection === 'offline');
 
   $effect(() => {
@@ -91,6 +110,7 @@
       else if (list.filters.search) list.setFilters({ search: '' });
       else if (list.searchOpen) list.closeSearch();
       else if (selection.mode) selection.exit();
+      else if (details.sheet !== 'closed') details.close();
       else selection.clear();
       return;
     }
@@ -104,6 +124,7 @@
       case 'extend-previous': {
         const hash = selection.moveFocus(command.endsWith('next') ? 1 : -1, command.startsWith('extend'), viewOrder(app));
         if (hash) reveal(hash);
+        if (hash) details.show(hash);
         break;
       }
       case 'toggle':
@@ -128,6 +149,11 @@
         list.setFilters({ search: list.searchOpen ? list.filters.search + event.key : event.key });
         list.openSearch(false);
         break;
+      case 'open': {
+        const hash = selection.focus ?? (targets.length === 1 ? targets[0]!.hash : null);
+        if (hash && !selection.mode) details.open(hash);
+        break;
+      }
       case 'view-list':
         prefs.setView('list');
         break;
@@ -138,7 +164,7 @@
   }
 </script>
 
-<svelte:window onkeydown={handleKey} />
+<svelte:window onkeydown={handleKey} bind:innerHeight={viewportHeight} />
 
 {#if session.loaded}
   <div class="window" inert={session.connection === 'login' || dialogs.isOpen}>
@@ -150,10 +176,19 @@
       {#if list.searchOpen}<SearchBar onleave={focusFirstRow} />{/if}
       {#if !selection.mode && (session.torrents.size > 10 || list.filtering)}<FilterBar />{/if}
     </div>
-    <main class="content" bind:this={content} class:offline class:table={prefs.view === 'table'} onscroll={(event) => (scrolled = event.currentTarget.scrollTop > 0)}>
+    <main
+      class="content"
+      bind:this={content}
+      class:offline
+      class:table={prefs.view === 'table'}
+      style:padding-bottom="{sheetInset}px"
+      style:scroll-padding-bottom="{sheetInset}px"
+      onscroll={(event) => (scrolled = event.currentTarget.scrollTop > 0)}
+    >
       {#if prefs.view === 'table'}<TableView />{:else}<TorrentList />{/if}
     </main>
     {#if selection.mode}<ActionBar />{/if}
+    {#if !selection.mode}<DetailsSheet />{/if}
   </div>
 {:else if offline}
   <StatusPage icon="offline" title="Can’t Reach qBittorrent" description="Retrying in {session.retryIn} s…">
@@ -171,7 +206,7 @@
 
 <PopoverHost store={popovers} />
 <DialogHost store={dialogs} />
-<ToastOverlay store={toasts} bottom={selection.mode ? 52 : 0} />
+<ToastOverlay store={toasts} bottom={selection.mode ? 52 : sheetInset} />
 
 <style>
   .window { position: fixed; inset: 0; display: flex; flex-direction: column; }

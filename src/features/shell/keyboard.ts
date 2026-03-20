@@ -11,7 +11,8 @@ export type KeyCommand =
   | 'search'
   | 'view-list'
   | 'view-table'
-  | 'type';
+  | 'type'
+  | 'open';
 
 export interface KeyInput {
   key: string;
@@ -45,6 +46,8 @@ export function keyCommand(event: KeyInput, context: { typing: boolean; onButton
       return 'delete';
     case 'F2':
       return 'rename';
+    case 'Enter':
+      return context.onButton ? null : 'open';
     default:
       // GNOME type-to-search: any printable character while nothing is focused.
       return [...event.key].length === 1 && !context.onButton ? 'type' : null;

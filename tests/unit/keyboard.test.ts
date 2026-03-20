@@ -19,6 +19,7 @@ describe('keyCommand', () => {
     ['a', { ctrlKey: true }, 'select-all'],
     ['A', { metaKey: true }, 'select-all'],
     ['Escape', {}, 'escape'],
+    ['Enter', {}, 'open'],
     ['f', { ctrlKey: true }, 'search'],
     ['F', { metaKey: true }, 'search'],
     ['1', { ctrlKey: true }, 'view-list'],
@@ -43,7 +44,6 @@ describe('keyCommand', () => {
     expect(keyCommand(key('u', { altKey: true }), free)).toBeNull();
     expect(keyCommand(key('c', { ctrlKey: true }), free)).toBeNull();
     expect(keyCommand(key('Tab'), free)).toBeNull();
-    expect(keyCommand(key('Enter'), free)).toBeNull();
   });
 
   it('starts type-to-search only when nothing is focused', () => {

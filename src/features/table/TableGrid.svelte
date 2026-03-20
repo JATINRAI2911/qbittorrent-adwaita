@@ -76,6 +76,8 @@
   function onclick(event: MouseEvent) {
     const hash = rowFrom(event);
     if (hash) app.selection.click(hash, { shift: event.shiftKey, toggle: event.metaKey || event.ctrlKey }, table.order);
+    // A plain click outside selection mode opens details; Ctrl/Shift-click selects.
+    if (hash && !app.selection.mode && !event.shiftKey && !event.metaKey && !event.ctrlKey) app.details.open(hash);
   }
 
   function oncontextmenu(event: MouseEvent) {
