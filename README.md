@@ -38,7 +38,8 @@ npm test   # tests/unit/maindata-real.test.ts now runs against it
 | Ctrl/Cmd + A | Select all |
 | Ctrl/Cmd + F · type anywhere | Search |
 | Ctrl/Cmd + 1 / 2 | List / Table view |
-| Esc | Close menu or dialog → clear search → close search → leave selection mode |
+| Enter | Open details |
+| Esc | Close menu or dialog → clear search → close search → leave selection mode → close details |
 
 ## Design
 
