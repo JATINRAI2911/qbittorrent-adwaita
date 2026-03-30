@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { untrack } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import type { ClientDataApi } from './api/clientdata';
   import type { DetailsApi } from './api/details';
   import { torrentsApi, type TorrentApi } from './api/torrents';
@@ -41,6 +41,15 @@
   const sheetInset = $derived(
     selection.mode || details.sheet === 'closed' ? 0 : details.sheet === 'bar' ? 64 : Math.round(prefs.sheetHeight * viewportHeight),
   );
+
+  // Keep the open torrent's row visible above the sheet; scroll-padding-bottom makes
+  // scrollIntoView stop short of the sheet. Waits a tick so the new padding has been applied.
+  $effect(() => {
+    const hash = details.hash;
+    const open = details.sheet === 'open';
+    void sheetInset;
+    if (hash && open) void tick().then(() => untrack(() => reveal(hash)));
+  });
 
   // Close the sheet when its torrent is gone (deleted here or elsewhere).
   $effect(() => {

@@ -83,4 +83,20 @@ describe('App details sheet', () => {
     await vi.waitFor(() => expect(screen.queryByRole('region', { name: 'Details' })).toBeNull(), { timeout: 3000 });
     unmount();
   });
+
+  it('scrolls the opened torrent’s row into view so the sheet does not cover it', async () => {
+    const scrolled: Element[] = [];
+    const original = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolled.push(this);
+    };
+    try {
+      const { unmount } = await renderApp();
+      await userEvent.click(row('second.iso'));
+      await vi.waitFor(() => expect(scrolled).toContain(row('second.iso')));
+      unmount();
+    } finally {
+      Element.prototype.scrollIntoView = original;
+    }
+  });
 });
