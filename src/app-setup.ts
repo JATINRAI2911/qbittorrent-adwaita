@@ -61,7 +61,7 @@ export function createApp(
     api: details,
     toast: toasts,
     refresh: () => detailModel.refresh(),
-    resync: () => session.resync(),
+    filesChanged: () => detailModel.markFilesChanged(),
     copyText: (text) => copyText(text),
   });
   return {

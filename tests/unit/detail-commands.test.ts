@@ -8,7 +8,7 @@ import { fakeDetailsApi } from '../fixtures/fake-details-api';
 function setup(overrides: Partial<DetailCommandDeps> = {}) {
   const api = fakeDetailsApi();
   const toasts: ToastInput[] = [];
-  const deps: DetailCommandDeps = { api, toast: { show: (t) => toasts.push(t) }, refresh: vi.fn(), resync: vi.fn(), copyText: vi.fn(async () => {}), ...overrides };
+  const deps: DetailCommandDeps = { api, toast: { show: (t) => toasts.push(t) }, refresh: vi.fn(), filesChanged: vi.fn(), copyText: vi.fn(async () => {}), ...overrides };
   return { api, deps, toasts, commands: createDetailCommands(deps), last: () => toasts.at(-1) };
 }
 
@@ -24,6 +24,14 @@ describe('file commands', () => {
     expect(toasts).toEqual([]);
   });
 
+  it('tells the model files changed before the request, and refreshes after it', async () => {
+    const order: string[] = [];
+    const { api, commands } = setup({ filesChanged: () => order.push('changed'), refresh: () => order.push('refresh') });
+    api.setFilePriority.mockImplementationOnce(async () => void order.push('request'));
+    await commands.setPriority('h', [file(0)], [0], 'high');
+    expect(order).toEqual(['changed', 'request', 'refresh']);
+  });
+
   it('rolls a priority change back and explains a failure', async () => {
     const { api, commands, last, deps } = setup();
     api.setFilePriority.mockRejectedValueOnce(new ApiError('request', 409, "Torrent's metadata has not yet downloaded"));
@@ -31,7 +39,7 @@ describe('file commands', () => {
     await expect(commands.setPriority('h', files, [0], 'normal')).resolves.toBe(false);
     expect(files[0]!.priority).toBe(6);
     expect(last()!.title).toBe("Couldn’t change file priority: Torrent's metadata has not yet downloaded");
-    expect(deps.resync).toHaveBeenCalled();
+    expect(deps.refresh).toHaveBeenCalled();
   });
 
   it('renames files and folders by their last path segment, then refreshes', async () => {

@@ -165,4 +165,21 @@ describe('DetailsModel polling', () => {
     expect(model.properties).toBeNull();
     model.dispose();
   });
+
+  it('drops a files response that was requested before a priority change', async () => {
+    const { api, model, advance } = setup();
+    const stale = [{ index: 0, name: 'a', size: 1, progress: 1, priority: 1, piece_range: [0, 0] as [number, number], availability: 1 }];
+    let resolveStale!: (value: typeof stale) => void;
+    api.files.mockImplementationOnce(() => new Promise((r) => (resolveStale = r))).mockResolvedValue([{ ...stale[0]!, priority: 6 }]);
+    model.open('h');
+    model.setTab('files');
+    await advance(0);
+    model.markFilesChanged();
+    resolveStale(stale);
+    await advance(0);
+    expect(model.files).toBeNull();
+    await advance(2000);
+    expect(model.files![0]!.priority).toBe(6);
+    model.dispose();
+  });
 });

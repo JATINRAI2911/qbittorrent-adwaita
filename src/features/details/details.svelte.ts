@@ -49,6 +49,8 @@ export class DetailsModel {
   readonly #deps: DetailsDeps;
   readonly #refresher: Refresher;
   #peersRid = 0;
+  /** Bumped when files change locally; a files response requested before that is stale. */
+  #filesEpoch = 0;
   #piecesAt = Number.NEGATIVE_INFINITY;
 
   constructor(deps: DetailsDeps) {
@@ -96,6 +98,11 @@ export class DetailsModel {
     this.tab = tab;
     this.error = null;
     this.#sync();
+  }
+
+  /** A local change to file priorities is in flight: ignore files responses requested before it. */
+  markFilesChanged(): void {
+    this.#filesEpoch++;
   }
 
   /** Fetch the visible tab again now (after an action changed it). */
@@ -146,8 +153,9 @@ export class DetailsModel {
           break;
         }
         case 'files': {
+          const epoch = this.#filesEpoch;
           const files = await api.files(hash);
-          if (!isCurrent()) return;
+          if (!isCurrent() || epoch !== this.#filesEpoch) return;
           this.files = files;
           break;
         }

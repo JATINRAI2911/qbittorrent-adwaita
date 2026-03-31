@@ -8,7 +8,8 @@ export interface DetailCommandDeps {
   toast: ToastApi;
   /** Fetch the visible details tab again. */
   refresh(): void;
-  resync(): void;
+  /** Priorities are about to change locally, so in-flight files responses are stale. */
+  filesChanged(): void;
   copyText(text: string): Promise<void>;
 }
 
@@ -25,7 +26,7 @@ export function createDetailCommands(deps: DetailCommandDeps) {
       await request();
     } catch (error) {
       toast.show({ title: `${failure}: ${errorText(error)}` });
-      deps.resync();
+      deps.refresh();
       return false;
     }
     toast.show({ title: success });
@@ -45,10 +46,12 @@ export function createDetailCommands(deps: DetailCommandDeps) {
   }
 
   return {
-    setPriority(hash: string, files: TorrentFile[], ids: readonly number[], priority: PriorityName): Promise<boolean> {
+    async setPriority(hash: string, files: TorrentFile[], ids: readonly number[], priority: PriorityName): Promise<boolean> {
       const value = PRIORITY_VALUE[priority];
-      const targets = files.filter((f) => ids.includes(f.index));
-      return mutate(
+      const wanted = new Set(ids);
+      const targets = files.filter((f) => wanted.has(f.index));
+      deps.filesChanged();
+      const ok = await mutate(
         {
           items: targets,
           keys: ['priority'],
@@ -57,8 +60,10 @@ export function createDetailCommands(deps: DetailCommandDeps) {
           failure: 'Couldn’t change file priority',
         },
         toast,
-        () => deps.resync(),
+        () => deps.refresh(),
       );
+      if (ok) deps.refresh();
+      return ok;
     },
 
     renamePath(hash: string, node: Pick<FileNode, 'kind' | 'path'>, newName: string): Promise<boolean> {

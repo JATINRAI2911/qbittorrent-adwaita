@@ -9,8 +9,8 @@ const f = (index: number, name: string, size: number, priority = 1): TorrentFile
 
 function setup(files: TorrentFile[]) {
   const app = makeAppContext([]);
-  render(FilesTab, { props: { hash: 'h', files }, context: withApp(app) });
-  return app;
+  const view = render(FilesTab, { props: { hash: 'h', files }, context: withApp(app) });
+  return Object.assign(app, { rerender: view.rerender });
 }
 
 const season = () => [f(0, 'Show/E01.mkv', 1e9), f(1, 'Show/E02.mkv', 1e9, 0), f(2, 'Show/Extras/Bonus.mkv', 5e8, 6)];
@@ -47,6 +47,15 @@ describe('FilesTab', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Priority of E01.mkv: Normal' }));
     app.popovers.current!.model.sections.flat().find((i) => i.label === 'Maximum')!.action!();
     expect(app.detailCommands.setPriority).toHaveBeenCalledWith('h', files, [0], 'maximum');
+  });
+
+  it('applies a priority to the files shown when it is chosen, even after a poll replaced them', async () => {
+    const app = setup(season());
+    await userEvent.click(screen.getByRole('button', { name: 'Priority of E01.mkv: Normal' }));
+    const polled = season().map((f) => ({ ...f, progress: 0.9 })); // deep-different from what the menu opened on
+    await app.rerender({ hash: 'h', files: polled });
+    app.popovers.current!.model.sections.flat().find((i) => i.label === 'High')!.action!();
+    expect(app.detailCommands.setPriority).toHaveBeenCalledWith('h', polled, [0], 'high');
   });
 
   it('renames a file through the row menu', async () => {

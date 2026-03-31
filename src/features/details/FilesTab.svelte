@@ -25,15 +25,14 @@
   }
 
   function priorityMenu(node: FileNode, event: MouseEvent) {
-    if (!files) return;
-    const list = files;
     app.popovers.toggleMenu(
       {
         sections: [
           PRIORITIES.map((priority) => ({
             label: PRIORITY_LABEL[priority],
             checked: node.priority === priority,
-            action: () => void app.detailCommands.setPriority(hash, list, node.ids, priority),
+            // Read `files` when chosen: a poll may have replaced the list since the menu opened.
+            action: () => files && void app.detailCommands.setPriority(hash, files, node.ids, priority),
           })),
         ],
       },
