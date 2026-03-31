@@ -22,9 +22,10 @@ async function renderApp(maindata: (rid: number) => Promise<MaindataResponse> = 
   const details = fakeDetailsApi();
   details.properties.mockImplementation(async (hash) => ({ save_path: `/data/${hash}`, total_size: 1, pieces_num: 1, pieces_have: 1, piece_size: 1, infohash_v1: hash, comment: '', completion_date: -1, creation_date: 0, created_by: '', addition_date: 0 }) as never);
   const session = new Session({ login: vi.fn(async () => 'ok' as const), logout: vi.fn(async () => {}), maindata: vi.fn(maindata), isHidden: () => false, onVisible: () => () => {} });
-  const view = render(App, { session, api: fakeTorrentApi(), clientdata: fakeClientData(), details });
+  const torrents = fakeTorrentApi();
+  const view = render(App, { session, api: torrents, clientdata: fakeClientData(), details });
   await screen.findByText('first.iso');
-  return { details, ...view };
+  return { details, torrents, ...view };
 }
 
 const row = (name: string) => screen.getAllByText(name).find((el) => el.closest('[data-hash]'))!.closest('[data-hash]') as HTMLElement;
@@ -98,5 +99,37 @@ describe('App details sheet', () => {
     } finally {
       Element.prototype.scrollIntoView = original;
     }
+  });
+
+  it('does not run list shortcuts for keys pressed inside the sheet', async () => {
+    const { torrents, unmount } = await renderApp();
+    await userEvent.click(row('first.iso'));
+    const handle = screen.getByRole('separator', { name: 'Resize details' });
+    handle.focus();
+    await userEvent.keyboard(' ');
+    await userEvent.keyboard('{Delete}');
+    await userEvent.keyboard('x');
+    expect(torrents.stop).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(screen.queryByRole('searchbox', { name: 'Search torrents' })).toBeNull();
+    await userEvent.click(screen.getByRole('radio', { name: 'Overview' }));
+    await userEvent.keyboard('{ArrowDown}');
+    expect(within(screen.getByRole('region', { name: 'Details' })).getByRole('heading', { name: 'first.iso' })).toBeInTheDocument();
+    unmount();
+  });
+
+  it('clears a filter inside the sheet with Esc instead of closing the sheet', async () => {
+    const { details, unmount } = await renderApp();
+    details.files.mockImplementation(async () =>
+      Array.from({ length: 25 }, (_, i) => ({ index: i, name: `Pack/e${i}.mkv`, size: 1, progress: 1, priority: 1, piece_range: [0, 0] as [number, number], availability: 1 })),
+    );
+    await userEvent.click(row('first.iso'));
+    await userEvent.click(screen.getByRole('radio', { name: 'Files' }));
+    const filter = await screen.findByRole('searchbox', { name: 'Filter files' });
+    await userEvent.type(filter, 'e1');
+    await userEvent.keyboard('{Escape}');
+    expect(filter).toHaveValue('');
+    expect(screen.getByRole('region', { name: 'Details' })).toBeInTheDocument();
+    unmount();
   });
 });

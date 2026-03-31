@@ -113,6 +113,8 @@
   function handleKey(event: KeyboardEvent) {
     const command = keyCommand(event, { typing: isTypingTarget(event.target), onButton: isButtonTarget(event.target) });
     if (!command) return;
+    // Inside the details sheet only Esc reaches the app: its own controls (resize handle, tabs, filters) own the other keys.
+    if (command !== 'escape' && event.target instanceof Element && event.target.closest('.sheet')) return;
     if (command === 'escape') {
       if (popovers.isOpen) popovers.close();
       else if (dialogs.isOpen) dialogs.closeTop();
