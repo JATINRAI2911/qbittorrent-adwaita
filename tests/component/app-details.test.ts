@@ -132,4 +132,20 @@ describe('App details sheet', () => {
     expect(screen.getByRole('region', { name: 'Details' })).toBeInTheDocument();
     unmount();
   });
+
+  it('starts each torrent’s Files tab without the previous torrent’s filter', async () => {
+    const { details, unmount } = await renderApp();
+    const pack = Array.from({ length: 25 }, (_, i) => ({ index: i, name: `Pack/e${i}.mkv`, size: 1, progress: 1, priority: 1, piece_range: [0, 0] as [number, number], availability: 1 }));
+    details.files.mockImplementation(async (hash: string) =>
+      hash === 'aaa' ? pack : [{ index: 0, name: 'single.iso', size: 1, progress: 1, priority: 1, piece_range: [0, 0] as [number, number], availability: 1 }],
+    );
+    await userEvent.click(row('first.iso'));
+    await userEvent.click(screen.getByRole('radio', { name: 'Files' }));
+    await userEvent.type(await screen.findByRole('searchbox', { name: 'Filter files' }), 'zzz');
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.click(row('second.iso'));
+    expect(await screen.findByText('single.iso')).toBeInTheDocument();
+    expect(screen.queryByText(/No files match/)).toBeNull();
+    unmount();
+  });
 });

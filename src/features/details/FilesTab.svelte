@@ -77,7 +77,7 @@
         <h4 class="heading">{formatCount(files.length)} {files.length === 1 ? 'File' : 'Files'}</h4>
         <p class="pg-desc numeric">{formatBytes(selectedSize(files))} of {formatBytes(total)} selected</p>
       </div>
-      {#if files.length > 20}<div class="files-filter"><SearchEntry label="Filter files" placeholder="Filter files" bind:value={query} /></div>{/if}
+      {#if files.length > 20 || query}<div class="files-filter"><SearchEntry label="Filter files" placeholder="Filter files" bind:value={query} /></div>{/if}
     </div>
     <div class="boxed-list" role="list" aria-label="Files">
       {#each rows as node (node.path)}

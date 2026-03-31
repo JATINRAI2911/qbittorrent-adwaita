@@ -57,6 +57,8 @@
 
     <div class="sheet-clamp">
       {#if details.error}<p class="sheet-error error" role="status">Couldn’t refresh: {details.error}</p>{/if}
+      <!-- Keyed by torrent: filters, collapsed folders and other tab state belong to one torrent. -->
+      {#key t.hash}
       {#if details.tab === 'overview'}
         <OverviewTab torrent={t} properties={details.properties} pieces={details.pieces} />
       {:else if details.tab === 'files'}
@@ -68,6 +70,7 @@
       {:else}
         <SourcesTab hash={t.hash} webseeds={details.webseeds} />
       {/if}
+      {/key}
     </div>
   </BottomSheet>
 {/if}
