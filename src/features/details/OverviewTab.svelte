@@ -13,7 +13,7 @@
   import { formatDate } from '../table/columns';
   import PieceMap from './PieceMap.svelte';
   import PropertyRow from './PropertyRow.svelte';
-  import TextDialog from './TextDialog.svelte';
+  import TextListDialog from './TextListDialog.svelte';
 
   let { torrent: t, properties: p, pieces }: { torrent: Torrent; properties: TorrentProperties | null; pieces: PieceState[] | null } = $props();
 
@@ -29,10 +29,12 @@
   ];
 
   function editComment() {
-    app.dialogs.open(TextDialog, {
+    // Multi-line: comments keep their line breaks, and an empty comment removes it.
+    app.dialogs.open(TextListDialog, {
       title: 'Edit Comment',
       label: 'Comment',
       value: p?.comment ?? '',
+      allowEmpty: true,
       confirmLabel: 'Save',
       onconfirm: (comment: string) => void app.detailCommands.setComment(t.hash, comment),
     });

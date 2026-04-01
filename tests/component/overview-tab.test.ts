@@ -75,12 +75,12 @@ describe('OverviewTab', () => {
   });
 
   it('copies the info hash and edits the comment', async () => {
-    const { app, torrent } = setup({ comment: 'old note' });
+    const { app, torrent } = setup({ comment: 'old\nnote' });
     await userEvent.click(within(group('Information')).getByRole('button', { name: 'Copy info hash' }));
     expect(app.commands.copy).toHaveBeenCalledWith([torrent], 'hashV1');
     await userEvent.click(within(group('Information')).getByRole('button', { name: 'Edit comment' }));
     const dialog = app.dialogs.stack.at(-1)!.props;
-    expect(dialog.value).toBe('old note');
+    expect(dialog).toMatchObject({ value: 'old\nnote', allowEmpty: true }); // multi-line, and a comment can be removed
     (dialog.onconfirm as (v: string) => void)('new note');
     expect(app.detailCommands.setComment).toHaveBeenCalledWith('h', 'new note');
     expect(within(group('Information')).getByText('Yes')).toBeInTheDocument();

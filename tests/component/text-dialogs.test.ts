@@ -39,4 +39,18 @@ describe('TextListDialog', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Add' }));
     expect(onconfirm).toHaveBeenCalledWith('udp://a:1\n\nudp://b:2');
   });
+
+  it('edits an existing multi-line value, keeping line breaks, and can empty it', async () => {
+    const onconfirm = vi.fn();
+    render(TextListDialog, { title: 'Edit Comment', label: 'Comment', value: 'line one\nline two', allowEmpty: true, confirmLabel: 'Save', onconfirm, close: vi.fn() });
+    const box = screen.getByLabelText('Comment');
+    expect(box).toHaveValue('line one\nline two');
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    await userEvent.type(box, '!');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(onconfirm).toHaveBeenLastCalledWith('line one\nline two!');
+    await userEvent.clear(box);
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(onconfirm).toHaveBeenLastCalledWith('');
+  });
 });
