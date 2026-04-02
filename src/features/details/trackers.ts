@@ -52,48 +52,62 @@ const count = (n: number, one: string, many: string) => (n >= 0 ? `${formatCount
 /** One line under the tracker URL. Unknown (−1) counts and garbage announce times are left out. */
 export function trackerSummary(t: Tracker, nowSeconds: number): string {
   const status = trackerStatusText(t);
-  if (trackerTone(t) === 'bad') return t.msg ? `${status} · ${t.msg}` : status;
+  const msg = maskSecrets(t.msg);
+  if (trackerTone(t) === 'bad') return msg ? `${status} · ${msg}` : status;
   const parts = [status];
   if (t.status === 2) {
     const counts = [count(t.num_seeds, 'seed', 'seeds'), count(t.num_leeches, 'leecher', 'leechers'), count(t.num_peers, 'peer', 'peers')].filter(Boolean);
     if (counts.length) parts.push(counts.join(', '));
     if (t.next_announce !== undefined && t.next_announce > nowSeconds) parts.push(`next announce ${formatIn(t.next_announce - nowSeconds)}`);
-  } else if (t.msg && t.status !== 1) {
-    parts.push(t.msg);
+  } else if (msg && t.status !== 1) {
+    parts.push(msg);
   }
   return parts.join(' · ');
 }
 
-const SECRET_QUERY = /^(passkey|key|pk|pid|uid|auth|token|secret|torrent_pass|apikey)$/i;
-const SECRET_SEGMENT = /^[A-Za-z0-9_-]{16,}$/;
+const SECRET_KEY = /^(passkey|pass|key|pk|pid|uid|uk|auth|authkey|token|secret|torrent_pass|apikey|rsskey|sid)$/i;
+/** A long opaque token: passkeys are usually 16–40 characters of [A-Za-z0-9_-]. */
+const LONG_TOKEN = /^[A-Za-z0-9_-]{16,}$/;
+/** Right before `announce`, shorter tokens with a digit are passkeys too (e.g. /a/abc123def456/announce). */
+const NEAR_ANNOUNCE_TOKEN = /^(?=.*\d)[A-Za-z0-9_-]{10,}$/;
 const MASK = '••••';
 
+const maskParam = (param: string) => {
+  const [key, ...rest] = param.split('=');
+  const value = rest.join('=');
+  return rest.length && (SECRET_KEY.test(decodeURIComponent(key ?? '')) || LONG_TOKEN.test(value)) ? `${key}=${MASK}` : param;
+};
+
+function maskSegment(segment: string, next: string | undefined): string {
+  const [head = '', ...matrix] = segment.split(';');
+  let base = head;
+  if (LONG_TOKEN.test(base) || (/^announce/i.test(next ?? '') && NEAR_ANNOUNCE_TOKEN.test(base))) base = MASK;
+  else {
+    const dot = base.indexOf('.');
+    if (dot > 0 && LONG_TOKEN.test(base.slice(0, dot))) base = MASK + base.slice(dot);
+  }
+  return [base, ...matrix.map(maskParam)].join(';');
+}
+
 /**
- * A tracker URL safe to show on screen: private trackers put the passkey in a path segment or a
- * query value. Copy and Edit use the full URL; this is for display only.
+ * A tracker URL safe to show on screen: private trackers put the passkey in a path segment, a
+ * matrix parameter or a query value. Copy and Edit use the full URL; this is for display only.
  */
 export function maskTrackerUrl(url: string): string {
   try {
     const parsed = new URL(url);
-    const path = parsed.pathname
-      .split('/')
-      .map((segment) => (SECRET_SEGMENT.test(segment) ? MASK : segment))
-      .join('/');
-    const query = parsed.search
-      ? '?' +
-        parsed.search
-          .slice(1)
-          .split('&')
-          .map((pair) => {
-            const [key, ...rest] = pair.split('=');
-            return SECRET_QUERY.test(decodeURIComponent(key ?? '')) && rest.length ? `${key}=${MASK}` : pair;
-          })
-          .join('&')
-      : '';
+    const segments = parsed.pathname.split('/');
+    const path = segments.map((segment, i) => maskSegment(segment, segments[i + 1])).join('/');
+    const query = parsed.search ? '?' + parsed.search.slice(1).split('&').map(maskParam).join('&') : '';
     return `${parsed.protocol}//${parsed.host}${path}${query}`;
   } catch {
     const scheme = /^([a-z][a-z0-9+.-]*):\/\//i.exec(url)?.[1];
     const host = /^[a-z][a-z0-9+.-]*:\/\/(?:[^@/?#]*@)?(\[[^\]]*\]|[^:/?#]+)/i.exec(url)?.[1];
     return scheme && host ? `${scheme}://${host}/${MASK}` : MASK;
   }
+}
+
+/** Mask URLs and long tokens inside free text a tracker sent back (some echo the passkey). */
+export function maskSecrets(text: string): string {
+  return text.replace(/[a-z][a-z0-9+.-]*:\/\/[^\s"'<>]+/gi, (url) => maskTrackerUrl(url)).replace(/\b[A-Za-z0-9_-]{24,}\b/g, MASK);
 }

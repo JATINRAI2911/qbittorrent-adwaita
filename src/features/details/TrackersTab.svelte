@@ -9,7 +9,7 @@
   import Spinner from '../../ui/adw/Spinner.svelte';
   import TextDialog from './TextDialog.svelte';
   import TextListDialog from './TextListDialog.svelte';
-  import { maskTrackerUrl, splitTrackers, trackerSummary, trackerTone } from './trackers';
+  import { maskSecrets, maskTrackerUrl, splitTrackers, trackerSummary, trackerTone } from './trackers';
 
   let { torrent, trackers }: { torrent: Torrent; trackers: Tracker[] | null } = $props();
 
@@ -109,7 +109,7 @@
             <span class="status-dot {tone}" aria-hidden="true"></span>
             <div class="title-box">
               <span class="title">{source.label}</span>
-              <span class="subtitle">{source.msg || (tone === 'ok' ? `${source.num_peers >= 0 ? source.num_peers : 0} peers` : trackerSummary(source, now))}</span>
+              <span class="subtitle">{maskSecrets(source.msg) || (tone === 'ok' ? `${source.num_peers >= 0 ? source.num_peers : 0} peers` : trackerSummary(source, now))}</span>
             </div>
           </div>
         {/each}

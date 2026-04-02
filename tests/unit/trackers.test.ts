@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Tracker } from '../../src/api/details';
-import { maskTrackerUrl, splitTrackers, trackerStatusText, trackerSummary, trackerTone } from '../../src/features/details/trackers';
+import { maskSecrets, maskTrackerUrl, splitTrackers, trackerStatusText, trackerSummary, trackerTone } from '../../src/features/details/trackers';
 
 const t = (overrides: Partial<Tracker>): Tracker => ({ url: 'udp://t.example:1337/announce', tier: 0, status: 2, msg: '', num_seeds: 10, num_leeches: 2, num_peers: 3, num_downloaded: 50, ...overrides });
 const now = 1_000_000;
@@ -44,5 +44,33 @@ describe('maskTrackerUrl', () => {
 
   it('falls back to host-only for anything it cannot parse', () => {
     expect(maskTrackerUrl('http://t.example:abc/SECRETSECRETSECRET/announce')).toBe('http://t.example/••••');
+  });
+});
+
+describe('maskTrackerUrl - other passkey forms', () => {
+  it.each([
+    ['https://t.example/announce.php?authkey=0123456789abcdef0123', 'https://t.example/announce.php?authkey=••••'],
+    ['https://t.example/announce.php?uk=abcdefghij0123456789', 'https://t.example/announce.php?uk=••••'],
+    ['https://t.example/a/abc123def456/announce', 'https://t.example/a/••••/announce'],
+    ['https://t.example/0123456789abcdef0123456789abcdef.announce', 'https://t.example/••••.announce'],
+    ['https://t.example/announce;passkey=abc123', 'https://t.example/announce;passkey=••••'],
+    ['http://t.example/rss/download?id=9&rsskey=abc', 'http://t.example/rss/download?id=9&rsskey=••••'],
+  ])('%s', (url, masked) => expect(maskTrackerUrl(url)).toBe(masked));
+
+  it('leaves ordinary public tracker URLs alone', () => {
+    expect(maskTrackerUrl('https://t.example/announce.php?info=1&page=2')).toBe('https://t.example/announce.php?info=1&page=2');
+    expect(maskTrackerUrl('http://bt.example.org:6969/announce')).toBe('http://bt.example.org:6969/announce');
+  });
+});
+
+describe('maskSecrets in tracker messages', () => {
+  it('masks passkeys and URLs a tracker echoes back', () => {
+    expect(maskSecrets('Invalid passkey 0123456789abcdef0123456789abcdef')).toBe('Invalid passkey ••••');
+    expect(maskSecrets('Redirected to https://t.example/a/0123456789abcdef0123456789abcdef/announce')).toBe('Redirected to https://t.example/a/••••/announce');
+    expect(maskSecrets('Unregistered torrent')).toBe('Unregistered torrent');
+  });
+
+  it('is applied to tracker summaries', () => {
+    expect(trackerSummary(t({ status: 5, msg: 'Bad passkey 0123456789abcdef0123456789abcdef' }), now)).toBe('Tracker error · Bad passkey ••••');
   });
 });
