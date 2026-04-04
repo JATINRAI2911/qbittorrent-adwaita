@@ -18,6 +18,8 @@ export interface RequestOptions {
   params?: Params;
   timeoutMs?: number;
   signal?: AbortSignal;
+  /** Multipart body (file uploads); the browser sets the content type and boundary. */
+  form?: FormData;
 }
 
 interface ClientConfig {
@@ -69,8 +71,8 @@ async function call<T>(path: string, options: RequestOptions, read: (response: R
           method,
           credentials: 'same-origin',
           signal: controller.signal,
-          headers: method === 'POST' ? { 'Content-Type': 'application/x-www-form-urlencoded' } : undefined,
-          body: method === 'POST' ? query : undefined,
+          headers: method === 'POST' && !options.form ? { 'Content-Type': 'application/x-www-form-urlencoded' } : undefined,
+          body: method === 'POST' ? (options.form ?? query) : undefined,
         }),
         timeout,
       ]);
@@ -126,4 +128,12 @@ export async function post(path: string, params?: Params, options: Omit<RequestO
 
 export function getBlob(path: string, params?: Params, options: Omit<RequestOptions, 'params' | 'method'> = {}): Promise<Blob> {
   return call(path, { ...options, params }, (response) => response.blob());
+}
+
+export function postJson<T>(path: string, params?: Params, options: Omit<RequestOptions, 'params' | 'method'> = {}): Promise<T> {
+  return call(path, { ...options, method: 'POST', params }, (response) => response.json() as Promise<T>);
+}
+
+export function postFormJson<T>(path: string, form: FormData, options: Omit<RequestOptions, 'params' | 'method' | 'form'> = {}): Promise<T> {
+  return call(path, { ...options, method: 'POST', form }, (response) => response.json() as Promise<T>);
 }
