@@ -12,6 +12,11 @@ export interface ShareLimits {
 }
 export type QueueMove = 'top' | 'up' | 'down' | 'bottom';
 
+/** A category's incomplete-downloads folder; null leaves qBittorrent's setting as it is. */
+export type CategoryDownloadPath = { enabled: boolean; path: string } | null;
+const downloadPathParams = (download: CategoryDownloadPath | undefined) =>
+  download ? { downloadPathEnabled: download.enabled, downloadPath: download.path } : {};
+
 const QUEUE_ENDPOINT: Record<QueueMove, string> = { top: 'topPrio', up: 'increasePrio', down: 'decreasePrio', bottom: 'bottomPrio' };
 const joined = (hashes: readonly string[]) => hashes.join('|');
 
@@ -25,7 +30,12 @@ export const torrentsApi = {
   setLocation: (hashes: readonly string[], location: string) => post('torrents/setLocation', { hashes: joined(hashes), location }),
   rename: (hash: string, name: string) => post('torrents/rename', { hash, name }),
   setCategory: (hashes: readonly string[], category: string) => post('torrents/setCategory', { hashes: joined(hashes), category }),
-  createCategory: (category: string, savePath: string) => post('torrents/createCategory', { category, savePath }),
+  createCategory: (category: string, savePath: string, download?: CategoryDownloadPath) =>
+    post('torrents/createCategory', { category, savePath, ...downloadPathParams(download) }),
+  editCategory: (category: string, savePath: string, download?: CategoryDownloadPath) =>
+    post('torrents/editCategory', { category, savePath, ...downloadPathParams(download) }),
+  removeCategories: (categories: readonly string[]) => post('torrents/removeCategories', { categories: categories.join('\n') }),
+  deleteTags: (tags: readonly string[]) => post('torrents/deleteTags', { tags: tags.join(',') }),
   addTags: (hashes: readonly string[], tags: readonly string[]) => post('torrents/addTags', { hashes: joined(hashes), tags: tags.join(',') }),
   removeTags: (hashes: readonly string[], tags: readonly string[]) => post('torrents/removeTags', { hashes: joined(hashes), tags: tags.join(',') }),
   createTags: (tags: readonly string[]) => post('torrents/createTags', { tags: tags.join(',') }),

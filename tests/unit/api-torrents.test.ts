@@ -69,4 +69,18 @@ describe('torrentsApi', () => {
     expect(await blob.text()).toBe('d8:announce0:e');
     expect(calls()[0]).toMatchObject({ url: '/api/v2/torrents/export?hash=abc', method: 'GET' });
   });
+
+  it('manages categories and tags with 5.2 parameters', async () => {
+    const calls = capture();
+    await torrentsApi.createCategory('TV', '/tv', { enabled: true, path: '/tv/incoming' });
+    await torrentsApi.editCategory('TV', '', { enabled: false, path: '' });
+    await torrentsApi.removeCategories(['TV', 'Films']);
+    await torrentsApi.deleteTags(['keep', 'hd']);
+    expect(calls().map((c) => `${c.url} ${c.body}`)).toEqual([
+      '/api/v2/torrents/createCategory category=TV&savePath=%2Ftv&downloadPathEnabled=true&downloadPath=%2Ftv%2Fincoming',
+      '/api/v2/torrents/editCategory category=TV&savePath=&downloadPathEnabled=false&downloadPath=',
+      '/api/v2/torrents/removeCategories categories=TV%0AFilms',
+      '/api/v2/torrents/deleteTags tags=keep%2Chd',
+    ]);
+  });
 });
