@@ -1,3 +1,4 @@
+import { appApi, type AppApi } from './api/app';
 import { clientdataApi, type ClientDataApi } from './api/clientdata';
 import { detailsApi, type DetailsApi } from './api/details';
 import type { TorrentApi } from './api/torrents';
@@ -32,6 +33,7 @@ export function createApp(
   clientdata: ClientDataApi = clientdataApi,
   storage = browserStorage(),
   details: DetailsApi = detailsApi,
+  appClient: AppApi = appApi,
 ): AppContext {
   const toasts = new ToastStore();
   const dialogs = new DialogStore();
@@ -74,7 +76,7 @@ export function createApp(
     details: detailModel,
     detailCommands,
     commands,
-    openers: createDialogOpeners(dialogs, commands),
+    openers: createDialogOpeners(dialogs, commands, { listDirectories: (dir) => appClient.directoryContent(dir) }),
     popovers: new PopoverStore(),
     dialogs,
     toasts,

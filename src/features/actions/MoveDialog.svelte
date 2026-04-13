@@ -4,14 +4,16 @@
   import { formatCount } from '../../lib/format';
   import BoxedList from '../../ui/adw/BoxedList.svelte';
   import Dialog from '../../ui/adw/Dialog.svelte';
-  import EntryRow from '../../ui/adw/EntryRow.svelte';
+  import PathEntry from '../paths/PathEntry.svelte';
 
   interface Props {
     torrents: Torrent[];
     onconfirm: (location: string) => void;
+    /** Lists a folder's subfolders for autocomplete. */
+    list?: (dir: string) => Promise<string[]>;
     close: () => void;
   }
-  let { torrents, onconfirm, close }: Props = $props();
+  let { torrents, onconfirm, list, close }: Props = $props();
 
   // Starts from the current folder; later syncs must not overwrite what the user types.
   let location = $state(untrack(() => torrents[0]?.save_path ?? ''));
@@ -29,6 +31,6 @@
     close();
   }}
 >
-  <BoxedList><EntryRow title="Location" bind:value={location} autofocus /></BoxedList>
+  <BoxedList><PathEntry title="Location" bind:value={location} {list} autofocus /></BoxedList>
   <p class="dialog-note">Files are moved on the server.{turnsOffAuto ? ' Automatic management will be turned off.' : ''}</p>
 </Dialog>

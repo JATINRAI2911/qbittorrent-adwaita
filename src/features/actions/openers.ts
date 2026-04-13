@@ -16,7 +16,11 @@ export interface DialogOpeners {
   newTag(torrents: Torrent[]): void;
 }
 
-export function createDialogOpeners(dialogs: DialogStore, commands: TorrentCommands): DialogOpeners {
+export function createDialogOpeners(
+  dialogs: DialogStore,
+  commands: TorrentCommands,
+  extra: { listDirectories?: (dir: string) => Promise<string[]> } = {},
+): DialogOpeners {
   return {
     confirmDelete(torrents) {
       if (!torrents.length) return;
@@ -24,7 +28,7 @@ export function createDialogOpeners(dialogs: DialogStore, commands: TorrentComma
     },
     move(torrents) {
       if (!torrents.length) return;
-      dialogs.open(MoveDialog, { torrents, onconfirm: (location: string) => void commands.setLocation(torrents, location) });
+      dialogs.open(MoveDialog, { torrents, list: extra.listDirectories, onconfirm: (location: string) => void commands.setLocation(torrents, location) });
     },
     rename(torrent) {
       dialogs.open(RenameDialog, { torrent, onconfirm: (name: string) => void commands.rename(torrent, name) });
