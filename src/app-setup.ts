@@ -1,8 +1,10 @@
+import { addApi, type AddApi } from './api/add';
 import { appApi, type AppApi } from './api/app';
 import { clientdataApi, type ClientDataApi } from './api/clientdata';
 import { detailsApi, type DetailsApi } from './api/details';
 import type { TorrentApi } from './api/torrents';
 import type { AppContext } from './app-context';
+import { createAddCommands } from './commands/add-commands';
 import { createDetailCommands } from './commands/detail-commands';
 import { createTorrentCommands } from './commands/torrent-commands';
 import { createDialogOpeners } from './features/actions/openers';
@@ -34,6 +36,7 @@ export function createApp(
   storage = browserStorage(),
   details: DetailsApi = detailsApi,
   appClient: AppApi = appApi,
+  add: AddApi = addApi,
 ): AppContext {
   const toasts = new ToastStore();
   const dialogs = new DialogStore();
@@ -80,5 +83,10 @@ export function createApp(
     popovers: new PopoverStore(),
     dialogs,
     toasts,
+    adding: {
+      api: add,
+      appApi: appClient,
+      commands: createAddCommands({ api: add, torrents: api, details, toast: toasts, refresh: () => session.retryNow() }),
+    },
   };
 }
