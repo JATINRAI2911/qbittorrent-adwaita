@@ -94,6 +94,7 @@
   </HeaderBar>
 {:else}
   <HeaderBar>
+    {#snippet start()}<Button icon="list-add" title="Add Torrents" onclick={() => app.openers.add()} />{/snippet}
     {#snippet title()}<WindowTitle title="qBittorrent" {subtitle} />{/snippet}
     {#snippet end()}
       <Button icon="open-menu" title="Main Menu" onclick={openMainMenu} />

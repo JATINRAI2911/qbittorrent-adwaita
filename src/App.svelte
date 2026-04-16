@@ -1,10 +1,14 @@
 <script lang="ts">
   import { tick, untrack } from 'svelte';
+  import type { AddApi } from './api/add';
+  import type { AppApi } from './api/app';
   import type { ClientDataApi } from './api/clientdata';
   import type { DetailsApi } from './api/details';
   import { torrentsApi, type TorrentApi } from './api/torrents';
   import { setAppContext, targetTorrents, viewHashes, viewOrder } from './app-context';
   import { createApp } from './app-setup';
+  import DropOverlay from './features/add/DropOverlay.svelte';
+  import { isTorrentFile, parseSources } from './features/add/sources';
   import DetailsSheet from './features/details/DetailsSheet.svelte';
   import FilterBar from './features/filters/FilterBar.svelte';
   import Login from './features/login/Login.svelte';
@@ -28,9 +32,11 @@
     api = torrentsApi,
     clientdata,
     details: detailsClient,
-  }: { session?: Session; api?: TorrentApi; clientdata?: ClientDataApi; details?: DetailsApi } = $props();
+    appClient,
+    add,
+  }: { session?: Session; api?: TorrentApi; clientdata?: ClientDataApi; details?: DetailsApi; appClient?: AppApi; add?: AddApi } = $props();
 
-  const app = setAppContext(untrack(() => createApp(session, api, clientdata, undefined, detailsClient)));
+  const app = setAppContext(untrack(() => createApp(session, api, clientdata, undefined, detailsClient, appClient, add)));
   const { selection, list, table, prefs, details, commands, openers, popovers, dialogs, toasts } = app;
 
   let scrolled = $state(false);
@@ -171,11 +177,55 @@
       case 'view-table':
         prefs.setView('table');
         break;
+      case 'add':
+        openers.add();
+        break;
     }
+  }
+
+  let dragging = $state(false);
+  let dragDepth = 0;
+  const carriesTorrents = (data: DataTransfer | null) => !!data && (data.types.includes('Files') || data.types.includes('text/uri-list'));
+
+  function onpaste(event: ClipboardEvent) {
+    if (isTypingTarget(event.target) || dialogs.isOpen || session.connection !== 'online') return;
+    const text = event.clipboardData?.getData('text/plain') ?? '';
+    const files = [...(event.clipboardData?.files ?? [])].filter(isTorrentFile);
+    if (!files.length && !parseSources(text).sources.length) return;
+    event.preventDefault();
+    openers.add({ text, files });
+  }
+
+  function ondragenter(event: DragEvent) {
+    if (!carriesTorrents(event.dataTransfer) || dialogs.isOpen) return;
+    event.preventDefault();
+    dragDepth++;
+    dragging = true;
+  }
+
+  // Any file or link drag is ours: letting the browser handle the drop would navigate away from the app.
+  function ondragover(event: DragEvent) {
+    if (carriesTorrents(event.dataTransfer) && !isTypingTarget(event.target)) event.preventDefault();
+  }
+
+  function ondragleave() {
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) dragging = false;
+  }
+
+  function ondrop(event: DragEvent) {
+    if (!carriesTorrents(event.dataTransfer) || isTypingTarget(event.target)) return;
+    event.preventDefault();
+    if (!dragging) return;
+    dragging = false;
+    dragDepth = 0;
+    const files = [...(event.dataTransfer?.files ?? [])].filter(isTorrentFile);
+    const text = event.dataTransfer?.getData('text/uri-list') || event.dataTransfer?.getData('text/plain') || '';
+    if (files.length || parseSources(text).sources.length) openers.add({ text, files });
   }
 </script>
 
-<svelte:window onkeydown={handleKey} bind:innerHeight={viewportHeight} />
+<svelte:window onkeydown={handleKey} bind:innerHeight={viewportHeight} {onpaste} {ondragenter} {ondragover} {ondragleave} {ondrop} />
 
 {#if session.loaded}
   <div class="window" inert={session.connection === 'login' || dialogs.isOpen}>
@@ -218,6 +268,7 @@
 <PopoverHost store={popovers} />
 <DialogHost store={dialogs} />
 <ToastOverlay store={toasts} bottom={selection.mode ? 52 : sheetInset} />
+{#if dragging}<DropOverlay />{/if}
 
 <style>
   .window { position: fixed; inset: 0; display: flex; flex-direction: column; }

@@ -8,6 +8,8 @@ const free = { typing: false, onButton: false };
 
 describe('keyCommand', () => {
   it.each([
+    ['o', { ctrlKey: true }, 'add'],
+    ['O', { metaKey: true }, 'add'],
     ['ArrowDown', {}, 'focus-next'],
     ['ArrowUp', {}, 'focus-previous'],
     ['ArrowDown', { shiftKey: true }, 'extend-next'],

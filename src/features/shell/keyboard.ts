@@ -12,7 +12,8 @@ export type KeyCommand =
   | 'view-list'
   | 'view-table'
   | 'type'
-  | 'open';
+  | 'open'
+  | 'add';
 
 export interface KeyInput {
   key: string;
@@ -30,6 +31,7 @@ export function keyCommand(event: KeyInput, context: { typing: boolean; onButton
     const key = event.key.toLowerCase();
     if (key === 'a') return 'select-all';
     if (key === 'f') return 'search';
+    if (key === 'o') return 'add';
     if (event.key === '1') return 'view-list';
     if (event.key === '2') return 'view-table';
     return null;

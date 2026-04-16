@@ -1,6 +1,7 @@
 import type { Torrent } from '../../api/types';
 import type { TorrentCommands } from '../../commands/torrent-commands';
 import type { DialogStore } from '../../ui/adw/dialogs.svelte';
+import AddDialog from '../add/AddDialog.svelte';
 import DeleteDialog from './DeleteDialog.svelte';
 import LimitsDialog from './LimitsDialog.svelte';
 import MoveDialog from './MoveDialog.svelte';
@@ -9,6 +10,7 @@ import RenameDialog from './RenameDialog.svelte';
 
 export interface DialogOpeners {
   confirmDelete(torrents: Torrent[]): void;
+  add(initial?: { text?: string; files?: File[] }): void;
   move(torrents: Torrent[]): void;
   rename(torrent: Torrent): void;
   limits(torrents: Torrent[]): void;
@@ -22,6 +24,9 @@ export function createDialogOpeners(
   extra: { listDirectories?: (dir: string) => Promise<string[]> } = {},
 ): DialogOpeners {
   return {
+    add(initial = {}) {
+      dialogs.open(AddDialog, { text: initial.text ?? '', files: initial.files ?? [] });
+    },
     confirmDelete(torrents) {
       if (!torrents.length) return;
       dialogs.open(DeleteDialog, { torrents, onconfirm: (deleteFiles: boolean) => void commands.remove(torrents, deleteFiles) });
