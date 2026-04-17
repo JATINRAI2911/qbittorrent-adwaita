@@ -37,6 +37,8 @@ npm test   # tests/unit/maindata-real.test.ts now runs against it
 | F2 | Rename… |
 | Ctrl/Cmd + A | Select all |
 | Ctrl/Cmd + F · type anywhere | Search |
+| Ctrl/Cmd + O | Add torrents |
+| Paste (nothing focused) | Add magnet links or URLs |
 | Ctrl/Cmd + 1 / 2 | List / Table view |
 | Enter | Open details |
 | Esc | Close menu or dialog → clear search → close search → leave selection mode → close details |
