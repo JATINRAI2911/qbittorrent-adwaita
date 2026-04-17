@@ -303,3 +303,26 @@ describe('copy and export', () => {
     expect(deps.download).toHaveBeenCalledWith(expect.any(Blob), 'a_b.torrent');
   });
 });
+
+describe('category and tag management', () => {
+  it('creates and edits categories with an incomplete folder, and removes several', async () => {
+    const { api, commands, last } = setup();
+    await commands.createCategory('TV', '/tv', { enabled: true, path: '/tv/inc' });
+    expect(api.createCategory).toHaveBeenCalledWith('TV', '/tv', { enabled: true, path: '/tv/inc' });
+    await commands.editCategory('TV', '/media/tv', { enabled: false, path: '' });
+    expect(api.editCategory).toHaveBeenCalledWith('TV', '/media/tv', { enabled: false, path: '' });
+    expect(last().title).toBe('Saved category “TV”');
+    await commands.removeCategories(['TV', 'Films']);
+    expect(api.removeCategories).toHaveBeenCalledWith(['TV', 'Films']);
+    expect(last().title).toBe('Removed 2 categories');
+  });
+
+  it('deletes tags and explains failures', async () => {
+    const { api, commands, last } = setup();
+    await commands.deleteTags(['keep']);
+    expect(last().title).toBe('Deleted tag “keep”');
+    api.deleteTags.mockRejectedValueOnce(new ApiError('network', 0, 'x'));
+    await commands.deleteTags(['keep']);
+    expect(last().title).toBe('Couldn’t delete tags: qBittorrent is unreachable');
+  });
+});

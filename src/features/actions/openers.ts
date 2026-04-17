@@ -1,12 +1,15 @@
-import type { Torrent } from '../../api/types';
+import type { Category, Torrent } from '../../api/types';
 import type { TorrentCommands } from '../../commands/torrent-commands';
 import type { DialogStore } from '../../ui/adw/dialogs.svelte';
 import AddDialog from '../add/AddDialog.svelte';
+import CategoriesDialog from './CategoriesDialog.svelte';
+import CategoryDialog from './CategoryDialog.svelte';
 import DeleteDialog from './DeleteDialog.svelte';
 import LimitsDialog from './LimitsDialog.svelte';
 import MoveDialog from './MoveDialog.svelte';
 import NameDialog from './NameDialog.svelte';
 import RenameDialog from './RenameDialog.svelte';
+import TagsDialog from './TagsDialog.svelte';
 
 export interface DialogOpeners {
   confirmDelete(torrents: Torrent[]): void;
@@ -16,6 +19,9 @@ export interface DialogOpeners {
   limits(torrents: Torrent[]): void;
   newCategory(torrents: Torrent[]): void;
   newTag(torrents: Torrent[]): void;
+  editCategory(category: Category): void;
+  manageCategories(): void;
+  manageTags(): void;
 }
 
 export function createDialogOpeners(
@@ -43,14 +49,25 @@ export function createDialogOpeners(
       dialogs.open(LimitsDialog, { torrents, onconfirm: (changes) => void commands.setLimits(torrents, changes) });
     },
     newCategory(torrents) {
-      dialogs.open(NameDialog, {
-        title: 'New Category',
-        confirmLabel: 'Create',
-        pathLabel: 'Save path (optional)',
-        onconfirm: async (name: string, path: string) => {
-          if ((await commands.createCategory(name, path)) && torrents.length) await commands.setCategory(torrents, name);
+      dialogs.open(CategoryDialog, {
+        list: extra.listDirectories,
+        onconfirm: async ({ name, savePath, download }) => {
+          if ((await commands.createCategory(name, savePath, download)) && torrents.length) await commands.setCategory(torrents, name);
         },
       });
+    },
+    editCategory(category) {
+      dialogs.open(CategoryDialog, {
+        category,
+        list: extra.listDirectories,
+        onconfirm: ({ name, savePath, download }) => void commands.editCategory(name, savePath, download),
+      });
+    },
+    manageCategories() {
+      dialogs.open(CategoriesDialog, {});
+    },
+    manageTags() {
+      dialogs.open(TagsDialog, {});
     },
     newTag(torrents) {
       dialogs.open(NameDialog, {

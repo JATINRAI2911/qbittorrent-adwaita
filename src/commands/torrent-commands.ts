@@ -1,4 +1,4 @@
-import type { QueueMove, ShareLimits, TorrentApi } from '../api/torrents';
+import type { CategoryDownloadPath, QueueMove, ShareLimits, TorrentApi } from '../api/torrents';
 import type { Torrent } from '../api/types';
 import { safeFilename } from '../lib/download';
 import { formatCount } from '../lib/format';
@@ -424,14 +424,47 @@ export function createTorrentCommands(deps: CommandDeps) {
       return true;
     },
 
-    async createCategory(name: string, savePath: string): Promise<boolean> {
+    async createCategory(name: string, savePath: string, download?: CategoryDownloadPath): Promise<boolean> {
       try {
-        await api.createCategory(name, savePath.trim());
+        await api.createCategory(name, savePath.trim(), download);
       } catch (error) {
         toast.show({ title: `Couldn’t create the category: ${errorText(error)}` });
         return false;
       }
       toast.show({ title: `Created category “${name}”` });
+      return true;
+    },
+
+    async editCategory(name: string, savePath: string, download: CategoryDownloadPath): Promise<boolean> {
+      try {
+        await api.editCategory(name, savePath.trim(), download);
+      } catch (error) {
+        toast.show({ title: `Couldn’t save the category: ${errorText(error)}` });
+        return false;
+      }
+      toast.show({ title: `Saved category “${name}”` });
+      return true;
+    },
+
+    async removeCategories(names: readonly string[]): Promise<boolean> {
+      try {
+        await api.removeCategories(names);
+      } catch (error) {
+        toast.show({ title: `Couldn’t remove categories: ${errorText(error)}` });
+        return false;
+      }
+      toast.show({ title: names.length === 1 ? `Removed category “${names[0]}”` : `Removed ${formatCount(names.length)} categories` });
+      return true;
+    },
+
+    async deleteTags(tags: readonly string[]): Promise<boolean> {
+      try {
+        await api.deleteTags(tags);
+      } catch (error) {
+        toast.show({ title: `Couldn’t delete tags: ${errorText(error)}` });
+        return false;
+      }
+      toast.show({ title: tags.length === 1 ? `Deleted tag “${tags[0]}”` : `Deleted ${formatCount(tags.length)} tags` });
       return true;
     },
 

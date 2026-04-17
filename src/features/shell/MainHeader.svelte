@@ -24,7 +24,15 @@
 
   function openMainMenu(event: MouseEvent) {
     app.popovers.toggleMenu(
-      { sections: [[{ label: 'Log Out', action: () => void app.session.logout().then(() => app.selection.exit()) }]] },
+      {
+        sections: [
+          [
+            { label: 'Manage Categories…', action: () => app.openers.manageCategories() },
+            { label: 'Manage Tags…', action: () => app.openers.manageTags() },
+          ],
+          [{ label: 'Log Out', action: () => void app.session.logout().then(() => app.selection.exit()) }],
+        ],
+      },
       event.currentTarget as HTMLElement,
       'end',
     );
