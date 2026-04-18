@@ -93,7 +93,8 @@
 
   function add() {
     const plan = buildAddPlan(model.items, model.form, model.skipped);
-    void app.adding.commands.add(plan, model.addable.map((item) => item.label));
+    // Names only: a URL's label is a masked link, which never goes in a toast.
+    void app.adding.commands.add(plan, model.addable.map((item) => (item.metadata || item.kind === 'magnet' ? item.label : null)));
     close();
   }
 </script>

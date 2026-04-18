@@ -12,7 +12,7 @@ function setup() {
   const details = fakeDetailsApi();
   const toasts: ToastInput[] = [];
   const refresh = vi.fn();
-  const commands = createAddCommands({ api, torrents, details, toast: { show: (t) => toasts.push(t) }, refresh });
+  const commands = createAddCommands({ api, torrents, details, toast: { show: (t) => toasts.push(t) }, refresh, wait: async () => {} });
   return { api, torrents, details, toasts, refresh, commands };
 }
 
@@ -47,5 +47,29 @@ describe('add command', () => {
     api.add.mockRejectedValueOnce(new ApiError('request', 409, 'Torrent file is not valid'));
     await expect(commands.add([{ sources: { urls: ['x'] }, options: {} }], ['x'])).resolves.toBe(false);
     expect(toasts.at(-1)!.title).toBe('Couldn’t add torrents: Torrent file is not valid');
+  });
+
+  it('retries the file selection until qBittorrent has registered the new torrent', async () => {
+    const { details, torrents, toasts, commands } = setup();
+    details.setFilePriority.mockRejectedValueOnce(new ApiError('request', 404, 'Not Found')).mockRejectedValueOnce(new ApiError('request', 404, 'Not Found'));
+    await expect(commands.add([{ sources: { files: [new File(['1'], 'a.torrent')] }, options: { stopped: true }, after: { hash: 'hh', skip: [1], start: true } }], ['a'])).resolves.toBe(true);
+    expect(details.setFilePriority).toHaveBeenCalledTimes(3);
+    expect(torrents.start).toHaveBeenCalledWith(['hh']);
+    expect(toasts.at(-1)!.title).toBe('Added “a”');
+  });
+
+  it('leaves the torrent stopped and says so when the file selection can’t be applied', async () => {
+    const { details, torrents, toasts, refresh, commands } = setup();
+    details.setFilePriority.mockRejectedValue(new ApiError('request', 404, 'Not Found'));
+    await expect(commands.add([{ sources: { files: [new File(['1'], 'a.torrent')] }, options: { stopped: true }, after: { hash: 'hh', skip: [1], start: true } }], ['a'])).resolves.toBe(true);
+    expect(torrents.start).not.toHaveBeenCalled();
+    expect(toasts.at(-1)!.title).toBe('Added “a” stopped: couldn’t apply the file selection');
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it('never names a torrent by its link before its metadata is known', async () => {
+    const { toasts, commands } = setup();
+    await commands.add([{ sources: { urls: ['https://t.example/dl?k=abc123'] }, options: {} }], [null]);
+    expect(toasts.at(-1)!.title).toBe('Added 1 torrent');
   });
 });
