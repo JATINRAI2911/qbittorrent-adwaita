@@ -35,6 +35,7 @@ export interface AddForm {
   upLimitKiB: number;
 }
 
+const URL_ATTEMPTS = 8;
 const LAYOUTS: ContentLayout[] = ['Original', 'Subfolder', 'NoSubfolder'];
 const CONDITIONS: StopCondition[] = ['None', 'MetadataReceived', 'FilesChecked'];
 
@@ -171,16 +172,26 @@ export class AddModel {
     return !this.#disposed && this.items.some((item) => item.id === id);
   }
 
-  async #fetch(id: number, source: string): Promise<void> {
+  /**
+   * Polls with backoff (1×, 1.5×, 2.25×… capped at 5× pollMs). A URL whose download fails also reads
+   * as pending (qBittorrent retries it on every poll), so URLs give up after URL_ATTEMPTS: hammering
+   * a private tracker's download.php gets accounts throttled or banned.
+   */
+  async #fetch(id: number, source: string, attempt = 0): Promise<void> {
     try {
       const result = await this.#deps.api.fetchMetadata(source);
       if (!this.#alive(id)) return;
       if (result.pending) {
+        const kind = this.items.find((item) => item.id === id)?.kind;
+        if (kind === 'url' && attempt + 1 >= URL_ATTEMPTS) {
+          this.#update(id, { status: 'error', error: 'Couldn’t download the torrent file' });
+          return;
+        }
         this.#update(id, { status: 'waiting' });
         const timer = setTimeout(() => {
           this.#timers.delete(timer);
-          void this.#fetch(id, source);
-        }, this.#deps.pollMs ?? 1000);
+          void this.#fetch(id, source, attempt + 1);
+        }, (this.#deps.pollMs ?? 1000) * Math.min(1.5 ** attempt, 5));
         this.#timers.add(timer);
         return;
       }

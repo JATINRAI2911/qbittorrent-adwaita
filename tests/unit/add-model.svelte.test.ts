@@ -132,3 +132,27 @@ describe('defaults', () => {
     model.dispose();
   });
 });
+
+describe('AddModel polling', () => {
+  it('gives up on a URL that keeps failing to download instead of hitting the tracker every second', async () => {
+    const { api, model } = setup();
+    model.addText('https://tracker.example/download.php?id=1&passkey=0123456789abcdef0123456789abcdef');
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(model.items[0]).toMatchObject({ status: 'error', error: 'Couldn’t download the torrent file' });
+    expect(api.fetchMetadata.mock.calls.length).toBeLessThanOrEqual(10);
+    expect(model.addable).toHaveLength(1);
+    model.dispose();
+  });
+
+  it('backs off while a magnet waits for peers, but keeps waiting', async () => {
+    const { api, model } = setup();
+    model.addText(magnet());
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(model.items[0]!.status).toBe('waiting');
+    expect(api.fetchMetadata.mock.calls.length).toBeLessThanOrEqual(20);
+    const calls = api.fetchMetadata.mock.calls.length;
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(api.fetchMetadata.mock.calls.length).toBeGreaterThan(calls);
+    model.dispose();
+  });
+});
