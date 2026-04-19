@@ -8,27 +8,50 @@ import { makeAppContext, withApp } from '../fixtures/app-context';
 import { makeTorrent } from '../fixtures/torrents';
 
 describe('CategoryDialog', () => {
-  it('creates a category with an optional incomplete folder', async () => {
+  const folderSetting = () => screen.getByRole('combobox', { name: 'Use incomplete folder' });
+
+  it('creates a category with its own incomplete folder', async () => {
     const onconfirm = vi.fn();
     render(CategoryDialog, { onconfirm, close: vi.fn() });
     expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
     await userEvent.type(screen.getByLabelText('Name'), 'TV');
     await userEvent.type(screen.getByRole('combobox', { name: 'Save path' }), '/tv');
-    await userEvent.click(screen.getByRole('switch', { name: /incomplete folder/ }));
+    await userEvent.selectOptions(folderSetting(), 'yes');
     await userEvent.type(screen.getByRole('combobox', { name: 'Incomplete folder' }), '/tv/inc');
     await userEvent.click(screen.getByRole('button', { name: 'Create' }));
     expect(onconfirm).toHaveBeenCalledWith({ name: 'TV', savePath: '/tv', download: { enabled: true, path: '/tv/inc' } });
   });
 
-  it('edits an existing category without renaming it', async () => {
+  it('creates categories that follow the global incomplete-folder setting by default', async () => {
+    const onconfirm = vi.fn();
+    render(CategoryDialog, { onconfirm, close: vi.fn() });
+    expect(folderSetting()).toHaveValue('default');
+    await userEvent.type(screen.getByLabelText('Name'), 'TV');
+    await userEvent.click(screen.getByRole('button', { name: 'Create' }));
+    expect(onconfirm).toHaveBeenCalledWith({ name: 'TV', savePath: '', download: null });
+  });
+
+  it('edits an existing category without renaming it or changing its folder setting', async () => {
     const onconfirm = vi.fn();
     render(CategoryDialog, { category: { name: 'TV', savePath: '/tv', download_path: '/tv/inc' }, onconfirm, close: vi.fn() });
     expect(screen.getByLabelText('Name')).toBeDisabled();
-    expect(screen.getByRole('switch', { name: /incomplete folder/ })).toHaveAttribute('aria-checked', 'true');
+    expect(folderSetting()).toHaveValue('yes');
     await userEvent.clear(screen.getByRole('combobox', { name: 'Save path' }));
     await userEvent.type(screen.getByRole('combobox', { name: 'Save path' }), '/media/tv');
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(onconfirm).toHaveBeenCalledWith({ name: 'TV', savePath: '/media/tv', download: { enabled: true, path: '/tv/inc' } });
+  });
+
+  it.each([
+    [undefined, 'default', null],
+    [false as const, 'no', { enabled: false, path: '' }],
+    ['', 'yes', { enabled: true, path: '' }],
+  ])('keeps download_path %j as “%s” when saved unchanged', async (downloadPath, shown, sent) => {
+    const onconfirm = vi.fn();
+    render(CategoryDialog, { category: { name: 'TV', savePath: '/tv', download_path: downloadPath }, onconfirm, close: vi.fn() });
+    expect(folderSetting()).toHaveValue(shown);
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(onconfirm).toHaveBeenCalledWith({ name: 'TV', savePath: '/tv', download: sent });
   });
 });
 

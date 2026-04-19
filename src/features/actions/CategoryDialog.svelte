@@ -3,16 +3,17 @@
   import type { CategoryDownloadPath } from '../../api/torrents';
   import type { Category } from '../../api/types';
   import BoxedList from '../../ui/adw/BoxedList.svelte';
+  import ComboRow from '../../ui/adw/ComboRow.svelte';
   import Dialog from '../../ui/adw/Dialog.svelte';
   import EntryRow from '../../ui/adw/EntryRow.svelte';
-  import SwitchRow from '../../ui/adw/SwitchRow.svelte';
   import PathEntry from '../paths/PathEntry.svelte';
 
   interface Props {
     /** Editing when given; creating otherwise. */
     category?: Category;
     list?: (dir: string) => Promise<string[]>;
-    onconfirm: (value: { name: string; savePath: string; download: Exclude<CategoryDownloadPath, null> }) => void;
+    /** `download` is null for “Default” (follow the global incomplete-folder setting). */
+    onconfirm: (value: { name: string; savePath: string; download: CategoryDownloadPath }) => void;
     close: () => void;
   }
   let { category, list, onconfirm, close }: Props = $props();
@@ -21,8 +22,16 @@
   const initial = untrack(() => category);
   let name = $state(initial?.name ?? '');
   let savePath = $state(initial?.savePath ?? '');
-  let useDownload = $state(typeof initial?.download_path === 'string' && initial.download_path !== '');
-  let downloadPath = $state(typeof initial?.download_path === 'string' ? initial.download_path : '');
+  // download_path: missing = follow the global setting, false = off, a string = on ('' = the default folder).
+  type FolderSetting = 'default' | 'yes' | 'no';
+  const seeded = initial?.download_path;
+  let folder = $state<FolderSetting>(seeded === undefined ? 'default' : seeded === false ? 'no' : 'yes');
+  let downloadPath = $state(typeof seeded === 'string' ? seeded : '');
+  const FOLDER_OPTIONS: { value: FolderSetting; label: string }[] = [
+    { value: 'default', label: 'Default' },
+    { value: 'yes', label: 'Yes' },
+    { value: 'no', label: 'No' },
+  ];
   const invalid = $derived(name.trim() === '' || name.includes('\\'));
 </script>
 
@@ -32,15 +41,16 @@
   confirmDisabled={invalid}
   {close}
   onconfirm={() => {
-    onconfirm({ name: name.trim(), savePath: savePath.trim(), download: { enabled: useDownload, path: useDownload ? downloadPath.trim() : '' } });
+    const download = folder === 'default' ? null : { enabled: folder === 'yes', path: folder === 'yes' ? downloadPath.trim() : '' };
+    onconfirm({ name: name.trim(), savePath: savePath.trim(), download });
     close();
   }}
 >
   <BoxedList>
     <EntryRow title="Name" bind:value={name} disabled={initial !== undefined} autofocus={!initial} />
     <PathEntry title="Save path" bind:value={savePath} {list} placeholder="Default save path" />
-    <SwitchRow title="Use an incomplete folder" subtitle="Keep unfinished downloads somewhere else" bind:checked={useDownload} />
-    {#if useDownload}<PathEntry title="Incomplete folder" bind:value={downloadPath} {list} />{/if}
+    <ComboRow title="Use incomplete folder" subtitle="Keep unfinished downloads somewhere else" options={FOLDER_OPTIONS} bind:value={folder} />
+    {#if folder === 'yes'}<PathEntry title="Incomplete folder" bind:value={downloadPath} {list} placeholder="Default incomplete folder" />{/if}
   </BoxedList>
   <p class="dialog-note">Use “/” in the name for a subcategory, like “Linux/ISOs”.</p>
 </Dialog>
