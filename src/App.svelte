@@ -203,9 +203,12 @@
     dragging = true;
   }
 
-  // Any file or link drag is ours: letting the browser handle the drop would navigate away from the app.
+  // A file drag is always ours: the browser's own drop would open the file and navigate away. Link
+  // and text drags onto a text field stay native, so a link can be dropped into an entry.
+  const leaveToField = (event: DragEvent) => isTypingTarget(event.target) && !event.dataTransfer?.types.includes('Files');
+
   function ondragover(event: DragEvent) {
-    if (carriesTorrents(event.dataTransfer) && !isTypingTarget(event.target)) event.preventDefault();
+    if (carriesTorrents(event.dataTransfer) && !leaveToField(event)) event.preventDefault();
   }
 
   function ondragleave() {
@@ -214,11 +217,13 @@
   }
 
   function ondrop(event: DragEvent) {
-    if (!carriesTorrents(event.dataTransfer) || isTypingTarget(event.target)) return;
-    event.preventDefault();
-    if (!dragging) return;
+    // No dragleave follows a drop: reset the hint whatever happens next.
+    const wasDragging = dragging;
     dragging = false;
     dragDepth = 0;
+    if (!carriesTorrents(event.dataTransfer) || leaveToField(event)) return;
+    event.preventDefault();
+    if (!wasDragging) return;
     const files = [...(event.dataTransfer?.files ?? [])].filter(isTorrentFile);
     const text = event.dataTransfer?.getData('text/uri-list') || event.dataTransfer?.getData('text/plain') || '';
     if (files.length || parseSources(text).sources.length) openers.add({ text, files });

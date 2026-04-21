@@ -95,4 +95,28 @@ describe('App add entry points', () => {
     expect(add.parseMetadata).not.toHaveBeenCalled();
     unmount();
   });
+
+  it('handles a file dropped on a text field and clears the drop hint, but leaves link drops to the field', async () => {
+    const { add, unmount } = await renderApp();
+    await userEvent.keyboard('{Control>}f{/Control}');
+    const search = screen.getByRole('searchbox', { name: 'Search torrents' });
+    const fire = (type: string, data: object, target: EventTarget) => {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'dataTransfer', { value: data });
+      target.dispatchEvent(event);
+      return event;
+    };
+    const link = { types: ['text/uri-list'], files: [], getData: () => 'https://x.example/a.torrent' };
+    expect(fire('dragover', link, search).defaultPrevented).toBe(false);
+    const file = new File(['1'], 'debian.torrent');
+    const files = { types: ['Files'], files: [file], getData: () => '' };
+    fire('dragenter', files, window);
+    expect(await screen.findByText('Drop to Add Torrents')).toBeInTheDocument();
+    expect(fire('dragover', files, search).defaultPrevented).toBe(true);
+    expect(fire('drop', files, search).defaultPrevented).toBe(true);
+    await vi.waitFor(() => expect(screen.queryByText('Drop to Add Torrents')).toBeNull());
+    expect(await screen.findByRole('dialog', { name: 'Add Torrents' })).toBeInTheDocument();
+    expect(add.parseMetadata).toHaveBeenCalledWith([file]);
+    unmount();
+  });
 });
