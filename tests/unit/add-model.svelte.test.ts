@@ -92,6 +92,19 @@ describe('AddModel items', () => {
 });
 
 describe('AddModel file selection', () => {
+  it('never carries one torrent’s file selection over to another', async () => {
+    const { api, model } = setup();
+    api.fetchMetadata.mockResolvedValue({ pending: false, metadata: metadata({ files: [{ path: 'd/a', length: 1 }, { path: 'd/b', length: 1 }] }) });
+    model.addText(magnet());
+    await vi.advanceTimersByTimeAsync(0);
+    model.setSkipped([1], true);
+    model.addText(magnet('cd'.repeat(20), 'Other'));
+    await vi.advanceTimersByTimeAsync(0);
+    model.remove(model.items[0]!.id);
+    expect(model.canSelectFiles).toBe(true);
+    expect([...model.skipped]).toEqual([]);
+    model.dispose();
+  });
   it('offers file selection only for one source with known metadata', async () => {
     const { api, model } = setup();
     api.fetchMetadata.mockResolvedValue({ pending: false, metadata: metadata({ files: [{ path: 'd/a', length: 1 }, { path: 'd/b', length: 1 }] }) });

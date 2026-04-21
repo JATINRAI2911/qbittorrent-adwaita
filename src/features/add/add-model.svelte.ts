@@ -88,6 +88,7 @@ export class AddModel {
   readonly #edited = new Set<keyof AddForm>();
   readonly #timers = new Set<ReturnType<typeof setTimeout>>();
   #nextId = 0;
+  #selectionFor: number | null = null;
   #disposed = false;
 
   constructor(deps: AddModelDeps) {
@@ -131,10 +132,11 @@ export class AddModel {
 
   remove(id: number): void {
     this.items = this.items.filter((item) => item.id !== id);
-    if (!this.canSelectFiles) this.skipped.clear();
+    this.#syncSelection();
   }
 
   setSkipped(ids: readonly number[], skip: boolean): void {
+    this.#selectionFor = this.single?.id ?? null;
     for (const id of ids) {
       if (skip) this.skipped.add(id);
       else this.skipped.delete(id);
@@ -158,14 +160,23 @@ export class AddModel {
     this.#timers.clear();
   }
 
+  /** File indices only mean something for the torrent they were chosen in. */
+  #syncSelection(): void {
+    if (this.single?.id === this.#selectionFor) return;
+    this.skipped.clear();
+    this.#selectionFor = null;
+  }
+
   #push(fields: Pick<AddItem, 'kind' | 'label' | 'source' | 'hash'>): AddItem {
     const item: AddItem = { id: ++this.#nextId, status: 'loading', metadata: null, error: null, ...fields };
     this.items = [...this.items, item];
+    this.#syncSelection();
     return item;
   }
 
   #update(id: number, patch: Partial<AddItem>): void {
     this.items = this.items.map((item) => (item.id === id ? { ...item, ...patch } : item));
+    this.#syncSelection();
   }
 
   #alive(id: number): boolean {
