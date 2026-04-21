@@ -60,8 +60,9 @@ export function parseSources(text: string): { sources: ParsedSource[]; invalid: 
     seen.add(source.key);
     sources.push(source);
   };
-  for (const raw of text.split(/[\s,;]+/)) {
-    const token = raw.replace(/^[<("'[]+|[>)"'\].]+$/g, '');
+  // Whitespace only: commas and semicolons appear unencoded inside magnet names and URL queries.
+  for (const raw of text.split(/\s+/)) {
+    const token = raw.replace(/^[<("'[]+|[>)"'\].,;]+$/g, '');
     if (!token) continue;
     if (/^magnet:\?/i.test(token)) {
       const hash = infoHashOf(token);

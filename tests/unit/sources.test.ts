@@ -47,6 +47,15 @@ describe('parseSources', () => {
     expect(parseSources('magnet:?dn=no-hash ftp://x/y.torrent').invalid).toEqual(['magnet:?dn=no-hash', 'ftp://x/y.torrent']);
     expect(parseSources('just some words').sources).toEqual([]);
   });
+
+  it('keeps commas and semicolons inside a magnet or URL, splitting only on whitespace', () => {
+    const magnet = `magnet:?xt=urn:btih:${HEX}&dn=Foo,Bar;Baz&tr=https%3A%2F%2Ft.example%2Fannounce`;
+    const url = 'https://t.example/get?id=1,2;3';
+    const { sources, invalid } = parseSources(`${magnet}, ${url};`);
+    expect(sources.map((s) => s.value)).toEqual([magnet, url]);
+    expect(sources[0]!.label).toBe('Foo,Bar;Baz');
+    expect(invalid).toEqual([]);
+  });
 });
 
 describe('isTorrentFile', () => {
