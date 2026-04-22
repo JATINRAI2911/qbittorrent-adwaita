@@ -15,7 +15,7 @@ async function renderApp(torrents: MaindataResponse['torrents'] = { aaa: { name:
   const full: MaindataResponse = { rid: 1, full_update: true, torrents, server_state: {} };
   const session = new Session({ login: vi.fn(async () => 'ok' as const), logout: vi.fn(async () => {}), maindata: vi.fn(async (rid: number) => (rid === 0 ? full : { rid: 2 })), isHidden: () => false, onVisible: () => () => {} });
   const add = fakeAddApi();
-  const appClient = { directoryContent: vi.fn(async () => []), defaultSavePath: vi.fn(async () => '/dl'), preferences: vi.fn(async () => ({})) };
+  const appClient = { directoryContent: vi.fn(async () => []), defaultSavePath: vi.fn(async () => '/dl'), preferences: vi.fn(async () => ({})), setPreferences: vi.fn(async () => {}) };
   const view = render(App, { session, api: fakeTorrentApi(), clientdata: fakeClientData(), details: fakeDetailsApi(), appClient, add });
   await screen.findByRole('banner');
   return { add, ...view };

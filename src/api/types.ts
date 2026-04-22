@@ -89,6 +89,16 @@ export interface ServerState {
   alltime_ul: number;
   global_ratio: string;
   total_peer_connections: number;
+  total_wasted_session: number;
+  /** Percentages as strings, e.g. "16.07". */
+  read_cache_hits: string;
+  read_cache_overload: string;
+  write_cache_overload: string;
+  total_buffers_size: number;
+  total_queued_size: number;
+  queued_io_jobs: number;
+  /** Milliseconds. */
+  average_time_queue: number;
 }
 
 export interface MaindataResponse {
