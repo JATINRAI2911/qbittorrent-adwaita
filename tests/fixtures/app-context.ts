@@ -1,6 +1,6 @@
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import { vi, type Mock } from 'vitest';
-import type { Category, Torrent } from '../../src/api/types';
+import type { Category, ServerState, Torrent } from '../../src/api/types';
 import { APP_CONTEXT_KEY, type AppContext } from '../../src/app-context';
 import type { AddCommands } from '../../src/commands/add-commands';
 import type { DetailCommands } from '../../src/commands/detail-commands';
@@ -11,6 +11,8 @@ import { ListModel } from '../../src/features/list/list-model.svelte';
 import { TableModel } from '../../src/features/table/table-model.svelte';
 import { UiPrefs } from '../../src/state/prefs.svelte';
 import { Selection } from '../../src/state/selection.svelte';
+import { ServerPrefs } from '../../src/state/server-prefs.svelte';
+import { SpeedHistory } from '../../src/state/speed-history.svelte';
 import { TrackerIndex } from '../../src/state/tracker-index.svelte';
 import { DialogStore } from '../../src/ui/adw/dialogs.svelte';
 import { PopoverStore } from '../../src/ui/adw/popovers.svelte';
@@ -18,6 +20,7 @@ import { ToastStore } from '../../src/ui/adw/toast.svelte';
 import { fakeAddApi } from './fake-add-api';
 import { fakeClientData } from './fake-clientdata';
 import { fakeDetailsApi } from './fake-details-api';
+import { reactive } from './reactive.svelte';
 
 export type Mocked<T> = { [K in keyof T]: T[K] extends (...args: infer A) => infer R ? Mock<(...args: A) => R> : T[K] };
 
@@ -31,7 +34,8 @@ export function makeAppContext(torrents: Torrent[] = [], overrides: Partial<AppC
     categories: new SvelteMap<string, Category>(),
     tags: new SvelteSet<string>(),
     trackers: new SvelteMap<string, string[]>(),
-    server: {},
+    server: reactive({} as Partial<ServerState>),
+    speeds: new SpeedHistory(),
     logout: vi.fn(async () => {}),
   };
   const prefs = new UiPrefs({ api: fakeClientData() });
@@ -65,6 +69,7 @@ export function makeAppContext(torrents: Torrent[] = [], overrides: Partial<AppC
     dialogs: new DialogStore(),
     toasts: new ToastStore(),
     adding,
+    global: { prefs: new ServerPrefs(async () => ({})) },
     ...overrides,
   };
   return context as AppContext & {

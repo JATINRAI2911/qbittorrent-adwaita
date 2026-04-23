@@ -4,6 +4,7 @@ import * as sync from '../api/sync';
 import type { Category, MaindataResponse, ServerState, Torrent } from '../api/types';
 import { applyMaindata, type SyncState } from '../sync/maindata';
 import { Poller } from '../sync/poller';
+import { SpeedHistory } from './speed-history.svelte';
 
 export type Connection = 'starting' | 'login' | 'online' | 'offline';
 export type LoginOutcome = 'ok' | 'invalid' | 'banned' | 'network';
@@ -34,6 +35,8 @@ export class Session implements SyncState {
   readonly categories = new SvelteMap<string, Category>();
   readonly tags = new SvelteSet<string>();
   readonly trackers = new SvelteMap<string, string[]>();
+  /** The last minute of global speeds, one sample per sync. */
+  readonly speeds = new SpeedHistory();
 
   #deps: SessionDeps;
   #poller: Poller;
@@ -48,6 +51,7 @@ export class Session implements SyncState {
         const summary = applyMaindata(this, response, reactive);
         if (summary.desync) this.rid = 0;
         this.loaded = true;
+        this.speeds.push({ t: Date.now(), dl: this.server.dl_info_speed ?? 0, ul: this.server.up_info_speed ?? 0 });
       },
       isHidden: () => deps.isHidden(),
       onOnline: () => {

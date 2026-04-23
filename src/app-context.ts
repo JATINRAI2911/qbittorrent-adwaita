@@ -12,6 +12,8 @@ import type { ListModel } from './features/list/list-model.svelte';
 import type { TableModel } from './features/table/table-model.svelte';
 import type { UiPrefs } from './state/prefs.svelte';
 import type { Selection } from './state/selection.svelte';
+import type { ServerPrefs } from './state/server-prefs.svelte';
+import type { SpeedHistory } from './state/speed-history.svelte';
 import type { TrackerIndex } from './state/tracker-index.svelte';
 import type { DialogStore } from './ui/adw/dialogs.svelte';
 import type { PopoverStore } from './ui/adw/popovers.svelte';
@@ -24,6 +26,7 @@ export interface SessionView {
   readonly tags: ReadonlySet<string>;
   readonly trackers: ReadonlyMap<string, readonly string[]>;
   readonly server: Partial<ServerState>;
+  readonly speeds: SpeedHistory;
   logout(): Promise<void>;
 }
 
@@ -42,6 +45,7 @@ export interface AppContext {
   dialogs: DialogStore;
   toasts: ToastStore;
   adding: { api: AddApi; appApi: AppApi; commands: AddCommands };
+  global: { prefs: ServerPrefs };
 }
 
 export const APP_CONTEXT_KEY = Symbol('app-context');

@@ -25,6 +25,14 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
 describe('Session', () => {
+  it('records a speed sample on every sync', async () => {
+    const session = new Session(deps());
+    session.start();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(session.speeds.samples).toEqual([{ t: Date.now(), dl: 10, ul: 0 }]);
+    session.stop();
+  });
+
   it('goes online and fills the stores after the first successful poll', async () => {
     const session = new Session(deps());
     expect(session.connection).toBe('starting');

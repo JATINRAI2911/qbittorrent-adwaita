@@ -15,6 +15,7 @@ import { copyText } from './lib/clipboard';
 import { downloadBlob } from './lib/download';
 import { UiPrefs } from './state/prefs.svelte';
 import { Selection } from './state/selection.svelte';
+import { ServerPrefs } from './state/server-prefs.svelte';
 import type { Session } from './state/session.svelte';
 import { TrackerIndex } from './state/tracker-index.svelte';
 import { DialogStore } from './ui/adw/dialogs.svelte';
@@ -69,6 +70,7 @@ export function createApp(
     filesChanged: () => detailModel.markFilesChanged(),
     copyText: (text) => copyText(text),
   });
+  const serverPrefs = new ServerPrefs(() => appClient.preferences());
   return {
     session,
     selection: new Selection(),
@@ -88,5 +90,6 @@ export function createApp(
       appApi: appClient,
       commands: createAddCommands({ api: add, torrents: api, details, toast: toasts, refresh: () => session.retryNow() }),
     },
+    global: { prefs: serverPrefs },
   };
 }
