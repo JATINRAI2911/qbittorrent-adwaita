@@ -1,10 +1,12 @@
 import { addApi, type AddApi } from './api/add';
 import { appApi, type AppApi } from './api/app';
+import { transferApi, type TransferApi } from './api/transfer';
 import { clientdataApi, type ClientDataApi } from './api/clientdata';
 import { detailsApi, type DetailsApi } from './api/details';
 import type { TorrentApi } from './api/torrents';
 import type { AppContext } from './app-context';
 import { createAddCommands } from './commands/add-commands';
+import { createGlobalCommands } from './commands/global-commands';
 import { createDetailCommands } from './commands/detail-commands';
 import { createTorrentCommands } from './commands/torrent-commands';
 import { createDialogOpeners } from './features/actions/openers';
@@ -38,6 +40,7 @@ export function createApp(
   details: DetailsApi = detailsApi,
   appClient: AppApi = appApi,
   add: AddApi = addApi,
+  transfer: TransferApi = transferApi,
 ): AppContext {
   const toasts = new ToastStore();
   const dialogs = new DialogStore();
@@ -90,6 +93,16 @@ export function createApp(
       appApi: appClient,
       commands: createAddCommands({ api: add, torrents: api, details, toast: toasts, refresh: () => session.retryNow() }),
     },
-    global: { prefs: serverPrefs },
+    global: {
+      prefs: serverPrefs,
+      commands: createGlobalCommands({
+        transfer,
+        app: appClient,
+        toast: toasts,
+        altMode: () => session.server.use_alt_speed_limits ?? false,
+        setAltMode: (on) => (session.server.use_alt_speed_limits = on),
+        refresh: () => session.retryNow(),
+      }),
+    },
   };
 }

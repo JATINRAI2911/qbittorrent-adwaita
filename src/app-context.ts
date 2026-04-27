@@ -3,6 +3,7 @@ import type { AddApi } from './api/add';
 import type { AppApi } from './api/app';
 import type { Category, ServerState, Torrent } from './api/types';
 import type { AddCommands } from './commands/add-commands';
+import type { GlobalCommands } from './commands/global-commands';
 import type { DetailCommands } from './commands/detail-commands';
 import type { TorrentCommands } from './commands/torrent-commands';
 import type { DialogOpeners } from './features/actions/openers';
@@ -45,7 +46,7 @@ export interface AppContext {
   dialogs: DialogStore;
   toasts: ToastStore;
   adding: { api: AddApi; appApi: AppApi; commands: AddCommands };
-  global: { prefs: ServerPrefs };
+  global: { prefs: ServerPrefs; commands: GlobalCommands };
 }
 
 export const APP_CONTEXT_KEY = Symbol('app-context');

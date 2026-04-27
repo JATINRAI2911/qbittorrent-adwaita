@@ -3,6 +3,7 @@ import { vi, type Mock } from 'vitest';
 import type { Category, ServerState, Torrent } from '../../src/api/types';
 import { APP_CONTEXT_KEY, type AppContext } from '../../src/app-context';
 import type { AddCommands } from '../../src/commands/add-commands';
+import type { GlobalCommands } from '../../src/commands/global-commands';
 import type { DetailCommands } from '../../src/commands/detail-commands';
 import type { TorrentCommands } from '../../src/commands/torrent-commands';
 import type { DialogOpeners } from '../../src/features/actions/openers';
@@ -69,7 +70,7 @@ export function makeAppContext(torrents: Torrent[] = [], overrides: Partial<AppC
     dialogs: new DialogStore(),
     toasts: new ToastStore(),
     adding,
-    global: { prefs: new ServerPrefs(async () => ({})) },
+    global: { prefs: new ServerPrefs(async () => ({})), commands: lazyMocks<GlobalCommands>(async () => true) },
     ...overrides,
   };
   return context as AppContext & {
@@ -79,6 +80,7 @@ export function makeAppContext(torrents: Torrent[] = [], overrides: Partial<AppC
     detailCommands: typeof detailCommands;
     detailsApi: typeof detailsApi;
     adding: typeof adding;
+    global: { prefs: ServerPrefs; commands: Mocked<GlobalCommands> };
   };
 }
 
