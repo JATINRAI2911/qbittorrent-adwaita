@@ -18,6 +18,7 @@
   import { isButtonTarget, isTypingTarget, keyCommand } from './features/shell/keyboard';
   import MainHeader from './features/shell/MainHeader.svelte';
   import SearchBar from './features/shell/SearchBar.svelte';
+  import { assessHealth, type BannerAction } from './state/health';
   import { session as defaultSession, type Session } from './state/session.svelte';
   import Banner from './ui/adw/Banner.svelte';
   import Button from './ui/adw/Button.svelte';
@@ -37,7 +38,7 @@
   }: { session?: Session; api?: TorrentApi; clientdata?: ClientDataApi; details?: DetailsApi; appClient?: AppApi; add?: AddApi } = $props();
 
   const app = setAppContext(untrack(() => createApp(session, api, clientdata, undefined, detailsClient, appClient, add)));
-  const { selection, list, table, prefs, details, commands, openers, popovers, dialogs, toasts } = app;
+  const { selection, list, table, prefs, details, commands, openers, popovers, dialogs, toasts, global } = app;
 
   let scrolled = $state(false);
   let content = $state<HTMLElement>();
@@ -63,6 +64,30 @@
     if (hash && !session.torrents.has(hash)) untrack(() => details.close());
   });
   const offline = $derived(session.connection === 'offline');
+
+  // One health value for the banner and the header's status button.
+  const health = $derived(
+    assessHealth({
+      connection: session.connection,
+      retryIn: session.retryIn,
+      host: location.host,
+      server: session.server,
+      torrents: session.torrents.values(),
+      savePath: global.prefs.savePath,
+      listenPort: global.prefs.listenPort,
+    }),
+  );
+
+  // "Connection Settings" arrives with Preferences (M7); until then those banners have no button.
+  const BANNER_ACTIONS: Partial<Record<BannerAction, { label: string; run: () => void }>> = {
+    retry: { label: 'Retry Now', run: () => session.retryNow() },
+    downloading: { label: 'Show Downloading', run: () => list.setStatus('downloading') },
+  };
+
+  // Save path and listen port for the banner texts; refreshed on every (re)connection.
+  $effect(() => {
+    if (session.connection === 'online') untrack(() => void global.prefs.refresh());
+  });
 
   $effect(() => {
     untrack(() => session.start());
@@ -236,8 +261,9 @@
   <div class="window" inert={session.connection === 'login' || dialogs.isOpen}>
     <div class="top-bar" class:raised={scrolled}>
       <MainHeader torrents={session.torrents} server={session.server} {offline} />
-      {#if offline}
-        <Banner tone="error" title="Can’t reach qBittorrent. Retrying in {session.retryIn} s…" actionLabel="Retry Now" onaction={() => session.retryNow()} />
+      {#if health.banner}
+        {@const action = BANNER_ACTIONS[health.banner.action]}
+        <Banner tone={health.banner.tone} title={health.banner.text} actionLabel={action?.label} onaction={action?.run} />
       {/if}
       {#if list.searchOpen}<SearchBar onleave={focusFirstRow} />{/if}
       {#if !selection.mode && (session.torrents.size > 10 || list.filtering)}<FilterBar />{/if}
