@@ -118,3 +118,28 @@ describe('ActionBar', () => {
     expect(screen.getByRole('button', { name: 'Stop' })).toBeEnabled();
   });
 });
+
+describe('header health controls', () => {
+  it('shows the alternative-limits state on the turtle and toggles it', async () => {
+    const app = makeAppContext();
+    render(MainHeader, { props: { torrents: app.session.torrents, server: { use_alt_speed_limits: true }, offline: false }, context: withApp(app) });
+    const turtle = screen.getByRole('button', { name: 'Alternative Speed Limits' });
+    expect(turtle).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(turtle);
+    expect(app.global.commands.setAltSpeed).toHaveBeenCalledWith(false);
+  });
+
+  it('names the health on the status button and opens the status popover', async () => {
+    const app = makeAppContext();
+    const health = { level: 'warning' as const, line: 'Low disk space', banner: null };
+    render(MainHeader, { props: { torrents: app.session.torrents, server: {}, offline: false, health }, context: withApp(app) });
+    await userEvent.click(screen.getByRole('button', { name: 'Status: Low disk space' }));
+    expect(app.popovers.panel).not.toBeNull();
+  });
+
+  it('disables the turtle while offline', () => {
+    const app = makeAppContext();
+    render(MainHeader, { props: { torrents: app.session.torrents, server: {}, offline: true }, context: withApp(app) });
+    expect(screen.getByRole('button', { name: 'Alternative Speed Limits' })).toBeDisabled();
+  });
+});

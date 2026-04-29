@@ -13,6 +13,7 @@ import type { ListModel } from './features/list/list-model.svelte';
 import type { TableModel } from './features/table/table-model.svelte';
 import type { UiPrefs } from './state/prefs.svelte';
 import type { Selection } from './state/selection.svelte';
+import type { Connection } from './state/session.svelte';
 import type { ServerPrefs } from './state/server-prefs.svelte';
 import type { SpeedHistory } from './state/speed-history.svelte';
 import type { TrackerIndex } from './state/tracker-index.svelte';
@@ -28,6 +29,7 @@ export interface SessionView {
   readonly trackers: ReadonlyMap<string, readonly string[]>;
   readonly server: Partial<ServerState>;
   readonly speeds: SpeedHistory;
+  readonly connection: Connection;
   logout(): Promise<void>;
 }
 

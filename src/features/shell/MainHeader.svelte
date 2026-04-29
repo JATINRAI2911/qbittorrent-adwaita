@@ -3,24 +3,29 @@
   import { getAppContext, viewHashes } from '../../app-context';
   import { formatCount } from '../../lib/format';
   import { LIST_SORTS } from '../../state/groups';
+  import { HEALTHY, type Health } from '../../state/health';
   import { subtitleText, summarize } from '../../state/summary';
   import Button from '../../ui/adw/Button.svelte';
   import HeaderBar from '../../ui/adw/HeaderBar.svelte';
   import Icon from '../../ui/adw/Icon.svelte';
   import type { MenuModel } from '../../ui/adw/menu';
   import WindowTitle from '../../ui/adw/WindowTitle.svelte';
+  import StatusPopover from '../global/StatusPopover.svelte';
   import { COLUMN_IDS, COLUMNS } from '../table/columns';
 
   interface Props {
     torrents: ReadonlyMap<string, Torrent>;
     server: Partial<ServerState>;
     offline: boolean;
+    health?: Health;
   }
-  let { torrents, server, offline }: Props = $props();
+  let { torrents, server, offline, health = HEALTHY }: Props = $props();
 
   const app = getAppContext();
   const subtitle = $derived(subtitleText(summarize(torrents.values(), server), { offline, empty: torrents.size === 0 }));
   const count = $derived(app.selection.size);
+  const alt = $derived(server.use_alt_speed_limits ?? false);
+  const STATUS_ICON = { ok: 'network', warning: 'warning', error: 'exclamation' } as const;
 
   function openMainMenu(event: MouseEvent) {
     app.popovers.toggleMenu(
@@ -102,7 +107,27 @@
   </HeaderBar>
 {:else}
   <HeaderBar>
-    {#snippet start()}<Button icon="list-add" title="Add Torrents" onclick={() => app.openers.add()} />{/snippet}
+    {#snippet start()}
+      <Button icon="list-add" title="Add Torrents" onclick={() => app.openers.add()} />
+      <button
+        type="button"
+        class="btn image-button"
+        class:checked={alt}
+        aria-pressed={alt}
+        aria-label="Alternative Speed Limits"
+        title="Alternative Speed Limits"
+        disabled={offline}
+        onclick={() => void app.global.commands.setAltSpeed(!alt)}
+      ><Icon name="turtle" /></button>
+      <button
+        type="button"
+        class="btn image-button status-button tone-{health.level}"
+        aria-label="Status: {health.line}"
+        title="Status"
+        aria-haspopup="dialog"
+        onclick={(event) => app.popovers.togglePanel(StatusPopover, { health: () => health }, event.currentTarget, 'start')}
+      ><Icon name={STATUS_ICON[health.level]} /></button>
+    {/snippet}
     {#snippet title()}<WindowTitle title="qBittorrent" {subtitle} />{/snippet}
     {#snippet end()}
       <Button icon="open-menu" title="Main Menu" onclick={openMainMenu} />
@@ -119,3 +144,8 @@
     {/snippet}
   </HeaderBar>
 {/if}
+
+<style>
+  .status-button.tone-warning { color: var(--warning-color); }
+  .status-button.tone-error { color: var(--error-color); }
+</style>

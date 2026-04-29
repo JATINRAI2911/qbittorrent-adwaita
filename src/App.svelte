@@ -260,7 +260,7 @@
 {#if session.loaded}
   <div class="window" inert={session.connection === 'login' || dialogs.isOpen}>
     <div class="top-bar" class:raised={scrolled}>
-      <MainHeader torrents={session.torrents} server={session.server} {offline} />
+      <MainHeader torrents={session.torrents} server={session.server} {offline} {health} />
       {#if health.banner}
         {@const action = BANNER_ACTIONS[health.banner.action]}
         <Banner tone={health.banner.tone} title={health.banner.text} actionLabel={action?.label} onaction={action?.run} />

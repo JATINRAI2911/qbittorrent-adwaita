@@ -22,6 +22,8 @@ export interface DialogOpeners {
   editCategory(category: Category): void;
   manageCategories(): void;
   manageTags(): void;
+  speedLimits(): void;
+  statistics(): void;
 }
 
 export function createDialogOpeners(
@@ -69,6 +71,8 @@ export function createDialogOpeners(
     manageTags() {
       dialogs.open(TagsDialog, {});
     },
+    speedLimits() {},
+    statistics() {},
     newTag(torrents) {
       dialogs.open(NameDialog, {
         title: 'New Tag',

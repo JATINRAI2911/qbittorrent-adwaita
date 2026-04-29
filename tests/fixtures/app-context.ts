@@ -37,6 +37,7 @@ export function makeAppContext(torrents: Torrent[] = [], overrides: Partial<AppC
     trackers: new SvelteMap<string, string[]>(),
     server: reactive({} as Partial<ServerState>),
     speeds: new SpeedHistory(),
+    connection: 'online' as const,
     logout: vi.fn(async () => {}),
   };
   const prefs = new UiPrefs({ api: fakeClientData() });
