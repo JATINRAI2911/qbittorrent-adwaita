@@ -82,6 +82,7 @@
   .health.tone-error { color: var(--error-color); }
   .speeds { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .speed { display: flex; flex-direction: column; gap: 2px; }
+  .boxed-list .row .title { flex: 1; }
   .popover-footer { display: flex; gap: 6px; }
   .popover-footer :global(.btn) { flex: 1; }
 </style>
