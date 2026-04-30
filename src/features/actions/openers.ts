@@ -3,6 +3,7 @@ import type { TorrentCommands } from '../../commands/torrent-commands';
 import type { DialogStore } from '../../ui/adw/dialogs.svelte';
 import AddDialog from '../add/AddDialog.svelte';
 import SpeedLimitsDialog from '../global/SpeedLimitsDialog.svelte';
+import StatisticsDialog from '../global/StatisticsDialog.svelte';
 import CategoriesDialog from './CategoriesDialog.svelte';
 import CategoryDialog from './CategoryDialog.svelte';
 import DeleteDialog from './DeleteDialog.svelte';
@@ -75,7 +76,9 @@ export function createDialogOpeners(
     speedLimits() {
       dialogs.open(SpeedLimitsDialog, {});
     },
-    statistics() {},
+    statistics() {
+      dialogs.open(StatisticsDialog, {});
+    },
     newTag(torrents) {
       dialogs.open(NameDialog, {
         title: 'New Tag',
