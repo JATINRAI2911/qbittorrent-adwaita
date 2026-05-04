@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import type { ServerState } from '../../api/types';
   import { getAppContext } from '../../app-context';
   import { formatBytes, formatCount, formatSpeed } from '../../lib/format';
@@ -31,13 +32,19 @@
     frozen = { health: health(), server: { ...app.session.server }, samples: app.session.speeds.samples };
   }
 
+  let root: HTMLDivElement;
+  // Move focus in, like the other panels: the popover renders after the window in tab order.
+  $effect(() => {
+    void tick().then(() => root.querySelector<HTMLElement>('button:not(:disabled)')?.focus());
+  });
+
   function open(which: 'speedLimits' | 'statistics') {
     close();
     app.openers[which]();
   }
 </script>
 
-<div class="status-popover" role="group" aria-label="Status" onpointerenter={freeze} onpointerleave={() => (frozen = null)}>
+<div class="status-popover" role="dialog" aria-label="Status" tabindex="-1" bind:this={root} onpointerenter={freeze} onpointerleave={() => (frozen = null)}>
   <p class="health tone-{view.health.level}"><Icon name={ICON[view.health.level]} /><span>{view.health.line}</span></p>
 
   <div class="speeds">

@@ -52,4 +52,10 @@ describe('StatusPopover', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Statistics…' }));
     expect(app.openers.statistics).toHaveBeenCalled();
   });
+
+  it('takes keyboard focus when it opens, so its controls are reachable', async () => {
+    setup();
+    await vi.waitFor(() => expect(screen.getByRole('switch', { name: /Alternative speed limits/ })).toHaveFocus());
+    expect(screen.getByRole('dialog', { name: 'Status' })).toBeInTheDocument();
+  });
 });

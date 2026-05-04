@@ -133,8 +133,11 @@ describe('header health controls', () => {
     const app = makeAppContext();
     const health = { level: 'warning' as const, line: 'Low disk space', banner: null };
     render(MainHeader, { props: { torrents: app.session.torrents, server: {}, offline: false, health }, context: withApp(app) });
-    await userEvent.click(screen.getByRole('button', { name: 'Status: Low disk space' }));
+    const status = screen.getByRole('button', { name: 'Status: Low disk space' });
+    expect(status).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(status);
     expect(app.popovers.panel).not.toBeNull();
+    expect(status).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('disables the turtle while offline', () => {

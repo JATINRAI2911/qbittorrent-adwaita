@@ -125,6 +125,7 @@
         aria-label="Status: {health.line}"
         title="Status"
         aria-haspopup="dialog"
+        aria-expanded={app.popovers.panel?.component === StatusPopover}
         onclick={(event) => app.popovers.togglePanel(StatusPopover, { health: () => health }, event.currentTarget, 'start')}
       ><Icon name={STATUS_ICON[health.level]} /></button>
     {/snippet}
