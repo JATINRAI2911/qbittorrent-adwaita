@@ -5,8 +5,9 @@ import SpeedLimitsDialog from '../../src/features/global/SpeedLimitsDialog.svelt
 import { ServerPrefs } from '../../src/state/server-prefs.svelte';
 import { makeAppContext, withApp } from '../fixtures/app-context';
 
-function setup() {
+function setup(fail = false) {
   const load = vi.fn(async () => ({ dl_limit: 1_048_576, up_limit: 0, alt_dl_limit: 10_240, alt_up_limit: 10_240, scheduler_enabled: false, schedule_from_hour: 8, schedule_from_min: 0, schedule_to_hour: 20, schedule_to_min: 0, scheduler_days: 0 }));
+  if (fail) load.mockRejectedValueOnce(new Error('offline'));
   const app = makeAppContext([], {});
   app.global.prefs = new ServerPrefs(load);
   const close = vi.fn();
@@ -39,5 +40,14 @@ describe('SpeedLimitsDialog', () => {
       { scheduler_enabled: true, schedule_from_hour: 23, schedule_from_min: 15, scheduler_days: 2 },
       'Saved speed limits',
     );
+  });
+
+  it('says so when it can’t read the current limits, instead of showing stale or zero values', async () => {
+    setup(true);
+    expect(await screen.findByText('Couldn’t read the current speed limits.')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Download' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('button', { name: 'Try Again' }));
+    expect(await screen.findByRole('textbox', { name: 'Download' })).toHaveValue('1024');
   });
 });

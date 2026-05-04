@@ -2,19 +2,20 @@
 export class ServerPrefs {
   values = $state.raw<Record<string, unknown> | null>(null);
   readonly #load: () => Promise<Record<string, unknown>>;
-  #pending: Promise<void> | null = null;
+  #pending: Promise<boolean> | null = null;
 
   constructor(load: () => Promise<Record<string, unknown>>) {
     this.#load = load;
   }
 
-  /** Concurrent callers share one request; a failure keeps the previous values. */
-  refresh(): Promise<void> {
+  /** Concurrent callers share one request. Resolves false on failure, which keeps the previous values. */
+  refresh(): Promise<boolean> {
     this.#pending ??= this.#load()
       .then((values) => {
         this.values = values;
+        return true;
       })
-      .catch(() => {})
+      .catch(() => false)
       .finally(() => {
         this.#pending = null;
       });

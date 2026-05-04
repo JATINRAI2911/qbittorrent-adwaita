@@ -14,8 +14,8 @@ describe('ServerPrefs', () => {
   it('keeps the last values when a reload fails', async () => {
     const load = vi.fn().mockResolvedValueOnce({ save_path: '/data' }).mockRejectedValueOnce(new Error('x'));
     const prefs = new ServerPrefs(load);
-    await prefs.refresh();
-    await prefs.refresh();
+    await expect(prefs.refresh()).resolves.toBe(true);
+    await expect(prefs.refresh()).resolves.toBe(false);
     expect(prefs.savePath).toBe('/data');
   });
 });

@@ -1,10 +1,12 @@
 <script lang="ts">
   import { getAppContext } from '../../app-context';
   import BoxedList from '../../ui/adw/BoxedList.svelte';
+  import Button from '../../ui/adw/Button.svelte';
   import ComboRow from '../../ui/adw/ComboRow.svelte';
   import Dialog from '../../ui/adw/Dialog.svelte';
   import SpinRow from '../../ui/adw/SpinRow.svelte';
   import Spinner from '../../ui/adw/Spinner.svelte';
+  import StatusPage from '../../ui/adw/StatusPage.svelte';
   import SwitchRow from '../../ui/adw/SwitchRow.svelte';
   import TimeRow from '../../ui/adw/TimeRow.svelte';
   import { formFromPreferences, preferenceChanges, SCHEDULE_DAYS, type SpeedLimitsForm } from './speed-limits';
@@ -17,13 +19,23 @@
   const changes = $derived(initial && form ? preferenceChanges(initial, form) : {});
   const days = SCHEDULE_DAYS.map((d) => ({ value: String(d.value), label: d.label }));
 
+  let failed = $state(false);
+
   // Always start from a fresh read: another client may have changed the limits since the last one.
+  // A failed read shows an error, never the cached or empty values dressed up as current.
+  async function load() {
+    failed = false;
+    if (!(await app.global.prefs.refresh())) {
+      failed = true;
+      return;
+    }
+    const seeded = formFromPreferences(app.global.prefs.values ?? {});
+    initial = seeded;
+    form = { ...seeded };
+  }
+
   $effect(() => {
-    void app.global.prefs.refresh().then(() => {
-      const seeded = formFromPreferences(app.global.prefs.values ?? {});
-      initial = seeded;
-      form = { ...seeded };
-    });
+    void load();
   });
 
   async function save() {
@@ -60,6 +72,10 @@
         {/if}
       </BoxedList>
     </section>
+  {:else if failed}
+    <StatusPage compact icon="warning" title="Couldn’t Load Limits" description="Couldn’t read the current speed limits.">
+      <Button label="Try Again" onclick={() => void load()} />
+    </StatusPage>
   {:else}
     <div class="loading"><Spinner size={24} label="Loading speed limits" /></div>
   {/if}
