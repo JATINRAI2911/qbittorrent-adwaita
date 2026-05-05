@@ -64,7 +64,7 @@
 </div>
 
 <style>
-  .filterbar { padding: 0 12px 8px; background: var(--headerbar-bg-color); }
+  .filterbar { padding: 0 12px 8px; }
   .fb-inner { max-width: 860px; margin: 0 auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .fb-spacer { flex: 1; }
   .dropdown { gap: 6px; padding: 5px 9px; font-weight: 400; }
