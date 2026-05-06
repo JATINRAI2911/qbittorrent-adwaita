@@ -37,6 +37,6 @@
 </div>
 
 <style>
-  .searchbar { padding: 0 6px 6px; background: var(--headerbar-bg-color); }
+  .searchbar { padding: 0 6px 6px; }
   .clamp { max-width: 400px; margin: 0 auto; }
 </style>

@@ -1,4 +1,6 @@
 :root {
+  /* Width of the centred list column (its cards), shared by the bars above it so their edges line up. */
+  --list-column-width: 836px;
   --accent-bg-color: #3584e4;
   --accent-fg-color: #ffffff;
   --standalone-color-oklab: min(l, 0.5) a b;

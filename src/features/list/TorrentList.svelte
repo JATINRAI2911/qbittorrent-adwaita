@@ -52,5 +52,5 @@
 {/if}
 
 <style>
-  .page { max-width: 860px; margin: 0 auto; padding: 12px 12px 24px; display: flex; flex-direction: column; gap: 24px; }
+  .page { max-width: calc(var(--list-column-width) + 24px); margin: 0 auto; padding: 12px 12px 24px; display: flex; flex-direction: column; gap: 24px; }
 </style>

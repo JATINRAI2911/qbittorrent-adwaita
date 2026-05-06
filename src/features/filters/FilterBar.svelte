@@ -67,7 +67,7 @@
 <style>
   .filterbar { padding: 0 12px 8px; }
   .fb-inner { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .fb-inner.clamped { max-width: 860px; margin: 0 auto; }
+  .fb-inner.clamped { max-width: var(--list-column-width); margin: 0 auto; }
   .fb-spacer { flex: 1; }
   .dropdown { gap: 6px; padding: 5px 9px; font-weight: 400; }
   .dropdown > span { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
