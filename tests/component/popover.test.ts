@@ -10,6 +10,14 @@ import PanelProbe from '../fixtures/PanelProbe.svelte';
 const body = createRawSnippet(() => ({ render: () => '<p>Popover body</p>' }));
 
 describe('Popover', () => {
+  it('draws anchored popovers as plain cards, without an arrow', () => {
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    render(Popover, { props: { anchor: { element: anchor }, onclose: vi.fn(), children: body } });
+    expect(document.querySelector('.popover')).not.toHaveClass('has-arrow');
+    anchor.remove();
+  });
+
   it('renders its content and closes on an outside pointerdown, but not inside or on the anchor', () => {
     const anchor = document.createElement('button');
     document.body.appendChild(anchor);

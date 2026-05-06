@@ -13,7 +13,7 @@ export interface PlaceInput {
   size: { width: number; height: number };
   viewport: { width: number; height: number };
   align?: 'start' | 'center' | 'end';
-  /** Space between anchor and popover, room for the arrow. */
+  /** Space between anchor and popover (no arrow: popovers are plain cards, like dropdowns). */
   gap?: number;
   /** Minimum distance from the viewport edges. */
   margin?: number;
@@ -22,8 +22,6 @@ export interface Placement {
   left: number;
   top: number;
   above: boolean;
-  /** Arrow position from the popover's left edge; null for pointer-anchored (context) menus. */
-  arrowX: number | null;
   /** Set when the content doesn't fit: the popover scrolls within this height. */
   maxHeight: number | null;
 }
@@ -31,7 +29,7 @@ export interface Placement {
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, Math.max(min, max)));
 const isRect = (anchor: Rect | Point): anchor is Rect => 'width' in anchor;
 
-export function placePopover({ anchor, size, viewport, align = 'center', gap = 10, margin = 8 }: PlaceInput): Placement {
+export function placePopover({ anchor, size, viewport, align = 'center', gap = 6, margin = 8 }: PlaceInput): Placement {
   if (!isRect(anchor)) {
     const room = viewport.height - 2 * margin;
     const height = Math.min(size.height, room);
@@ -41,7 +39,6 @@ export function placePopover({ anchor, size, viewport, align = 'center', gap = 1
       left: clamp(left, margin, viewport.width - size.width - margin),
       top: clamp(top, margin, viewport.height - height - margin),
       above: false,
-      arrowX: null,
       maxHeight: size.height > room ? room : null,
     };
   }
@@ -60,6 +57,5 @@ export function placePopover({ anchor, size, viewport, align = 'center', gap = 1
   const raw =
     align === 'start' ? anchor.left : align === 'end' ? anchor.left + anchor.width - size.width : anchor.left + anchor.width / 2 - size.width / 2;
   const left = clamp(raw, margin, viewport.width - size.width - margin);
-  const arrowX = clamp(anchor.left + anchor.width / 2 - left, 18, size.width - 18);
-  return { left, top, above, arrowX, maxHeight };
+  return { left, top, above, maxHeight };
 }

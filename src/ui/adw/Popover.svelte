@@ -14,7 +14,6 @@
   let element: HTMLDivElement;
   let contents: HTMLDivElement;
   let placement = $state<Placement | null>(null);
-  const anchored = $derived('element' in anchor);
 
   function place() {
     // scrollHeight is the natural height even while max-height is capping the scroll container.
@@ -57,11 +56,9 @@
 <div
   bind:this={element}
   class="popover {className}"
-  class:has-arrow={anchored && placement?.arrowX != null}
   class:above={placement?.above}
   style:left="{placement?.left ?? -9999}px"
   style:top="{placement?.top ?? -9999}px"
-  style:--arrow-x="{placement?.arrowX ?? 0}px"
 >
   <div class="contents" bind:this={contents} style:max-height={placement?.maxHeight != null ? `${placement.maxHeight}px` : undefined}>
     {@render children()}
