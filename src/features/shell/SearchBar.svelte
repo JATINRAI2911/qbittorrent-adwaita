@@ -37,6 +37,7 @@
 </div>
 
 <style>
-  .searchbar { padding: 0 6px 6px; }
+  /* libadwaita: a search bar in a toolbar view is transparent with 6px padding on every side. */
+  .searchbar { padding: 6px; }
   .clamp { max-width: 400px; margin: 0 auto; }
 </style>

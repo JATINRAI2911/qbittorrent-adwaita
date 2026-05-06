@@ -12,9 +12,11 @@
 @keyframes adw-dialog-in { from { opacity: 0; transform: scale(0.96); } }
 .dialog-content { padding: 6px 24px 24px; overflow: auto; display: flex; flex-direction: column; gap: 24px; }
 .dialog-note { margin: -12px 4px 0; font-size: smaller; opacity: var(--dim-opacity); }
-.close-button { width: 24px; min-width: 24px; height: 24px; min-height: 24px; padding: 4px; margin: 5px; border-radius: 50%; background: var(--button-color); }
-.headerbar .btn.close-button { background: var(--button-color); }
-.headerbar .btn.close-button:hover { background: var(--button-hover-color); }
+/* Beats .btn.image-button's 34px width / 5px padding, which made the circle an oval. */
+.btn.image-button.close-button { width: 24px; min-width: 24px; height: 24px; min-height: 24px; padding: 4px; margin: 5px; border-radius: 50%; background: var(--button-color); }
+/* The header rule that makes image buttons flat (.headerbar .btn:is(…):not(…)) outranks a plain class. */
+.headerbar .btn.image-button.close-button:not(.suggested-action) { background: var(--button-color); }
+.headerbar .btn.image-button.close-button:not(.suggested-action):hover { background: var(--button-hover-color); }
 .alert-dialog { width: 372px; background: var(--dialog-bg-color); border-radius: 18px; }
 .alert-dialog .message-area { padding: 32px 24px 9px; display: flex; flex-direction: column; gap: 10px; text-align: center; }
 .alert-dialog .alert-extra { margin-top: 8px; text-align: left; }
