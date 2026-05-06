@@ -70,6 +70,15 @@ describe('FilterBar', () => {
     return { app, torrents };
   }
 
+  it('centres its controls over the list, but spans the full width over the table', () => {
+    const { app } = setup();
+    const inner = screen.getByRole('radiogroup', { name: 'Status' }).parentElement!;
+    expect(inner).toHaveClass('clamped');
+    app.prefs.setView('table');
+    flushSync();
+    expect(inner).not.toHaveClass('clamped');
+  });
+
   it('sets the status from the toggle group', async () => {
     const { app } = setup();
     await userEvent.click(screen.getByRole('radio', { name: 'Seeding' }));
