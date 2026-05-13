@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { tick } from 'svelte';
+  import Icon from '../../ui/adw/Icon.svelte';
+  import { placePopover } from '../../ui/adw/position';
   import { pathSuggestions, splitPath } from './suggest';
 
   interface Props {
@@ -18,6 +21,42 @@
   let active = $state(-1);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const suggestions = $derived(open ? pathSuggestions(value, entries) : []);
+
+  let row: HTMLDivElement;
+  let input: HTMLInputElement;
+  let listbox = $state<HTMLUListElement>();
+  let place = $state<{ left: number; top: number; width: number; maxHeight: number | null } | null>(null);
+
+  // The list floats in window coordinates (position: fixed), so a dialog's scrolling content
+  // can't clip it; it sits under the entry, or above when there's no room below.
+  function position() {
+    if (!listbox) return;
+    const r = row.getBoundingClientRect();
+    const placed = placePopover({
+      anchor: { left: r.left, top: r.top, width: r.width, height: r.height },
+      size: { width: r.width, height: listbox.scrollHeight },
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      align: 'start',
+      gap: 4,
+    });
+    place = { left: placed.left, top: placed.top, width: r.width, maxHeight: placed.maxHeight };
+  }
+
+  $effect(() => {
+    if (!suggestions.length || !listbox) {
+      place = null;
+      return;
+    }
+    position();
+    window.addEventListener('resize', position);
+    window.addEventListener('scroll', position, true);
+    return () => {
+      window.removeEventListener('resize', position);
+      window.removeEventListener('scroll', position, true);
+    };
+  });
+
+  const folderName = (path: string) => path.replace(/\/+$/, '').split('/').pop() || path;
 
   function refresh() {
     if (!list) return;
@@ -47,6 +86,11 @@
     value = `${path.replace(/\/+$/, '')}/`;
     open = false;
     refresh();
+    // Long paths: keep the caret, and the folder just chosen, in view at the end of the entry.
+    void tick().then(() => {
+      input.setSelectionRange(value.length, value.length);
+      input.scrollLeft = input.scrollWidth;
+    });
   }
 
   function onkeydown(event: KeyboardEvent) {
@@ -66,11 +110,12 @@
   }
 </script>
 
-<div class="row entry-row path-entry" class:filled={value !== ''}>
+<div class="row entry-row path-entry" class:filled={value !== ''} bind:this={row}>
   <label class="er-title" for={id}>{title}</label>
   <!-- svelte-ignore a11y_autofocus -->
   <input
     {id}
+    bind:this={input}
     type="text"
     role="combobox"
     aria-autocomplete="list"
@@ -88,23 +133,37 @@
     {onkeydown}
   />
   {#if suggestions.length}
-    <ul class="path-suggestions" id="{id}-list" role="listbox" aria-label="Folders">
+    <ul
+      class="path-suggestions"
+      id="{id}-list"
+      role="listbox"
+      aria-label="Folders"
+      bind:this={listbox}
+      style:position="fixed"
+      style:left="{place?.left ?? 0}px"
+      style:top="{place?.top ?? 0}px"
+      style:width="{place?.width ?? 0}px"
+      style:max-height={place?.maxHeight != null ? `${Math.min(240, place.maxHeight)}px` : undefined}
+      style:visibility={place ? undefined : 'hidden'}
+    >
       {#each suggestions as path, i (path)}
         <!-- Pointer choice; keyboard choice is handled on the input (combobox pattern). -->
         <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <li id="{id}-{i}" role="option" aria-selected={i === active} class:active={i === active} onmousedown={(event) => (event.preventDefault(), choose(path))}>{path}</li>
+        <li id="{id}-{i}" role="option" aria-selected={i === active} class:active={i === active} title={path} onmousedown={(event) => (event.preventDefault(), choose(path))}>
+          <Icon name="folder" class="dimmed" /><span class="name" dir="auto">{folderName(path)}</span>
+        </li>
       {/each}
     </ul>
   {/if}
 </div>
 
 <style>
-  .path-entry { overflow: visible; }
   .path-suggestions {
-    position: absolute; left: 6px; right: 6px; top: calc(100% + 4px); z-index: 20; margin: 0; padding: 6px; list-style: none;
+    z-index: 600; margin: 0; padding: 6px; list-style: none;
     max-height: 240px; overflow: auto; border-radius: 12px; background: var(--popover-bg-color); color: var(--popover-fg-color);
     box-shadow: 0 0 0 1px rgb(0 0 0 / 5%), 0 1px 5px 1px rgb(0 0 0 / 9%), 0 2px 14px 3px rgb(0 0 0 / 5%);
   }
-  li { padding: 6px 10px; border-radius: 8px; font-family: var(--monospace-font-family); font-size: var(--monospace-font-size); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
+  li { display: flex; align-items: center; gap: 10px; min-height: 32px; padding: 0 10px; border-radius: 8px; cursor: default; }
+  li .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   li:hover, li.active { background: var(--selected-color); }
 </style>
