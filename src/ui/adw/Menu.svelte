@@ -1,11 +1,14 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import Icon from './Icon.svelte';
+  import { DURATION, rise } from './motion';
   import type { MenuItem, MenuModel } from './menu';
 
   let { model, onclose }: { model: MenuModel; onclose: () => void } = $props();
 
   let stack = $state.raw<MenuModel[]>([]);
+  // Submenus slide in from the right, going back slides in from the left (GtkPopoverMenu).
+  let forward = $state(true);
   const current = $derived(stack.at(-1) ?? model);
   const sections = $derived(current.sections.filter((section) => section.length > 0));
   let root: HTMLDivElement;
@@ -21,6 +24,7 @@
   function activate(item: MenuItem) {
     if (item.disabled) return;
     if (item.submenu) {
+      forward = true;
       stack = [...stack, item.submenu()];
       return;
     }
@@ -29,6 +33,7 @@
   }
 
   function back() {
+    forward = false;
     stack = stack.slice(0, -1);
   }
 
@@ -77,6 +82,8 @@
 </script>
 
 <div class="menu" role="menu" tabindex="-1" aria-label={current.title} bind:this={root} {onkeydown}>
+  {#key stack.length}
+  <div class="menu-page" in:rise={{ duration: DURATION.normal, x: forward ? (stack.length ? 24 : 0) : -24, opacity: 0.4 }}>
   {#if stack.length}
     <button type="button" class="menu-back" role="menuitem" data-menu-item tabindex="-1" onclick={back}>
       <Icon name="pan-start" /><span>{current.title}</span>
@@ -105,4 +112,6 @@
       </button>
     {/each}
   {/each}
+  </div>
+  {/key}
 </div>

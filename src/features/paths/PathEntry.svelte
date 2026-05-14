@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import Icon from '../../ui/adw/Icon.svelte';
+  import { DURATION, fade, rise } from '../../ui/adw/motion';
   import { placePopover } from '../../ui/adw/position';
   import { pathSuggestions, splitPath } from './suggest';
 
@@ -138,6 +139,8 @@
       id="{id}-list"
       role="listbox"
       aria-label="Folders"
+      in:rise={{ duration: DURATION.fast, y: -4 }}
+      out:fade={{ duration: 100 }}
       bind:this={listbox}
       style:position="fixed"
       style:left="{place?.left ?? 0}px"

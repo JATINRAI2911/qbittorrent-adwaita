@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import { DURATION, fade, rise } from './motion';
   import type { PopoverAnchor } from './popovers.svelte';
   import { placePopover, type Placement } from './position';
 
@@ -56,6 +57,8 @@
 <div
   bind:this={element}
   class="popover {className}"
+  in:rise|global={{ duration: DURATION.fast, y: -4 }}
+  out:fade|global={{ duration: 100 }}
   class:above={placement?.above}
   style:left="{placement?.left ?? -9999}px"
   style:top="{placement?.top ?? -9999}px"

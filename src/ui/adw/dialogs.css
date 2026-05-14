@@ -1,15 +1,13 @@
 .dialog-host {
   position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; padding: 24px;
-  background: rgb(from var(--shade-color) r g b / calc(alpha * 2)); animation: adw-fade 200ms var(--ease-out-quad);
+  background: rgb(from var(--shade-color) r g b / calc(alpha * 2));
 }
-@keyframes adw-fade { from { opacity: 0; } }
 .dialog {
   max-width: 100%; max-height: calc(100vh - 48px); display: flex; flex-direction: column; overflow: hidden;
   border-radius: 15px; background: var(--window-bg-color); color: var(--window-fg-color);
   box-shadow: 0 0 14px 2px rgb(0 0 6 / 3%), 0 0 5px 2px rgb(0 0 6 / 10%), 0 0 0 1px rgb(0 0 0 / 5%);
-  outline: 1px solid rgb(255 255 255 / 7%); outline-offset: -1px; animation: adw-dialog-in 250ms var(--ease-out-quad);
+  outline: 1px solid rgb(255 255 255 / 7%); outline-offset: -1px;
 }
-@keyframes adw-dialog-in { from { opacity: 0; transform: scale(0.96); } }
 .dialog-content { padding: 6px 24px 24px; overflow: auto; display: flex; flex-direction: column; gap: 24px; }
 .dialog-note { margin: -12px 4px 0; font-size: smaller; opacity: var(--dim-opacity); }
 /* Beats .btn.image-button's 34px width / 5px padding, which made the circle an oval. */

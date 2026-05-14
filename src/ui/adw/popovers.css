@@ -1,5 +1,4 @@
-.popover { position: fixed; z-index: 500; color: var(--popover-fg-color); animation: adw-pop-in 150ms var(--ease-out-quad); }
-@keyframes adw-pop-in { from { opacity: 0; transform: translateY(-4px); } }
+.popover { position: fixed; z-index: 500; color: var(--popover-fg-color); }
 .popover > .contents {
   padding: 8px; border-radius: 15px; min-width: 120px; max-height: calc(100vh - 16px); overflow: auto;
   background: var(--popover-bg-color);
@@ -7,7 +6,7 @@
   box-shadow: 0 0 0 1px rgb(0 0 0 / 5%), 0 1px 5px 1px rgb(0 0 0 / 9%), 0 2px 14px 3px rgb(0 0 0 / 5%);
 }
 .menu-popover > .contents { padding: 6px; min-width: 200px; }
-.menu { display: flex; flex-direction: column; outline: none; }
+.menu, .menu-page { display: flex; flex-direction: column; outline: none; }
 .menu-item, .menu-back {
   min-height: 32px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent;
   display: flex; align-items: center; text-align: left; white-space: nowrap; font: inherit; color: inherit;

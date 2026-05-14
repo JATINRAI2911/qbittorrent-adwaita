@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { DURATION, rise } from './motion';
   import type { Snippet } from 'svelte';
   import Button from './Button.svelte';
 
@@ -29,7 +30,7 @@
   }
 </script>
 
-<div class="dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} style:width="{width}px" bind:this={root}>
+<div class="dialog" in:rise={{ duration: DURATION.slow, scale: 0.96 }} out:rise={{ duration: DURATION.fast, scale: 0.96 }} role="dialog" aria-modal="true" aria-labelledby={titleId} style:width="{width}px" bind:this={root}>
   <header class="headerbar dialog-header">
     <div class="hb-start">{#if onconfirm}<Button label="Cancel" onclick={close} />{/if}</div>
     <div class="hb-title"><div class="window-title"><span class="title" id={titleId}>{title}</span></div></div>

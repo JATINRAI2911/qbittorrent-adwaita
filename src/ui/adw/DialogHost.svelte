@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { DialogStore } from './dialogs.svelte';
+  import { DURATION, fade } from './motion';
 
   let { store }: { store: DialogStore } = $props();
 </script>
@@ -10,6 +11,8 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="dialog-host"
+    in:fade={{ duration: DURATION.normal }}
+    out:fade={{ duration: DURATION.fast }}
     inert={i < store.stack.length - 1}
     onpointerdown={(event) => {
       if (event.target === event.currentTarget) store.close(entry.id);
