@@ -1,8 +1,9 @@
 <script lang="ts">
+  import { DURATION, fade } from '../../ui/adw/motion';
   import Icon from '../../ui/adw/Icon.svelte';
 </script>
 
-<div class="drop-overlay" aria-hidden="true">
+<div class="drop-overlay" aria-hidden="true" transition:fade={{ duration: DURATION.fast }}>
   <div class="drop-card"><Icon name="list-add" /><span class="title-2">Drop to Add Torrents</span></div>
 </div>
 

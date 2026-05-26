@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { fade } from '../../ui/adw/motion';
   import { untrack } from 'svelte';
   import { getAppContext, menuContext, targetTorrents } from '../../app-context';
   import Icon from '../../ui/adw/Icon.svelte';
@@ -95,6 +96,7 @@
 
 <div
   class="columnview"
+  in:fade
   class:scrolled={scrollTop > 0}
   role="grid"
   tabindex="-1"

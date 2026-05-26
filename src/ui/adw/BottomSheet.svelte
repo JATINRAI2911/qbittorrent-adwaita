@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { DURATION, rise } from './motion';
   import type { Snippet } from 'svelte';
   import { dragFraction, settleSheet } from './sheet-drag';
 
@@ -49,9 +50,17 @@
 </script>
 
 {#if mode === 'bar'}
-  <div class="sheet sheet-bar" role="region" aria-label={label}>{@render bar()}</div>
+  <div class="sheet sheet-bar" role="region" aria-label={label} in:rise|global={{ duration: DURATION.slow, y: 64, opacity: 0.3 }} out:rise|global={{ duration: DURATION.fast, y: 64 }}>{@render bar()}</div>
 {:else}
-  <div class="sheet" class:dragging={drag !== null} role="region" aria-label={label} style:height="{shown * 100}vh">
+  <div
+    class="sheet"
+    class:dragging={drag !== null}
+    role="region"
+    aria-label={label}
+    style:height="{shown * 100}vh"
+    in:rise|global={{ duration: DURATION.slow, y: 120, opacity: 0.3 }}
+    out:rise|global={{ duration: DURATION.fast, y: 120 }}
+  >
     <!-- A focusable separator is the ARIA window-splitter pattern: it's the keyboard way to resize. -->
     <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
     <div

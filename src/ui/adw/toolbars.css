@@ -9,9 +9,7 @@
 .bottom-bar {
   flex: none; position: relative; z-index: 2; background: var(--headerbar-bg-color);
   box-shadow: 0 -1px color-mix(in srgb, var(--headerbar-shade-color) 50%, transparent), 0 -2px 4px color-mix(in srgb, var(--headerbar-shade-color) 50%, transparent);
-  animation: adw-bar-up 200ms var(--ease-out-quad);
 }
-@keyframes adw-bar-up { from { transform: translateY(100%); } }
 .actionbar { display: flex; align-items: center; gap: 6px; padding: 6px; }
 .actionbar .spacer { flex: 1; }
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { DURATION, rise } from '../../ui/adw/motion';
   import { getAppContext, menuContext, targetTorrents } from '../../app-context';
   import { isRunning, needsStart } from '../../lib/torrent-state';
   import Button from '../../ui/adw/Button.svelte';
@@ -12,7 +13,7 @@
     app.popovers.toggleMenu(build(targets, menuContext(app)), event.currentTarget as HTMLElement, align);
 </script>
 
-<div class="bottom-bar">
+<div class="bottom-bar" in:rise={{ duration: DURATION.slow, y: 46, opacity: 1 }} out:rise={{ duration: DURATION.fast, y: 46, opacity: 1 }}>
   <div class="actionbar" role="toolbar" aria-label="Selection actions">
     <Button icon="play" label="Start" disabled={!targets.some(needsStart)} onclick={() => void app.commands.start(targets)} />
     <Button icon="pause" label="Stop" disabled={!targets.some(isRunning)} onclick={() => void app.commands.stop(targets)} />

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { slide } from '../../ui/adw/motion';
   import { tick } from 'svelte';
   import { getAppContext } from '../../app-context';
   import SearchEntry from '../../ui/adw/SearchEntry.svelte';
@@ -18,7 +19,7 @@
   });
 </script>
 
-<div class="searchbar">
+<div class="searchbar" transition:slide>
   <div class="clamp">
     <SearchEntry
       label="Search torrents"

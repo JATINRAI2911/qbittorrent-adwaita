@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { fade } from './ui/adw/motion';
   import { tick, untrack } from 'svelte';
   import type { AddApi } from './api/add';
   import type { AppApi } from './api/app';
@@ -291,7 +292,7 @@
 {/if}
 
 {#if session.connection === 'login'}
-  <div class="login-layer" class:over-app={session.loaded}>
+  <div class="login-layer" class:over-app={session.loaded} transition:fade>
     <Login onlogin={(username, password) => session.login(username, password)} />
   </div>
 {/if}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { fade } from '../../ui/adw/motion';
   import { getAppContext, menuContext, targetTorrents } from '../../app-context';
   import Button from '../../ui/adw/Button.svelte';
   import StatusPage from '../../ui/adw/StatusPage.svelte';
@@ -44,7 +45,7 @@
 {:else}
   <!-- Rows are driven by pointer here; the keyboard equivalents are handled app-wide (see keyboard.ts). -->
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-  <div class="page" {onclick} {oncontextmenu}>
+  <div class="page" {onclick} {oncontextmenu} in:fade>
     {#each model.layout.groups as group (group.key)}
       <GroupSection view={group} single={model.layout.single} oncollapse={() => model.toggleCollapsed(group)} onexpand={() => model.expand(group)} />
     {/each}

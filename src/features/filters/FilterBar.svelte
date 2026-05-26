@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { slide } from '../../ui/adw/motion';
   import { getAppContext } from '../../app-context';
   import { NONE, categoryFacet, tagFacet, trackerFacet, type FacetItem, type Filters } from '../../state/filters';
   import type { StatusFilter } from '../../state/groups';
@@ -51,7 +52,7 @@
   }
 </script>
 
-<div class="filterbar">
+<div class="filterbar" transition:slide>
   <!-- Centred over the list; edge to edge over the table, so it lines up with the columns. -->
   <div class="fb-inner" class:clamped={app.prefs.view !== 'table'}>
     <ToggleGroup label="Status" options={STATUS} value={list.status} onchange={(status) => list.setStatus(status)} />
