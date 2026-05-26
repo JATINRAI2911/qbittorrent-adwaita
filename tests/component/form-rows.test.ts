@@ -5,6 +5,7 @@ import Check from '../../src/ui/adw/Check.svelte';
 import ComboRow from '../../src/ui/adw/ComboRow.svelte';
 import SpinRow from '../../src/ui/adw/SpinRow.svelte';
 import SwitchRow from '../../src/ui/adw/SwitchRow.svelte';
+import TimeRow from '../../src/ui/adw/TimeRow.svelte';
 
 describe('SwitchRow', () => {
   it('is a switch that toggles from the whole row', async () => {
@@ -46,11 +47,70 @@ describe('SpinRow', () => {
 });
 
 describe('ComboRow', () => {
-  it('selects one of its options', async () => {
-    render(ComboRow, { title: 'When reached', value: 'Default', options: [{ value: 'Default', label: 'Use global action' }, { value: 'Stop', label: 'Stop torrent' }] });
-    const select = screen.getByRole('combobox', { name: 'When reached' });
-    await userEvent.selectOptions(select, 'Stop');
-    expect(select).toHaveValue('Stop');
+  const options = [{ value: 'Default', label: 'Use global action' }, { value: 'Stop', label: 'Stop torrent' }, { value: 'Remove', label: 'Remove torrent' }];
+
+  it('opens its own popover list instead of a native dropdown, and picks an option', async () => {
+    const { container } = render(ComboRow, { title: 'When reached', value: 'Default', options });
+    expect(container.querySelector('select')).toBeNull();
+    const combo = screen.getByRole('combobox', { name: 'When reached' });
+    expect(combo).toHaveTextContent('Use global action');
+    await userEvent.click(combo);
+    expect(combo).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('option', { name: 'Use global action' })).toHaveAttribute('aria-selected', 'true');
+    await userEvent.click(screen.getByRole('option', { name: 'Stop torrent' }));
+    expect(combo).toHaveTextContent('Stop torrent');
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(combo).toHaveFocus();
+  });
+
+  it('works from the keyboard, and Escape closes only the list', async () => {
+    const outer = vi.fn();
+    window.addEventListener('keydown', outer);
+    render(ComboRow, { title: 'When reached', value: 'Default', options });
+    const combo = screen.getByRole('combobox', { name: 'When reached' });
+    combo.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByRole('option', { name: 'Use global action' })).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}');
+    expect(combo).toHaveTextContent('Remove torrent');
+    await userEvent.keyboard('{ArrowDown}{Escape}');
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(outer).not.toHaveBeenCalledWith(expect.objectContaining({ key: 'Escape' }));
+    window.removeEventListener('keydown', outer);
+  });
+});
+
+describe('TimeRow', () => {
+  it('edits hours and minutes in spin fields, not a native time picker', async () => {
+    const { container, component } = render(TimeRow, { title: 'From', value: '08:05' });
+    expect(container.querySelector('input[type="time"]')).toBeNull();
+    const hour = screen.getByRole('spinbutton', { name: 'From hour' });
+    const minute = screen.getByRole('spinbutton', { name: 'From minute' });
+    expect([hour, minute].map((i) => (i as HTMLInputElement).value)).toEqual(['08', '05']);
+    hour.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    minute.focus();
+    await userEvent.keyboard('{ArrowUp}');
+    await userEvent.clear(hour);
+    await userEvent.type(hour, '23{Tab}');
+    expect((hour as HTMLInputElement).value).toBe('23');
+    expect((minute as HTMLInputElement).value).toBe('06');
+    void component;
+  });
+
+  it('wraps around midnight and the hour, and rejects impossible values', async () => {
+    render(TimeRow, { title: 'To', value: '00:59' });
+    const hour = screen.getByRole('spinbutton', { name: 'To hour' });
+    const minute = screen.getByRole('spinbutton', { name: 'To minute' });
+    hour.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect((hour as HTMLInputElement).value).toBe('23');
+    minute.focus();
+    await userEvent.keyboard('{ArrowUp}');
+    expect((minute as HTMLInputElement).value).toBe('00');
+    await userEvent.clear(minute);
+    await userEvent.type(minute, '75{Tab}');
+    expect((minute as HTMLInputElement).value).toBe('59');
   });
 });
 

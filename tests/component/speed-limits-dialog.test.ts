@@ -32,9 +32,14 @@ describe('SpeedLimitsDialog', () => {
   it('reveals the schedule when it is switched on', async () => {
     const { app } = setup();
     await userEvent.click(await screen.findByRole('switch', { name: /Use alternative limits on a schedule/ }));
-    const from = screen.getByLabelText('From');
-    await fireEvent.input(from, { target: { value: '23:15' } });
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Days' }), '2');
+    const hour = screen.getByRole('spinbutton', { name: 'From hour' });
+    await userEvent.clear(hour);
+    await userEvent.type(hour, '23{Tab}');
+    const minute = screen.getByRole('spinbutton', { name: 'From minute' });
+    await userEvent.clear(minute);
+    await userEvent.type(minute, '15{Tab}');
+    await userEvent.click(screen.getByRole('combobox', { name: 'Days' }));
+    await userEvent.click(screen.getByRole('option', { name: 'Weekends' }));
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(app.global.commands.savePreferences).toHaveBeenCalledWith(
       { scheduler_enabled: true, schedule_from_hour: 23, schedule_from_min: 15, scheduler_days: 2 },

@@ -4,7 +4,8 @@
 }
 .boxed-list > .row { border-bottom: 1px solid var(--card-shade-color); transition: background-color 200ms var(--ease-out-quad); }
 .boxed-list > .row:first-child { border-top-left-radius: 12px; border-top-right-radius: 12px; }
-.boxed-list > .row:last-child { border-bottom: 0; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
+/* The last row, even while a popover it opened sits after it in the DOM. */
+.boxed-list > .row:not(:has(~ .row)) { border-bottom: 0; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
 
 .row { display: flex; align-items: center; gap: 6px; min-height: 54px; padding: 2px 14px; }
 .row.activatable:hover { background-color: color-mix(in srgb, currentColor 3%, transparent); }

@@ -63,7 +63,8 @@ describe('LimitsDialog', () => {
     render(LimitsDialog, { torrents: [makeTorrent({ dl_limit: 0, ratio_limit: -2 })], onconfirm, close: vi.fn() });
     expect(screen.getByRole('button', { name: 'Apply' })).toBeDisabled();
     expect(screen.queryByRole('textbox', { name: 'Ratio' })).toBeNull();
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Ratio limit' }), 'custom');
+    await userEvent.click(screen.getByRole('combobox', { name: 'Ratio limit' }));
+    await userEvent.click(screen.getByRole('option', { name: 'Custom' }));
     expect(screen.getByRole('textbox', { name: 'Ratio' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Increase Download limit' }));
     await userEvent.click(screen.getByRole('button', { name: 'Apply' }));

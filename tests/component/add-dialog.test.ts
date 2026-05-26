@@ -70,7 +70,8 @@ describe('AddDialog', () => {
 
   it('fills the save path from the category under automatic management', async () => {
     setup({ text: MAGNET }, (a) => a.session.categories.set('Linux', { name: 'Linux', savePath: '/data/linux' }));
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Category' }), 'Linux');
+    await userEvent.click(screen.getByRole('combobox', { name: 'Category' }));
+    await userEvent.click(screen.getByRole('option', { name: 'Linux' }));
     await userEvent.click(screen.getByRole('switch', { name: /Automatic management/ }));
     expect(screen.getByText('/data/linux')).toBeInTheDocument();
   });

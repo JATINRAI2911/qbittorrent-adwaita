@@ -16,7 +16,8 @@ describe('CategoryDialog', () => {
     expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
     await userEvent.type(screen.getByLabelText('Name'), 'TV');
     await userEvent.type(screen.getByRole('combobox', { name: 'Save path' }), '/tv');
-    await userEvent.selectOptions(folderSetting(), 'yes');
+    await userEvent.click(folderSetting());
+    await userEvent.click(screen.getByRole('option', { name: 'Yes' }));
     await userEvent.type(screen.getByRole('combobox', { name: 'Incomplete folder' }), '/tv/inc');
     await userEvent.click(screen.getByRole('button', { name: 'Create' }));
     expect(onconfirm).toHaveBeenCalledWith({ name: 'TV', savePath: '/tv', download: { enabled: true, path: '/tv/inc' } });
@@ -25,7 +26,7 @@ describe('CategoryDialog', () => {
   it('creates categories that follow the global incomplete-folder setting by default', async () => {
     const onconfirm = vi.fn();
     render(CategoryDialog, { onconfirm, close: vi.fn() });
-    expect(folderSetting()).toHaveValue('default');
+    expect(folderSetting()).toHaveTextContent('Default');
     await userEvent.type(screen.getByLabelText('Name'), 'TV');
     await userEvent.click(screen.getByRole('button', { name: 'Create' }));
     expect(onconfirm).toHaveBeenCalledWith({ name: 'TV', savePath: '', download: null });
@@ -35,7 +36,7 @@ describe('CategoryDialog', () => {
     const onconfirm = vi.fn();
     render(CategoryDialog, { category: { name: 'TV', savePath: '/tv', download_path: '/tv/inc' }, onconfirm, close: vi.fn() });
     expect(screen.getByLabelText('Name')).toBeDisabled();
-    expect(folderSetting()).toHaveValue('yes');
+    expect(folderSetting()).toHaveTextContent('Yes');
     await userEvent.clear(screen.getByRole('combobox', { name: 'Save path' }));
     await userEvent.type(screen.getByRole('combobox', { name: 'Save path' }), '/media/tv');
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
@@ -43,13 +44,13 @@ describe('CategoryDialog', () => {
   });
 
   it.each([
-    [undefined, 'default', null],
-    [false as const, 'no', { enabled: false, path: '' }],
-    ['', 'yes', { enabled: true, path: '' }],
+    [undefined, 'Default', null],
+    [false as const, 'No', { enabled: false, path: '' }],
+    ['', 'Yes', { enabled: true, path: '' }],
   ])('keeps download_path %j as “%s” when saved unchanged', async (downloadPath, shown, sent) => {
     const onconfirm = vi.fn();
     render(CategoryDialog, { category: { name: 'TV', savePath: '/tv', download_path: downloadPath }, onconfirm, close: vi.fn() });
-    expect(folderSetting()).toHaveValue(shown);
+    expect(folderSetting()).toHaveTextContent(shown);
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(onconfirm).toHaveBeenCalledWith({ name: 'TV', savePath: '/tv', download: sent });
   });

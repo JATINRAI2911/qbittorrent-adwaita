@@ -16,9 +16,6 @@
 .spin .btn { width: 30px; min-width: 30px; height: 30px; min-height: 30px; padding: 0; border-radius: 9999px; }
 .spin-unit { opacity: var(--dim-opacity); font-size: smaller; }
 
-.combo-row select { appearance: none; border: 0; background: none; text-align: right; text-align-last: right; opacity: var(--dim-opacity); outline: none; max-width: 60%; font: inherit; color: inherit; }
-.combo-row select option { background: var(--popover-bg-color); color: var(--popover-fg-color); }
-.combo-row:focus-within { outline: 2px solid var(--focus-ring-color); outline-offset: -2px; }
 
 /* The ring uses the row's currentColor (libadwaita: alpha(currentColor, .15)); only the tick is white. */
 .check { width: 20px; height: 20px; padding: 3px; border-radius: 6px; flex: none; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--trough-color); transition: background 200ms var(--ease-out-quad), box-shadow 200ms var(--ease-out-quad); }
@@ -54,3 +51,10 @@
 .check.indeterminate { background: var(--accent-bg-color); box-shadow: none; position: relative; }
 .check.indeterminate::after { content: ""; position: absolute; width: 10px; height: 3px; border-radius: 2px; background: var(--accent-fg-color); }
 .check-button:focus-visible { outline: 2px solid var(--focus-ring-color); outline-offset: 1px; }
+/* AdwComboRow: the whole row is a button showing the current value; the list opens in a popover. */
+.combo-row { width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: left; gap: 12px; }
+.combo-row .title-box { flex: 1; min-width: 0; }
+.combo-value { max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: var(--dim-opacity); }
+.combo-row:focus-visible { outline: 2px solid var(--focus-ring-color); outline-offset: -2px; }
+.combo-popover .menu-item { cursor: default; }
+.combo-popover .menu-item:focus-visible { background: var(--selected-color); outline: none; }
