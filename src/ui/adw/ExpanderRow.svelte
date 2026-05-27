@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { slide } from './motion';
   import type { Snippet } from 'svelte';
   import Icon from './Icon.svelte';
 
@@ -11,7 +12,7 @@
     <span class="title-box"><span class="title">{title}</span>{#if subtitle}<span class="subtitle">{subtitle}</span>{/if}</span>
     <Icon name="pan-down" class="expander-arrow" />
   </button>
-  {#if expanded}<div class="expander-content" {id}>{@render children()}</div>{/if}
+  {#if expanded}<div class="expander-content" {id} transition:slide>{@render children()}</div>{/if}
 </div>
 
 <style>

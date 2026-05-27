@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { DURATION, slide } from '../../ui/adw/motion';
   import { untrack } from 'svelte';
   import type { TorrentFile } from '../../api/details';
   import { getAppContext } from '../../app-context';
@@ -133,7 +134,7 @@
     {#if model.items.length}
       <div class="boxed-list" role="list" aria-label="Torrents to add">
         {#each model.items as item (item.id)}
-          <div class="row add-item" role="listitem" class:dim={item.status === 'duplicate'}>
+          <div class="row add-item" role="listitem" class:dim={item.status === 'duplicate'} transition:slide={{ duration: DURATION.normal }}>
             {#if item.status === 'loading' || item.status === 'waiting'}<Spinner size={16} />{:else if item.status === 'duplicate' || item.status === 'error'}<Icon name="warning" class="warn" />{:else}<Icon name={item.kind === 'file' ? 'file' : 'magnet'} class="dimmed" />{/if}
             <span class="title-box"><span class="title ellipsis" dir="auto">{item.label}</span><span class="subtitle" class:error={item.status === 'error'}>{status(item)}</span></span>
             <Button variant="flat" icon="close" title="Remove {item.label}" onclick={() => model.remove(item.id)} />

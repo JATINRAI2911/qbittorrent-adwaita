@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { DURATION, fade, rise } from '../../ui/adw/motion';
   import type { Torrent } from '../../api/types';
   import { getAppContext } from '../../app-context';
   import { needsStart } from '../../lib/torrent-state';
@@ -28,8 +29,9 @@
   class:menu-target={app.selection.menuTarget === t.hash}
   data-hash={t.hash}
   role="listitem"
+  in:fade={{ duration: DURATION.fast }}
 >
-  {#if app.selection.mode}<Check checked={selected} label="Select {t.name}" round />{/if}
+  {#if app.selection.mode}<span class="row-check" transition:rise={{ duration: DURATION.fast, scale: 0.6 }}><Check checked={selected} label="Select {t.name}" round /></span>{/if}
   <Bubble torrent={t} />
   <div class="t-main">
     <div class="t-line">
@@ -68,6 +70,7 @@
 </div>
 
 <style>
+  .row-check { display: inline-flex; flex: none; }
   .torrent-row { gap: 12px; padding: 10px 12px 10px 14px; min-height: 64px; }
   .t-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   .t-line { display: flex; align-items: baseline; gap: 16px; min-width: 0; }

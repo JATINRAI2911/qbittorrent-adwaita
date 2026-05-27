@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { DURATION, fade } from '../../ui/adw/motion';
   import { getAppContext, menuContext } from '../../app-context';
   import { needsStart } from '../../lib/torrent-state';
   import BottomSheet from '../../ui/adw/BottomSheet.svelte';
@@ -59,6 +60,9 @@
       {#if details.error}<p class="sheet-error error" role="status">Couldn’t refresh: {details.error}</p>{/if}
       <!-- Keyed by torrent: filters, collapsed folders and other tab state belong to one torrent. -->
       {#key t.hash}
+      <!-- AdwViewStack-style crossfade between tabs. -->
+      {#key details.tab}
+      <div class="tab-body" in:fade={{ duration: DURATION.normal }}>
       {#if details.tab === 'overview'}
         <OverviewTab torrent={t} properties={details.properties} pieces={details.pieces} />
       {:else if details.tab === 'files'}
@@ -70,6 +74,8 @@
       {:else}
         <SourcesTab hash={t.hash} webseeds={details.webseeds} />
       {/if}
+      </div>
+      {/key}
       {/key}
     </div>
   </BottomSheet>

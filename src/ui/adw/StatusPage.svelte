@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { fade } from './motion';
   import type { Snippet } from 'svelte';
   import Icon from './Icon.svelte';
   import type { IconName } from './icons';
@@ -13,7 +14,7 @@
   let { icon, title, description, compact = false, children }: Props = $props();
 </script>
 
-<div class="status-page" class:compact>
+<div class="status-page" class:compact in:fade>
   {#if icon}<div class="sp-icon"><Icon name={icon} /></div>{/if}
   <div class="sp-text">
     <h1 class={compact ? 'title-2' : 'title-1'}>{title}</h1>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { DURATION, slide } from '../../ui/adw/motion';
   import { formatCount } from '../../lib/format';
   import { PAGE_SIZE, type GroupView } from '../../state/groups';
   import BoxedList from '../../ui/adw/BoxedList.svelte';
@@ -29,6 +30,9 @@
       <Button variant="flat" icon={view.collapsed ? 'pan-end' : 'pan-down'} title="{view.collapsed ? 'Expand' : 'Collapse'} {view.title}" onclick={oncollapse} />
     {/if}
   </div>
+  <!-- Expanding a group reveals its rows like a GtkRevealer. -->
+  {#key view.collapsed}
+  <div class="group-body" in:slide={{ duration: DURATION.slow }}>
   <BoxedList role="list">
     {#if view.collapsed}
       <ButtonRow title="Show {formatCount(view.total)} {view.total === 1 ? 'Torrent' : 'Torrents'}" onclick={oncollapse} />
@@ -45,6 +49,8 @@
       {/if}
     {/if}
   </BoxedList>
+  </div>
+  {/key}
 </section>
 
 <style>
