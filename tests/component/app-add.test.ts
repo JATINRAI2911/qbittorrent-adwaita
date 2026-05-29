@@ -5,6 +5,7 @@ import App from '../../src/App.svelte';
 import type { MaindataResponse } from '../../src/api/types';
 import { Session } from '../../src/state/session.svelte';
 import { fakeAddApi } from '../fixtures/fake-add-api';
+import { fakeAppApi } from '../fixtures/fake-app-api';
 import { fakeTorrentApi } from '../fixtures/fake-api';
 import { fakeClientData } from '../fixtures/fake-clientdata';
 import { fakeDetailsApi } from '../fixtures/fake-details-api';
@@ -15,7 +16,7 @@ async function renderApp(torrents: MaindataResponse['torrents'] = { aaa: { name:
   const full: MaindataResponse = { rid: 1, full_update: true, torrents, server_state: {} };
   const session = new Session({ login: vi.fn(async () => 'ok' as const), logout: vi.fn(async () => {}), maindata: vi.fn(async (rid: number) => (rid === 0 ? full : { rid: 2 })), isHidden: () => false, onVisible: () => () => {} });
   const add = fakeAddApi();
-  const appClient = { directoryContent: vi.fn(async () => []), defaultSavePath: vi.fn(async () => '/dl'), preferences: vi.fn(async () => ({})), setPreferences: vi.fn(async () => {}) };
+  const appClient = fakeAppApi();
   const view = render(App, { session, api: fakeTorrentApi(), clientdata: fakeClientData(), details: fakeDetailsApi(), appClient, add });
   await screen.findByRole('banner');
   return { add, ...view };
