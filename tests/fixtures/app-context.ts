@@ -19,6 +19,7 @@ import { DialogStore } from '../../src/ui/adw/dialogs.svelte';
 import { PopoverStore } from '../../src/ui/adw/popovers.svelte';
 import { ToastStore } from '../../src/ui/adw/toast.svelte';
 import { fakeAddApi } from './fake-add-api';
+import { fakeAppApi } from './fake-app-api';
 import { fakeClientData } from './fake-clientdata';
 import { fakeDetailsApi } from './fake-details-api';
 import { reactive } from './reactive.svelte';
@@ -49,11 +50,7 @@ export function makeAppContext(torrents: Torrent[] = [], overrides: Partial<AppC
   const details = new DetailsModel({ api: detailsApi, isHidden: () => false, onVisible: () => () => {} });
   const detailCommands = lazyMocks<DetailCommands>(async () => true);
   const addApi = fakeAddApi();
-  const appApi = {
-    directoryContent: vi.fn(async (_dir: string) => [] as string[]),
-    defaultSavePath: vi.fn(async () => '/dl'),
-    preferences: vi.fn(async () => ({}) as Record<string, unknown>),
-  };
+  const appApi = fakeAppApi();
   const adding = { api: addApi, appApi, commands: lazyMocks<AddCommands>(async () => true) };
   const context = {
     session,

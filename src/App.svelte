@@ -79,8 +79,8 @@
     }),
   );
 
-  // "Connection Settings" arrives with Preferences (M7); until then those banners have no button.
-  const BANNER_ACTIONS: Partial<Record<BannerAction, { label: string; run: () => void }>> = {
+  const BANNER_ACTIONS: Record<BannerAction, { label: string; run: () => void }> = {
+    connection: { label: 'Connection Settings', run: () => openers.preferences('connection') },
     retry: { label: 'Retry Now', run: () => session.retryNow() },
     downloading: { label: 'Show Downloading', run: () => list.setStatus('downloading') },
   };
@@ -205,6 +205,9 @@
         break;
       case 'add':
         openers.add();
+        break;
+      case 'preferences':
+        openers.preferences();
         break;
     }
   }

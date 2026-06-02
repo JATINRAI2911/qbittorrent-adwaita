@@ -4,6 +4,8 @@ import type { DialogStore } from '../../ui/adw/dialogs.svelte';
 import AddDialog from '../add/AddDialog.svelte';
 import SpeedLimitsDialog from '../global/SpeedLimitsDialog.svelte';
 import StatisticsDialog from '../global/StatisticsDialog.svelte';
+import PreferencesDialog from '../preferences/PreferencesDialog.svelte';
+import type { PageId } from '../preferences/schema';
 import CategoriesDialog from './CategoriesDialog.svelte';
 import CategoryDialog from './CategoryDialog.svelte';
 import DeleteDialog from './DeleteDialog.svelte';
@@ -24,6 +26,7 @@ export interface DialogOpeners {
   editCategory(category: Category): void;
   manageCategories(): void;
   manageTags(): void;
+  preferences(page?: PageId): void;
   speedLimits(): void;
   statistics(): void;
 }
@@ -72,6 +75,9 @@ export function createDialogOpeners(
     },
     manageTags() {
       dialogs.open(TagsDialog, {});
+    },
+    preferences(page) {
+      dialogs.open(PreferencesDialog, page ? { page } : {});
     },
     speedLimits() {
       dialogs.open(SpeedLimitsDialog, {});

@@ -31,6 +31,7 @@
     app.popovers.toggleMenu(
       {
         sections: [
+          [{ label: 'Preferences…', accel: 'Ctrl+,', action: () => app.openers.preferences() }],
           [
             { label: 'Manage Categories…', action: () => app.openers.manageCategories() },
             { label: 'Manage Tags…', action: () => app.openers.manageTags() },

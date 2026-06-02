@@ -13,7 +13,8 @@ export type KeyCommand =
   | 'view-table'
   | 'type'
   | 'open'
-  | 'add';
+  | 'add'
+  | 'preferences';
 
 export interface KeyInput {
   key: string;
@@ -32,6 +33,7 @@ export function keyCommand(event: KeyInput, context: { typing: boolean; onButton
     if (key === 'a') return 'select-all';
     if (key === 'f') return 'search';
     if (key === 'o') return 'add';
+    if (key === ',') return 'preferences';
     if (event.key === '1') return 'view-list';
     if (event.key === '2') return 'view-table';
     return null;

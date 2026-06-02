@@ -231,8 +231,8 @@ export const PREFERENCES: PrefDef[] = [
     spin('up_limit', 'Upload', { unit: 'KiB/s', scale: 1024, subtitle: '0 means unlimited' }),
   ]),
   ...group('speed', 'Alternative Limits', [
-    spin('alt_dl_limit', 'Download', { unit: 'KiB/s', scale: 1024, subtitle: '0 means unlimited' }),
-    spin('alt_up_limit', 'Upload', { unit: 'KiB/s', scale: 1024, subtitle: '0 means unlimited' }),
+    spin('alt_dl_limit', 'Alternative download', { unit: 'KiB/s', scale: 1024, subtitle: '0 means unlimited' }),
+    spin('alt_up_limit', 'Alternative upload', { unit: 'KiB/s', scale: 1024, subtitle: '0 means unlimited' }),
   ]),
   ...group('speed', 'Schedule', [
     sw('scheduler_enabled', 'Use alternative limits on a schedule'),

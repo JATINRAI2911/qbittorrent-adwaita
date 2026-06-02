@@ -14,6 +14,15 @@ function header(torrents = [makeTorrent({ state: 'downloading' }), makeTorrent({
 }
 
 describe('MainHeader', () => {
+  it('opens Preferences from the top of the main menu', async () => {
+    const { app } = header();
+    await userEvent.click(screen.getByRole('button', { name: 'Main Menu' }));
+    const first = app.popovers.current!.model.sections[0]![0]!;
+    expect([first.label, first.accel]).toEqual(['Preferences…', 'Ctrl+,']);
+    first.action!();
+    expect(app.openers.preferences).toHaveBeenCalled();
+  });
+
   it('offers Select and the main menu, and Log Out logs out', async () => {
     const { app } = header();
     await userEvent.click(screen.getByRole('button', { name: 'Main Menu' }));

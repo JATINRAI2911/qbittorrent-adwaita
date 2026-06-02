@@ -42,4 +42,12 @@ describe('health banner', () => {
     expect(screen.queryByRole('alert')).toBeNull();
     unmount();
   });
+
+  it('opens Preferences on the Connection page from the firewall banner', async () => {
+    const { unmount } = await renderApp({ connection_status: 'firewalled', free_space_on_disk: 500 * GiB });
+    await userEvent.click(await screen.findByRole('button', { name: 'Connection Settings' }));
+    expect(await screen.findByRole('dialog', { name: 'Preferences' })).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Listening Port' })).toBeInTheDocument();
+    unmount();
+  });
 });
