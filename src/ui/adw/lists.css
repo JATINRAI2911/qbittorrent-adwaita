@@ -30,3 +30,5 @@
 .entry-row:is(:focus-within, .filled, :has(input:autofill)) .er-title { top: 9px; transform: none; font-size: smaller; }
 .entry-row:not(:focus-within, .filled, :has(input:autofill)) input { opacity: 0; }
 .entry-row:focus-within { outline: 2px solid var(--focus-ring-color); outline-offset: -1px; }
+.entry-row input::placeholder { color: inherit; opacity: 0; transition: opacity 150ms var(--ease-out-quad); }
+.entry-row:focus-within input::placeholder { opacity: var(--dim-opacity); }
