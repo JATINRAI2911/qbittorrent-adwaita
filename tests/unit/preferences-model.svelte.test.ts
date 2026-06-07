@@ -141,4 +141,18 @@ describe('PreferencesModel', () => {
     model.edit(def('temp_path_enabled'), true);
     expect(model.visible(def('temp_path'))).toBe(true);
   });
+
+  it('reports each change the server accepted, and only those', async () => {
+    const onapplied = vi.fn();
+    const api = { preferences: vi.fn(async () => server()), setPreferences: vi.fn(async (_c: Record<string, unknown>) => {}) };
+    const model = new PreferencesModel({ api, toast: { show: vi.fn() }, confirm: vi.fn(async () => true), onapplied });
+    await model.load();
+    api.setPreferences.mockRejectedValueOnce(new Error('nope'));
+    model.edit(def('upnp'), false);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(onapplied).not.toHaveBeenCalled();
+    model.edit(def('web_ui_port'), 8080);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(onapplied).toHaveBeenCalledWith(def('web_ui_port'), { web_ui_port: 8080 });
+  });
 });

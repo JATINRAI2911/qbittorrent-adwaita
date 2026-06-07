@@ -8,6 +8,8 @@ export interface PreferencesModelDeps {
   /** Asked before a dangerous change is sent; resolve false to cancel it. */
   confirm(def: PrefDef, from: unknown, to: unknown): Promise<boolean>;
   debounceMs?: number;
+  /** Called after the server accepted a change (e.g. to say where the Web UI moved). */
+  onapplied?(def: PrefDef, changes: Prefs): void;
 }
 
 interface Pending {
@@ -106,6 +108,7 @@ export class PreferencesModel {
     const stored = Object.fromEntries(Object.entries(changes).filter(([key]) => !WRITE_ONLY.includes(key)));
     this.server = { ...(this.server ?? {}), ...stored };
     this.#drop(keys, changes);
+    this.#deps.onapplied?.(def, changes);
     return true;
   }
 

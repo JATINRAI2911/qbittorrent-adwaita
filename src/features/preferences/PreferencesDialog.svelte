@@ -13,12 +13,20 @@
   import SubpageDialog from './SubpageDialog.svelte';
   import { PreferencesModel } from './preferences-model.svelte';
   import { HIDDEN_PAGES, PAGES, PREFERENCES, rowsFor, type PageId, type PrefDef } from './schema';
+  import { dangerMessage, webUiUrl } from './danger';
   import { searchPreferences } from './search';
 
   let { page: initial = 'behavior', close }: { page?: PageId; close: () => void } = $props();
   const app = getAppContext();
 
-  const model = new PreferencesModel({ api: app.adding.appApi, toast: app.toasts, confirm: confirmChange });
+  const model = new PreferencesModel({
+    api: app.adding.appApi,
+    toast: app.toasts,
+    confirm: confirmChange,
+    onapplied: (def) => {
+      if (def.dangerous === 'url') app.toasts.show({ title: `Web UI moved to ${webUiUrl(model.values, location)}` });
+    },
+  });
   const pages = PAGES.filter((p) => !HIDDEN_PAGES.includes(p.id));
   const pageTitle = (id: PageId) => PAGES.find((p) => p.id === id)!.title;
 
@@ -69,21 +77,23 @@
     return () => void finish();
   });
 
-  function confirmChange(def: PrefDef, _from: unknown, _to: unknown): Promise<boolean> {
+  // Dangerous changes explain their consequence first; dismissing the alert cancels.
+  function confirmChange(def: PrefDef): Promise<boolean> {
+    const message = dangerMessage(def, model.values, location);
     return new Promise((resolve) => {
       let answered = false;
       app.dialogs.open(
         AlertDialog,
         {
-          heading: `Change “${def.label}”?`,
-          body: 'This may disconnect this page from qBittorrent.',
+          heading: message.heading,
+          body: message.body,
           responses: [
             { id: 'cancel', label: 'Cancel' },
-            { id: 'change', label: 'Change', variant: 'destructive' },
+            { id: 'confirm', label: message.confirmLabel, variant: 'destructive' },
           ],
           onresponse: (id: string) => {
             answered = true;
-            resolve(id === 'change');
+            resolve(id !== 'cancel');
           },
         },
         () => {

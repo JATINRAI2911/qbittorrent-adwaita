@@ -64,4 +64,31 @@ describe('PreferencesDialog', () => {
     expect(close).toHaveBeenCalled();
     expect(refresh).toHaveBeenCalled();
   });
+
+  it('confirms a port change with the new URL and says where the Web UI moved', async () => {
+    const { app } = setup({ page: 'webui' });
+    const show = vi.spyOn(app.toasts, 'show');
+    const port = await screen.findByRole('textbox', { name: 'Port' });
+    await userEvent.clear(port);
+    await userEvent.type(port, '8080{Enter}');
+    await userEvent.tab();
+    await vi.waitFor(() => expect(app.dialogs.stack.at(-1)?.props.heading).toBe('Move the Web UI?'));
+    const alert = app.dialogs.stack.at(-1)!;
+    expect(alert.props.body).toContain(`${location.protocol}//${location.hostname}:8080/`);
+    (alert.props.onresponse as (id: string) => void)('move');
+    await vi.waitFor(() => expect(app.adding.appApi.setPreferences).toHaveBeenCalledWith({ web_ui_port: 8080 }));
+    expect(show).toHaveBeenCalledWith({ title: `Web UI moved to ${location.protocol}//${location.hostname}:8080/` });
+  });
+
+  it('keeps the port when the confirmation is dismissed', async () => {
+    const { app } = setup({ page: 'webui' });
+    const port = await screen.findByRole('textbox', { name: 'Port' });
+    await userEvent.clear(port);
+    await userEvent.type(port, '8080{Enter}');
+    await userEvent.tab();
+    await vi.waitFor(() => expect(app.dialogs.stack.at(-1)?.props.heading).toBe('Move the Web UI?'));
+    app.dialogs.closeTop();
+    await vi.waitFor(() => expect(port).toHaveValue('9000'));
+    expect(app.adding.appApi.setPreferences).not.toHaveBeenCalled();
+  });
 });
