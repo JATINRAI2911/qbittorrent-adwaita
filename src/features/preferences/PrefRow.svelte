@@ -12,7 +12,7 @@
   import { localeOptions } from './locales';
   import type { PreferencesModel } from './preferences-model.svelte';
   import type { PrefDef } from './schema';
-  import type { LimitValue } from './values';
+  import { maskApiKey, type LimitValue } from './values';
 
   interface Props {
     def: PrefDef;
@@ -105,5 +105,16 @@
 {:else if def.widget === 'tags'}
   <ActionRow title={def.label} {subtitle} value={plural(app.session.tags.size, 'tag')} onclick={() => app.openers.manageTags()} />
 {:else}
-  <ActionRow title={def.label} {subtitle} onclick={() => oncustom?.(def)} />
+  {@const folders = Object.keys((model.values.scan_dirs ?? {}) as object).length}
+  {@const value =
+    def.widget === 'apiKey'
+      ? maskApiKey(String(ui ?? '')) || 'None'
+      : def.widget === 'watchedFolders'
+        ? folders
+          ? plural(folders, 'folder')
+          : 'None'
+        : def.widget === 'interface'
+          ? String(model.values.current_interface_name || model.values.current_network_interface || 'Any interface')
+          : undefined}
+  <ActionRow title={def.label} {subtitle} {value} onclick={() => oncustom?.(def)} />
 {/if}

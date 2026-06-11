@@ -60,9 +60,14 @@ export class PreferencesModel {
     return def.enabledWhen ? def.enabledWhen(this.values) : true;
   }
 
-  edit(def: PrefDef, ui: unknown, { debounce = false }: { debounce?: boolean } = {}): void {
+  edit(def: PrefDef, ui: unknown, options: { debounce?: boolean } = {}): void {
     if (!this.server) return;
-    const changes = fromUi(def, ui, this.values);
+    this.editChanges(def, fromUi(def, ui, this.values), options);
+  }
+
+  /** Apply API-shaped changes on behalf of `def` (widgets that set several keys, or objects). */
+  editChanges(def: PrefDef, changes: Prefs, { debounce = false }: { debounce?: boolean } = {}): void {
+    if (!this.server) return;
     this.#cancel(def.key);
     if (sameAsServer(changes, this.server)) {
       this.#drop(Object.keys(changes));

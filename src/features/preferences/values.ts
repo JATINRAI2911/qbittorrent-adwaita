@@ -71,3 +71,10 @@ export function fromUi(def: PrefDef, ui: unknown, prefs: Prefs): Prefs {
 export function sameAsServer(changes: Prefs, server: Prefs): boolean {
   return Object.entries(changes).every(([key, value]) => JSON.stringify(server[key]) === JSON.stringify(value));
 }
+
+/** qBittorrent's own masking: the first 4 and last 6 characters, bullets between. */
+export function maskApiKey(key: string): string {
+  if (!key) return '';
+  if (key.length <= 10) return '•'.repeat(key.length);
+  return `${key.slice(0, 4)}${'•'.repeat(key.length - 10)}${key.slice(-6)}`;
+}

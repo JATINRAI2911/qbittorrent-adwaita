@@ -10,7 +10,10 @@
   import StatusPage from '../../ui/adw/StatusPage.svelte';
   import PreferencesGroup from './PreferencesGroup.svelte';
   import PrefRow from './PrefRow.svelte';
+  import ApiKeyDialog from './ApiKeyDialog.svelte';
+  import NetworkInterfaceDialog from './NetworkInterfaceDialog.svelte';
   import SubpageDialog from './SubpageDialog.svelte';
+  import WatchedFoldersDialog from './WatchedFoldersDialog.svelte';
   import { PreferencesModel } from './preferences-model.svelte';
   import { HIDDEN_PAGES, PAGES, PREFERENCES, rowsFor, type PageId, type PrefDef } from './schema';
   import { dangerMessage, webUiUrl } from './danger';
@@ -109,7 +112,32 @@
   }
 
   function openCustom(def: PrefDef) {
-    void def;
+    if (def.kind !== 'custom') return;
+    switch (def.widget) {
+      case 'apiKey':
+        app.dialogs.open(ApiKeyDialog, { model });
+        break;
+      case 'watchedFolders':
+        app.dialogs.open(WatchedFoldersDialog, { model });
+        break;
+      case 'interface':
+        app.dialogs.open(NetworkInterfaceDialog, { model });
+        break;
+      case 'testEmail':
+        void sendTestEmail();
+        break;
+    }
+  }
+
+  // The server mails with its saved settings, so edits still waiting on their debounce go first.
+  async function sendTestEmail() {
+    await model.flush();
+    try {
+      await app.adding.appApi.sendTestEmail();
+      app.toasts.show({ title: 'Test email sent' });
+    } catch (error) {
+      app.toasts.show({ title: `Couldn’t send the test email: ${error instanceof Error ? error.message : String(error)}` });
+    }
   }
 
   function choose(id: PageId) {
