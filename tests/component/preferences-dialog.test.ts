@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import PreferencesDialog from '../../src/features/preferences/PreferencesDialog.svelte';
+import DialogHost from '../../src/ui/adw/DialogHost.svelte';
 import type { PageId } from '../../src/features/preferences/schema';
 import { makeAppContext, withApp } from '../fixtures/app-context';
 import fixture from '../fixtures/preferences-5.2.json';
@@ -90,5 +91,23 @@ describe('PreferencesDialog', () => {
     app.dialogs.closeTop();
     await vi.waitFor(() => expect(port).toHaveValue('9000'));
     expect(app.adding.appApi.setPreferences).not.toHaveBeenCalled();
+  });
+
+  it('applies a dangerous change when the real confirm button is clicked', async () => {
+    const { app } = setup({ page: 'webui' });
+    render(DialogHost, { props: { store: app.dialogs } });
+    const port = await screen.findByRole('textbox', { name: 'Port' });
+    await userEvent.clear(port);
+    await userEvent.type(port, '8080{Enter}');
+    await userEvent.click(await screen.findByRole('button', { name: 'Move' }));
+    await vi.waitFor(() => expect(app.adding.appApi.setPreferences).toHaveBeenCalledWith({ web_ui_port: 8080 }));
+  });
+
+  it('requires login on localhost only after the real confirm button is clicked', async () => {
+    const { app } = setup({ page: 'webui' }, async () => ({ ...structuredClone(fixture), bypass_local_auth: true }));
+    render(DialogHost, { props: { store: app.dialogs } });
+    await userEvent.click(await screen.findByRole('switch', { name: /Skip authentication for localhost/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Require Login' }));
+    await vi.waitFor(() => expect(app.adding.appApi.setPreferences).toHaveBeenCalledWith({ bypass_local_auth: false }));
   });
 });

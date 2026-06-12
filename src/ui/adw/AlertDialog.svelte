@@ -28,9 +28,10 @@
     return () => previous?.focus();
   });
 
+  // Answer before closing: the opener's onclose treats a close without an answer as a dismissal.
   function respond(response: AlertResponse) {
-    close();
     onresponse(response.id);
+    close();
   }
 </script>
 
