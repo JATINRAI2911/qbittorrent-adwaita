@@ -10,8 +10,10 @@
     step?: number;
     digits?: number;
     unit?: string;
+    /** Focus leaving the row (after typing or +/−), or Enter: the value is final. */
+    oncommit?: () => void;
   }
-  let { title, subtitle, value = $bindable(0), min = 0, max = Number.MAX_SAFE_INTEGER, step = 1, digits = 0, unit }: Props = $props();
+  let { title, subtitle, value = $bindable(0), min = 0, max = Number.MAX_SAFE_INTEGER, step = 1, digits = 0, unit, oncommit }: Props = $props();
 
   const text = $derived(value.toFixed(digits));
 
@@ -26,7 +28,12 @@
   }
 </script>
 
-<div class="row spin-row">
+<div
+  class="row spin-row"
+  onfocusout={(event) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) oncommit?.();
+  }}
+>
   <span class="title-box">
     <span class="title">{title}</span>
     {#if subtitle}<span class="subtitle">{subtitle}</span>{/if}
@@ -43,6 +50,7 @@
         if (event.key === 'Enter') {
           event.preventDefault();
           commit(event.currentTarget);
+          oncommit?.();
         }
       }}
     />

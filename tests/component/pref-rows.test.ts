@@ -89,4 +89,38 @@ describe('preference rows', () => {
     expect(within(group).getByRole('combobox', { name: 'Incomplete torrents folder' })).toHaveValue('/home/user/Downloads/temp');
     void model;
   });
+
+  it('never applies a half-typed path, only on Enter or when the field is left', async () => {
+    const { api } = await setup(['file_log_path'], { file_log_enabled: true });
+    const input = screen.getByRole('combobox', { name: 'Log folder' });
+    await userEvent.clear(input);
+    await userEvent.type(input, '/var/log/qbt');
+    await new Promise((r) => setTimeout(r, 50));
+    expect(api.setPreferences).not.toHaveBeenCalled();
+    await userEvent.keyboard('{Enter}');
+    await vi.waitFor(() => expect(api.setPreferences).toHaveBeenCalledWith({ file_log_path: '/var/log/qbt' }));
+    expect(api.setPreferences).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks about a dangerous entry only once it is committed, and explains invalid values under the row', async () => {
+    const { api, model } = await setup(['web_ui_username', 'web_ui_password']);
+    const confirm = vi.spyOn(model as unknown as { edit: () => void }, 'edit');
+    const username = screen.getByLabelText('Username');
+    await userEvent.clear(username);
+    await userEvent.type(username, 'ab{Enter}');
+    expect(screen.getByText('At least 3 characters')).toBeInTheDocument();
+    expect(api.setPreferences).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('New password')).toHaveAttribute('autocomplete', 'new-password');
+    void confirm;
+  });
+
+  it('commits a dangerous spin row when the field is left, not on every step', async () => {
+    const { api } = await setup(['web_ui_port', 'upnp']);
+    await userEvent.click(screen.getByRole('button', { name: 'Increase Port' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Increase Port' }));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(api.setPreferences).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('switch', { name: /Forward the port/ }));
+    await vi.waitFor(() => expect(api.setPreferences).toHaveBeenCalledWith({ web_ui_port: 9002 }));
+  });
 });

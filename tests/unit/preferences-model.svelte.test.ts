@@ -156,3 +156,81 @@ describe('PreferencesModel', () => {
     expect(onapplied).toHaveBeenCalledWith(def('web_ui_port'), { web_ui_port: 8080 });
   });
 });
+
+describe('PreferencesModel safety', () => {
+  it('sends a quick undo made while the first change is still on its way', async () => {
+    const { api, model } = setup();
+    await model.load();
+    let release!: () => void;
+    api.setPreferences.mockImplementationOnce(() => new Promise<void>((resolve) => (release = resolve)));
+    model.edit(def('dht'), false);
+    model.edit(def('dht'), true);
+    release();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(api.setPreferences.mock.calls.map(([changes]) => changes)).toEqual([{ dht: false }, { dht: true }]);
+    expect(model.ui(def('dht'))).toBe(true);
+  });
+
+  it('holds commit-only rows (paths, dangerous rows) until they are committed', async () => {
+    const { api, model } = setup();
+    await model.load();
+    model.edit(def('file_log_path'), '/var/lo', { commit: true });
+    model.edit(def('file_log_path'), '/var/log/qbt', { commit: true });
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(api.setPreferences).not.toHaveBeenCalled();
+    await model.flush();
+    expect(api.setPreferences).toHaveBeenCalledTimes(1);
+    expect(api.setPreferences).toHaveBeenCalledWith({ file_log_path: '/var/log/qbt' });
+  });
+
+  it('validates credentials like qBittorrent, showing why and sending nothing', async () => {
+    const { api, confirm, model } = setup();
+    await model.load();
+    model.edit(def('web_ui_username'), 'ab', { commit: true });
+    expect(model.errors.web_ui_username).toBe('At least 3 characters');
+    model.edit(def('web_ui_username'), 'a:b:c', { commit: true });
+    expect(model.errors.web_ui_username).toBe('Can’t contain “:”');
+    model.edit(def('web_ui_password'), 'short', { commit: true });
+    expect(model.errors.web_ui_password).toBe('At least 6 characters');
+    await model.flush();
+    expect(confirm).not.toHaveBeenCalled();
+    expect(api.setPreferences).not.toHaveBeenCalled();
+    model.edit(def('web_ui_username'), 'admin2', { commit: true });
+    expect(model.errors.web_ui_username).toBeUndefined();
+  });
+
+  it('never sends an empty password', async () => {
+    const { api, confirm, model } = setup();
+    await model.load();
+    model.edit(def('web_ui_password'), 'typed', { commit: true });
+    model.edit(def('web_ui_password'), '', { commit: true });
+    await model.flush();
+    expect(model.errors.web_ui_password).toBeUndefined();
+    expect(confirm).not.toHaveBeenCalled();
+    expect(api.setPreferences).not.toHaveBeenCalled();
+  });
+
+  it('refuses HTTPS without a certificate and key, explaining in a toast', async () => {
+    const { api, toasts, model } = setup();
+    await model.load();
+    model.edit(def('use_https'), true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(api.setPreferences).not.toHaveBeenCalled();
+    expect(model.ui(def('use_https'))).toBe(false);
+    expect(toasts.at(-1)!.title).toBe('Can’t turn on “Use HTTPS”: Set the certificate and key first');
+  });
+
+  it('asks before changing the certificate while HTTPS is on, but not while it is off', async () => {
+    const { confirm, model } = setup();
+    await model.load();
+    model.edit(def('web_ui_https_cert_path'), '/etc/cert.pem', { commit: true });
+    await model.flush();
+    expect(confirm).not.toHaveBeenCalled();
+    const second = setup();
+    second.api.preferences.mockResolvedValue({ ...server(), use_https: true, web_ui_https_cert_path: '/a.pem', web_ui_https_key_path: '/a.key' });
+    await second.model.load();
+    second.model.edit(def('web_ui_https_cert_path'), '/b.pem', { commit: true });
+    await second.model.flush();
+    expect(second.confirm).toHaveBeenCalledTimes(1);
+  });
+});

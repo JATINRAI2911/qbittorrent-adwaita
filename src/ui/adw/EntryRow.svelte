@@ -11,14 +11,29 @@
     disabled?: boolean;
     /** Shown only while focused, so it never overlaps the floating title. */
     placeholder?: string;
-    onblur?: () => void;
+    /** Enter or leaving the field: the moment a typed value is final. */
+    oncommit?: () => void;
   }
-  let { title, value = $bindable(''), type = 'text', name, autocomplete, autofocus = false, disabled = false, placeholder, onblur }: Props = $props();
+  let { title, value = $bindable(''), type = 'text', name, autocomplete, autofocus = false, disabled = false, placeholder, oncommit }: Props = $props();
   const id = $props.id();
 </script>
 
 <div class="row entry-row" class:filled={value !== ''}>
   <label class="er-title" for={id}>{title}</label>
   <!-- svelte-ignore a11y_autofocus -->
-  <input {id} {type} {name} {autocomplete} {autofocus} {disabled} {placeholder} {onblur} spellcheck="false" bind:value />
+  <input
+    {id}
+    {type}
+    {name}
+    {autocomplete}
+    {autofocus}
+    {disabled}
+    {placeholder}
+    spellcheck="false"
+    bind:value
+    onblur={() => oncommit?.()}
+    onkeydown={(event) => {
+      if (event.key === 'Enter') oncommit?.();
+    }}
+  />
 </div>

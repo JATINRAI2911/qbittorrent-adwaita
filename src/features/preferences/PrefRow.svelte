@@ -25,7 +25,12 @@
 
   const ui = $derived(model.ui(def));
   const subtitle = $derived([def.subtitle, def.restart ? 'Takes effect after qBittorrent restarts' : ''].filter(Boolean).join(' · ') || undefined);
-  const edit = (value: unknown, debounce = false) => model.edit(def, value, { debounce });
+  // Paths and dangerous rows never send a half-typed value (qBittorrent creates folders, dangerous
+  // rows would ask mid-typing); they send on Enter or when the field is left. Others debounce.
+  const held = $derived(def.dangerous !== undefined || def.kind === 'path');
+  const edit = (value: unknown, debounce = false) => model.edit(def, value, held && debounce ? { commit: true } : { debounce });
+  const commit = () => void model.flush();
+  const problem = $derived(model.errors[def.key]);
   const lister = (files: boolean) => (dir: string) => app.adding.appApi.directoryContent(dir, files ? 'all' : 'dirs');
   const plural = (n: number, word: string) => `${n} ${n === 1 ? word : /(s|x|sh|ch)$/.test(word) ? `${word}es` : `${word}s`}`;
 
@@ -52,7 +57,9 @@
     digits={def.digits}
     unit={def.unit}
     bind:value={() => ui as number, (value) => edit(value, true)}
+    oncommit={commit}
   />
+  {#if problem}<p class="row-note error">{problem}</p>{/if}
 {:else if def.kind === 'limit'}
   <LimitRow
     title={def.label}
@@ -76,14 +83,15 @@
   <EntryRow
     title={def.label}
     type={def.password ? 'password' : 'text'}
+    autocomplete={def.password ? 'new-password' : def.dangerous ? 'off' : undefined}
     placeholder={def.placeholder}
     bind:value={() => ui as string, (value) => edit(value, true)}
-    onblur={() => void model.flush()}
+    oncommit={commit}
   />
-  {#if subtitle}<p class="row-note">{subtitle}</p>{/if}
+  {#if problem}<p class="row-note error">{problem}</p>{:else if subtitle}<p class="row-note">{subtitle}</p>{/if}
 {:else if def.kind === 'path'}
-  <PathEntry title={def.label} placeholder={def.placeholder} list={lister(def.files ?? false)} bind:value={() => ui as string, (value) => edit(value, true)} />
-  {#if subtitle}<p class="row-note">{subtitle}</p>{/if}
+  <PathEntry title={def.label} placeholder={def.placeholder} list={lister(def.files ?? false)} bind:value={() => ui as string, (value) => edit(value, true)} oncommit={commit} />
+  {#if problem}<p class="row-note error">{problem}</p>{:else if subtitle}<p class="row-note">{subtitle}</p>{/if}
 {:else if def.kind === 'list'}
   {@const items = ui as string[]}
   {@const itemLabel = def.itemLabel}

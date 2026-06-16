@@ -37,4 +37,5 @@
   .pref-slot:first-child { border-top-left-radius: 12px; border-top-right-radius: 12px; overflow: hidden; }
   .pref-slot:last-child { border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; overflow: hidden; }
   .pref-slot :global(.row-note) { margin: -6px 0 0; padding: 0 14px 10px; font-size: smaller; opacity: var(--dim-opacity); }
+  .pref-slot :global(.row-note.error) { color: var(--error-color); opacity: 1; }
 </style>

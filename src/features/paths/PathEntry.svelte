@@ -12,8 +12,10 @@
     list?: (dir: string) => Promise<string[]>;
     autofocus?: boolean;
     placeholder?: string;
+    /** Enter (without a suggestion picked) or leaving the field: the typed path is final. */
+    oncommit?: () => void;
   }
-  let { title, value = $bindable(''), list, autofocus = false, placeholder }: Props = $props();
+  let { title, value = $bindable(''), list, autofocus = false, placeholder, oncommit }: Props = $props();
   const id = $props.id();
 
   const cache = new Map<string, string[]>();
@@ -95,6 +97,11 @@
   }
 
   function onkeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && (!suggestions.length || active < 0)) {
+      open = false;
+      oncommit?.();
+      return;
+    }
     if (!suggestions.length) return;
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
@@ -130,7 +137,10 @@
     bind:value
     oninput={refresh}
     onfocus={refresh}
-    onblur={() => setTimeout(() => (open = false), 150)}
+    onblur={() => {
+      setTimeout(() => (open = false), 150);
+      oncommit?.();
+    }}
     {onkeydown}
   />
   {#if suggestions.length}

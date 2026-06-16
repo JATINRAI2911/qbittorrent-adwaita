@@ -23,7 +23,9 @@ interface Base {
   needs?: string;
   /** Confirm before applying; `dangerousWhen` narrows it to some transitions. */
   dangerous?: 'url' | 'auth' | 'webui';
-  dangerousWhen?: (from: unknown, to: unknown) => boolean;
+  dangerousWhen?: (from: unknown, to: unknown, prefs: Prefs) => boolean;
+  /** Why a UI value can't be sent (qBittorrent's own checks), or null when it's fine. */
+  validate?: (ui: unknown, prefs: Prefs) => string | null;
   /** Takes effect after qBittorrent restarts. */
   restart?: boolean;
   /** Shown inside that sub-page instead of on the page. */
@@ -305,13 +307,26 @@ export const PREFERENCES: PrefDef[] = [
     entry('web_ui_address', 'Address', { subtitle: '* listens on every address', dangerous: 'url' }),
     spin('web_ui_port', 'Port', { min: 1, max: 65535, dangerous: 'url' }),
     sw('web_ui_upnp', 'Forward the port with UPnP / NAT-PMP'),
-    sw('use_https', 'Use HTTPS', { dangerous: 'url' }),
-    path('web_ui_https_cert_path', 'Certificate', { files: true, ...on('use_https', 'Use HTTPS') }),
-    path('web_ui_https_key_path', 'Key', { files: true, ...on('use_https', 'Use HTTPS') }),
+    // The certificate and key are set before HTTPS is turned on; while it's on, changing them moves the Web UI too.
+    path('web_ui_https_cert_path', 'HTTPS certificate', { files: true, subtitle: 'Needed for HTTPS', dangerous: 'url', dangerousWhen: (_f, _t, p) => p.use_https === true }),
+    path('web_ui_https_key_path', 'HTTPS key', { files: true, subtitle: 'Needed for HTTPS', dangerous: 'url', dangerousWhen: (_f, _t, p) => p.use_https === true }),
+    sw('use_https', 'Use HTTPS', {
+      dangerous: 'url',
+      validate: (ui, p) => (ui === true && (!p.web_ui_https_cert_path || !p.web_ui_https_key_path) ? 'Set the certificate and key first' : null),
+    }),
   ]),
   ...group('webui', 'Authentication', [
-    entry('web_ui_username', 'Username', { dangerous: 'auth' }),
-    entry('web_ui_password', 'New password', { password: true, placeholder: 'Unchanged', subtitle: 'At least 6 characters', dangerous: 'auth' }),
+    entry('web_ui_username', 'Username', {
+      dangerous: 'auth',
+      validate: (ui) => (String(ui).length < 3 ? 'At least 3 characters' : String(ui).includes(':') ? 'Can’t contain “:”' : null),
+    }),
+    entry('web_ui_password', 'New password', {
+      password: true,
+      placeholder: 'Unchanged',
+      subtitle: 'At least 6 characters',
+      dangerous: 'auth',
+      validate: (ui) => (ui !== '' && String(ui).length < 6 ? 'At least 6 characters' : null),
+    }),
     sw('bypass_local_auth', 'Skip authentication for localhost', { dangerous: 'auth', dangerousWhen: (_from, to) => to === false }),
     sw('bypass_auth_subnet_whitelist_enabled', 'Skip authentication for these subnets'),
     list('bypass_auth_subnet_whitelist', 'Subnets', '\n', 'subnet', { subtitle: 'Like 192.168.0.0/24; one per line', ...on('bypass_auth_subnet_whitelist_enabled', 'Skip authentication for these subnets') }),

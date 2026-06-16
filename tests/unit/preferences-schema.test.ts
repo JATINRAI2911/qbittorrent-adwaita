@@ -32,9 +32,12 @@ describe('preferences schema', () => {
     }
   });
 
-  it('marks exactly the dangerous keys', () => {
+  it('marks the dangerous keys, plus the HTTPS certificate and key (they move the Web UI while HTTPS is on)', () => {
     expect(PREFERENCES.filter((def) => def.dangerous).map((def) => def.key).sort()).toEqual(
-      ['alternative_webui_enabled', 'alternative_webui_path', 'bypass_local_auth', 'use_https', 'web_ui_address', 'web_ui_password', 'web_ui_port', 'web_ui_username'].sort(),
+      [
+        'alternative_webui_enabled', 'alternative_webui_path', 'bypass_local_auth', 'use_https', 'web_ui_address', 'web_ui_password', 'web_ui_port', 'web_ui_username',
+        'web_ui_https_cert_path', 'web_ui_https_key_path',
+      ].sort(),
     );
   });
 
