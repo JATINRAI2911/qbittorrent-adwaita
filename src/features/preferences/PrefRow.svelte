@@ -34,9 +34,10 @@
   const lister = (files: boolean) => (dir: string) => app.adding.appApi.directoryContent(dir, files ? 'all' : 'dirs');
   const plural = (n: number, word: string) => `${n} ${n === 1 ? word : /(s|x|sh|ch)$/.test(word) ? `${word}es` : `${word}s`}`;
 
-  function openList(items: string[], itemLabel: string) {
+  function openList(items: string[], itemLabel: string, tiers = false) {
     app.dialogs.open(TextListDialog, {
       title: def.label,
+      description: tiers ? 'A blank line starts a new tier.' : undefined,
       label: `${plural(2, itemLabel).slice(2).replace(/^./, (c) => c.toUpperCase())}, one per line`,
       value: items.join('\n'),
       allowEmpty: true,
@@ -95,12 +96,14 @@
 {:else if def.kind === 'list'}
   {@const items = ui as string[]}
   {@const itemLabel = def.itemLabel}
+  {@const tiers = def.tiers ?? false}
+  {@const count = items.filter((item) => item.trim()).length}
   <ActionRow
     title={def.label}
     {subtitle}
-    value={items.length ? plural(items.length, itemLabel) : 'None'}
+    value={count ? plural(count, itemLabel) : 'None'}
     disabled={def.readOnly}
-    onclick={() => openList(items, itemLabel)}
+    onclick={() => openList(items, itemLabel, tiers)}
   />
 {:else if def.kind === 'time'}
   <TimeRow title={def.label} bind:value={() => ui as string, (value) => edit(value)} />

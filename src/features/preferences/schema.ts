@@ -41,7 +41,8 @@ export type PrefDef = Base &
     | { kind: 'combo'; options: { value: OptionValue; label: string }[] }
     | { kind: 'entry'; password?: boolean; placeholder?: string }
     | { kind: 'path'; files?: boolean; placeholder?: string }
-    | { kind: 'list'; separator: '\n' | ',' | ';'; itemLabel: string; readOnly?: boolean }
+    /** `tiers`: blank lines are meaningful (tracker tiers) and kept as they are. */
+    | { kind: 'list'; separator: '\n' | ',' | ';'; itemLabel: string; readOnly?: boolean; tiers?: boolean }
     /** An hour key paired with its minute key, edited as one time. */
     | { kind: 'time'; minuteKey: string }
     | { kind: 'subpage'; subpage: string; title: string }
@@ -79,7 +80,7 @@ const combo = (key: string, label: string, options: [OptionValue, string][], mor
 });
 const entry = (key: string, label: string, more: Partial<Base> & { password?: boolean; placeholder?: string } = {}): Row => ({ kind: 'entry', key, label, ...more });
 const path = (key: string, label: string, more: Partial<Base> & { files?: boolean; placeholder?: string } = {}): Row => ({ kind: 'path', key, label, ...more });
-const list = (key: string, label: string, separator: '\n' | ',' | ';', itemLabel: string, more: Partial<Base> & { readOnly?: boolean } = {}): Row => ({
+const list = (key: string, label: string, separator: '\n' | ',' | ';', itemLabel: string, more: Partial<Base> & { readOnly?: boolean; tiers?: boolean } = {}): Row => ({
   kind: 'list',
   key,
   label,
@@ -283,7 +284,7 @@ export const PREFERENCES: PrefDef[] = [
   ]),
   ...group('bittorrent', 'Trackers', [
     sw('add_trackers_enabled', 'Add these trackers to new downloads'),
-    list('add_trackers', 'Trackers', '\n', 'tracker URL', on('add_trackers_enabled', 'Add these trackers to new downloads')),
+    list('add_trackers', 'Trackers', '\n', 'tracker URL', { tiers: true, ...on('add_trackers_enabled', 'Add these trackers to new downloads') }),
     sw('add_trackers_from_url_enabled', 'Add trackers from a URL to new downloads'),
     entry('add_trackers_url', 'Tracker list URL', on('add_trackers_from_url_enabled', 'Add trackers from a URL')),
     list('add_trackers_url_list', 'Fetched trackers', '\n', 'tracker URL', { readOnly: true, ...on('add_trackers_from_url_enabled', 'Add trackers from a URL') }),

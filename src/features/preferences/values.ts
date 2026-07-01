@@ -24,11 +24,11 @@ export function toUi(def: PrefDef, prefs: Prefs): unknown {
     }
     case 'combo':
       return raw;
-    case 'list':
-      return String(raw ?? '')
-        .split(def.separator === '\n' ? /\r?\n/ : def.separator)
-        .map((item) => item.trim())
-        .filter(Boolean);
+    case 'list': {
+      const items = String(raw ?? '').split(def.separator === '\n' ? /\r?\n/ : def.separator);
+      // Tracker lists keep their blank lines: each one starts a new tier.
+      return def.tiers ? items : items.map((item) => item.trim()).filter(Boolean);
+    }
     case 'time':
       return `${pad(num(raw))}:${pad(num(prefs[def.minuteKey]))}`;
     case 'entry':
@@ -55,7 +55,8 @@ export function fromUi(def: PrefDef, ui: unknown, prefs: Prefs): Prefs {
     }
     case 'list': {
       const joiner = def.separator === '\n' ? '\n' : def.separator;
-      return { [def.key]: (ui as string[]).map((item) => item.trim()).filter(Boolean).join(joiner) };
+      const items = def.tiers ? (ui as string[]).map((item) => item.trim()) : (ui as string[]).map((item) => item.trim()).filter(Boolean);
+      return { [def.key]: items.join(joiner) };
     }
     case 'time': {
       const [hour = 0, minute = 0] = String(ui).split(':').map((part) => Number.parseInt(part, 10));

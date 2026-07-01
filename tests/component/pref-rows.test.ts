@@ -123,4 +123,13 @@ describe('preference rows', () => {
     await userEvent.click(screen.getByRole('switch', { name: /Forward the port/ }));
     await vi.waitFor(() => expect(api.setPreferences).toHaveBeenCalledWith({ web_ui_port: 9002 }));
   });
+
+  it('counts trackers without the blank lines that separate tiers, and explains tiers', async () => {
+    const { app } = await setup(['add_trackers'], { add_trackers_enabled: true, add_trackers: 'udp://a\n\nudp://b' });
+    const row = screen.getByRole('button', { name: /Trackers/ });
+    expect(row).toHaveTextContent('2 tracker URLs');
+    await userEvent.click(row);
+    expect(app.dialogs.stack.at(-1)!.props.value).toBe('udp://a\n\nudp://b');
+    expect(app.dialogs.stack.at(-1)!.props.description).toBe('A blank line starts a new tier.');
+  });
 });

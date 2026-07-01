@@ -35,6 +35,12 @@ describe('preference values', () => {
     expect(fromUi(def('max_ratio'), { on: false, value: 2.5 }, { max_ratio_enabled: true })).toEqual({ max_ratio_enabled: false });
   });
 
+  it('keeps blank lines in tracker lists, since they separate tiers', () => {
+    const trackers = 'udp://a.example/announce\n\nudp://b.example/announce\nudp://c.example/announce\n';
+    const ui = toUi(def('add_trackers'), { add_trackers: trackers });
+    expect(fromUi(def('add_trackers'), ui, {})).toEqual({ add_trackers: trackers });
+  });
+
   it('keeps −1 “automatic” disk cache, joins lists with their separator, and pairs schedule times', () => {
     expect(toUi(def('disk_cache'), { disk_cache: -1 })).toBe(-1);
     expect(toUi(def('web_ui_domain_list'), { web_ui_domain_list: 'a.example; b.example;' })).toEqual(['a.example', 'b.example']);
