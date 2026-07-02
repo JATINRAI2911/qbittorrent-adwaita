@@ -110,4 +110,17 @@ describe('PreferencesDialog', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Require Login' }));
     await vi.waitFor(() => expect(app.adding.appApi.setPreferences).toHaveBeenCalledWith({ bypass_local_auth: false }));
   });
+
+  it('takes focus when it opens and gives it back when it closes', async () => {
+    const opener = document.createElement('button');
+    document.body.appendChild(opener);
+    opener.focus();
+    const app = makeAppContext();
+    app.adding.appApi.preferences.mockImplementation(async () => structuredClone(fixture));
+    const view = render(PreferencesDialog, { props: { close: vi.fn() }, context: withApp(app) });
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Behavior' })).toHaveFocus());
+    view.unmount();
+    expect(opener).toHaveFocus();
+    opener.remove();
+  });
 });

@@ -75,9 +75,17 @@
     close();
   }
 
+  // Like Dialog: focus moves in (to the current page) on open and back to the opener on close.
+  const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  let root = $state<HTMLDivElement>();
+
   $effect(() => {
     void load();
-    return () => void finish();
+    void tick().then(() => root?.querySelector<HTMLElement>('.pd-page[aria-current="page"]')?.focus());
+    return () => {
+      void finish();
+      opener?.focus();
+    };
   });
 
   // Dangerous changes explain their consequence first; dismissing the alert cancels.
@@ -199,6 +207,7 @@
 <!-- AdwPreferencesDialog: a sidebar of pages with a search toggle, and the selected page. -->
 <div
   class="dialog prefs-dialog"
+  bind:this={root}
   role="dialog"
   aria-modal="true"
   aria-label="Preferences"
