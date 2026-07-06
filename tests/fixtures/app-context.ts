@@ -20,6 +20,7 @@ import { PopoverStore } from '../../src/ui/adw/popovers.svelte';
 import { ToastStore } from '../../src/ui/adw/toast.svelte';
 import { fakeAddApi } from './fake-add-api';
 import { fakeAppApi } from './fake-app-api';
+import { fakeCreatorApi, fakeLogApi } from './fake-tools-api';
 import { fakeClientData } from './fake-clientdata';
 import { fakeDetailsApi } from './fake-details-api';
 import { reactive } from './reactive.svelte';
@@ -69,6 +70,7 @@ export function makeAppContext(torrents: Torrent[] = [], overrides: Partial<AppC
     toasts: new ToastStore(),
     adding,
     global: { prefs: new ServerPrefs(async () => ({})), commands: lazyMocks<GlobalCommands>(async () => true) },
+    tools: { log: fakeLogApi(), creator: fakeCreatorApi() },
     ...overrides,
   };
   return context as AppContext & {
@@ -79,6 +81,7 @@ export function makeAppContext(torrents: Torrent[] = [], overrides: Partial<AppC
     detailsApi: typeof detailsApi;
     adding: typeof adding;
     global: { prefs: ServerPrefs; commands: Mocked<GlobalCommands> };
+    tools: { log: ReturnType<typeof fakeLogApi>; creator: ReturnType<typeof fakeCreatorApi> };
   };
 }
 

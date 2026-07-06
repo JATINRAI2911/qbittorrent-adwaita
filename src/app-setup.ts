@@ -1,6 +1,8 @@
 import { addApi, type AddApi } from './api/add';
 import { appApi, type AppApi } from './api/app';
 import { transferApi, type TransferApi } from './api/transfer';
+import { creatorApi, type CreatorApi } from './api/creator';
+import { logApi, type LogApi } from './api/log';
 import { clientdataApi, type ClientDataApi } from './api/clientdata';
 import { detailsApi, type DetailsApi } from './api/details';
 import type { TorrentApi } from './api/torrents';
@@ -41,6 +43,7 @@ export function createApp(
   appClient: AppApi = appApi,
   add: AddApi = addApi,
   transfer: TransferApi = transferApi,
+  tools: { log: LogApi; creator: CreatorApi } = { log: logApi, creator: creatorApi },
 ): AppContext {
   const toasts = new ToastStore();
   const dialogs = new DialogStore();
@@ -93,6 +96,7 @@ export function createApp(
       appApi: appClient,
       commands: createAddCommands({ api: add, torrents: api, details, toast: toasts, refresh: () => session.retryNow() }),
     },
+    tools,
     global: {
       prefs: serverPrefs,
       commands: createGlobalCommands({

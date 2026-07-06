@@ -1,6 +1,8 @@
 import { getContext, setContext } from 'svelte';
 import type { AddApi } from './api/add';
 import type { AppApi } from './api/app';
+import type { CreatorApi } from './api/creator';
+import type { LogApi } from './api/log';
 import type { Category, ServerState, Torrent } from './api/types';
 import type { AddCommands } from './commands/add-commands';
 import type { GlobalCommands } from './commands/global-commands';
@@ -49,6 +51,7 @@ export interface AppContext {
   toasts: ToastStore;
   adding: { api: AddApi; appApi: AppApi; commands: AddCommands };
   global: { prefs: ServerPrefs; commands: GlobalCommands };
+  tools: { log: LogApi; creator: CreatorApi };
 }
 
 export const APP_CONTEXT_KEY = Symbol('app-context');
