@@ -10,6 +10,8 @@ describe('keyCommand', () => {
   it.each([
     ['o', { ctrlKey: true }, 'add'],
     [',', { ctrlKey: true }, 'preferences'],
+    ['?', { ctrlKey: true, shiftKey: true }, 'shortcuts'],
+    ['/', { metaKey: true, shiftKey: true }, 'shortcuts'],
     [',', { metaKey: true }, 'preferences'],
     ['O', { metaKey: true }, 'add'],
     ['ArrowDown', {}, 'focus-next'],
