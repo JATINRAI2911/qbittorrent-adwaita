@@ -209,6 +209,9 @@
       case 'preferences':
         openers.preferences();
         break;
+      case 'shortcuts':
+        openers.shortcuts();
+        break;
     }
   }
 

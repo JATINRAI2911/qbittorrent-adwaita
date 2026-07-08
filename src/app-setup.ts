@@ -87,7 +87,7 @@ export function createApp(
     details: detailModel,
     detailCommands,
     commands,
-    openers: createDialogOpeners(dialogs, commands, { listDirectories: (dir) => appClient.directoryContent(dir) }),
+    openers: createDialogOpeners(dialogs, commands, { listDirectories: (dir) => appClient.directoryContent(dir), shutdown: () => appClient.shutdown() }),
     popovers: new PopoverStore(),
     dialogs,
     toasts,

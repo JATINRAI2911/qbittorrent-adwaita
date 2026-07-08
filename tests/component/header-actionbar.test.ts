@@ -154,4 +154,27 @@ describe('header health controls', () => {
     render(MainHeader, { props: { torrents: app.session.torrents, server: {}, offline: true }, context: withApp(app) });
     expect(screen.getByRole('button', { name: 'Alternative Speed Limits' })).toBeDisabled();
   });
+
+  it('groups the main menu like GNOME apps and opens each tool', async () => {
+    const { app } = header();
+    await userEvent.click(screen.getByRole('button', { name: 'Main Menu' }));
+    const sections = app.popovers.current!.model.sections.map((section) => section.map((item) => item.label));
+    expect(sections).toEqual([
+      ['Preferences…', 'Speed Limits…'],
+      ['Manage Categories…', 'Manage Tags…'],
+      ['Statistics', 'Execution Log', 'Create Torrent…', 'Cookies'],
+      ['Keyboard Shortcuts', 'About qBittorrent'],
+      ['Log Out', 'Quit qBittorrent…'],
+    ]);
+    const item = (label: string) => app.popovers.current!.model.sections.flat().find((i) => i.label === label)!;
+    const openers: [string, keyof typeof app.openers][] = [
+      ['Speed Limits…', 'speedLimits'], ['Statistics', 'statistics'], ['Execution Log', 'log'], ['Create Torrent…', 'createTorrent'],
+      ['Cookies', 'cookies'], ['Keyboard Shortcuts', 'shortcuts'], ['About qBittorrent', 'about'], ['Quit qBittorrent…', 'quit'],
+    ];
+    for (const [label, opener] of openers) {
+      item(label).action!();
+      expect(app.openers[opener], label).toHaveBeenCalled();
+    }
+    expect(item('Quit qBittorrent…').destructive).toBe(true);
+  });
 });

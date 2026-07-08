@@ -31,12 +31,28 @@
     app.popovers.toggleMenu(
       {
         sections: [
-          [{ label: 'Preferences…', accel: 'Ctrl+,', action: () => app.openers.preferences() }],
+          [
+            { label: 'Preferences…', accel: 'Ctrl+,', action: () => app.openers.preferences() },
+            { label: 'Speed Limits…', action: () => app.openers.speedLimits() },
+          ],
           [
             { label: 'Manage Categories…', action: () => app.openers.manageCategories() },
             { label: 'Manage Tags…', action: () => app.openers.manageTags() },
           ],
-          [{ label: 'Log Out', action: () => void app.session.logout().then(() => app.selection.exit()) }],
+          [
+            { label: 'Statistics', action: () => app.openers.statistics() },
+            { label: 'Execution Log', action: () => app.openers.log() },
+            { label: 'Create Torrent…', action: () => app.openers.createTorrent() },
+            { label: 'Cookies', action: () => app.openers.cookies() },
+          ],
+          [
+            { label: 'Keyboard Shortcuts', accel: 'Ctrl+?', action: () => app.openers.shortcuts() },
+            { label: 'About qBittorrent', action: () => app.openers.about() },
+          ],
+          [
+            { label: 'Log Out', action: () => void app.session.logout().then(() => app.selection.exit()) },
+            { label: 'Quit qBittorrent…', destructive: true, action: () => app.openers.quit() },
+          ],
         ],
       },
       event.currentTarget as HTMLElement,

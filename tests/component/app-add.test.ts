@@ -120,4 +120,12 @@ describe('App add entry points', () => {
     expect(add.parseMetadata).toHaveBeenCalledWith([file]);
     unmount();
   });
+
+  it('opens the keyboard shortcuts with Ctrl/Cmd+?', async () => {
+    const { unmount } = await renderApp();
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.keyboard('{Control>}{Shift>}?{/Shift}{/Control}');
+    expect(await screen.findByRole('dialog', { name: 'Keyboard Shortcuts' })).toBeInTheDocument();
+    unmount();
+  });
 });

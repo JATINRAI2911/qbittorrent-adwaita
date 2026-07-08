@@ -1,10 +1,16 @@
 import type { Category, Torrent } from '../../api/types';
 import type { TorrentCommands } from '../../commands/torrent-commands';
 import type { DialogStore } from '../../ui/adw/dialogs.svelte';
+import AlertDialog from '../../ui/adw/AlertDialog.svelte';
 import AddDialog from '../add/AddDialog.svelte';
 import SpeedLimitsDialog from '../global/SpeedLimitsDialog.svelte';
 import StatisticsDialog from '../global/StatisticsDialog.svelte';
 import PreferencesDialog from '../preferences/PreferencesDialog.svelte';
+import AboutDialog from '../tools/AboutDialog.svelte';
+import CookiesDialog from '../tools/CookiesDialog.svelte';
+import CreateTorrentDialog from '../tools/CreateTorrentDialog.svelte';
+import LogDialog from '../tools/LogDialog.svelte';
+import ShortcutsDialog from '../tools/ShortcutsDialog.svelte';
 import type { PageId } from '../preferences/schema';
 import CategoriesDialog from './CategoriesDialog.svelte';
 import CategoryDialog from './CategoryDialog.svelte';
@@ -27,6 +33,13 @@ export interface DialogOpeners {
   manageCategories(): void;
   manageTags(): void;
   preferences(page?: PageId): void;
+  log(): void;
+  createTorrent(): void;
+  cookies(): void;
+  shortcuts(): void;
+  about(): void;
+  /** Confirm, then shut qBittorrent down; the window then shows the offline state. */
+  quit(): void;
   speedLimits(): void;
   statistics(): void;
 }
@@ -34,7 +47,7 @@ export interface DialogOpeners {
 export function createDialogOpeners(
   dialogs: DialogStore,
   commands: TorrentCommands,
-  extra: { listDirectories?: (dir: string) => Promise<string[]> } = {},
+  extra: { listDirectories?: (dir: string) => Promise<string[]>; shutdown?: () => Promise<void> } = {},
 ): DialogOpeners {
   return {
     add(initial = {}) {
@@ -78,6 +91,34 @@ export function createDialogOpeners(
     },
     preferences(page) {
       dialogs.open(PreferencesDialog, page ? { page } : {});
+    },
+    log() {
+      dialogs.open(LogDialog, {});
+    },
+    createTorrent() {
+      dialogs.open(CreateTorrentDialog, {});
+    },
+    cookies() {
+      dialogs.open(CookiesDialog, {});
+    },
+    shortcuts() {
+      dialogs.open(ShortcutsDialog, {});
+    },
+    about() {
+      dialogs.open(AboutDialog, {});
+    },
+    quit() {
+      dialogs.open(AlertDialog, {
+        heading: 'Quit qBittorrent?',
+        body: 'Downloads and seeding stop until qBittorrent is started again on the computer it runs on.',
+        responses: [
+          { id: 'cancel', label: 'Cancel' },
+          { id: 'quit', label: 'Quit', variant: 'destructive' },
+        ],
+        onresponse: (id: string) => {
+          if (id === 'quit') void extra.shutdown?.();
+        },
+      });
     },
     speedLimits() {
       dialogs.open(SpeedLimitsDialog, {});
