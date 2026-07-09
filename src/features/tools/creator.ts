@@ -33,6 +33,9 @@ export const defaultCreatorForm = (): CreatorForm => ({
   source: '',
 });
 
+/** The largest padding limit whose byte value fits the server's 32-bit int. */
+export const MAX_PADDING_KIB = 2_097_151;
+
 /** Automatic, then 16 KiB … 128 MiB, as qBittorrent offers. */
 export const PIECE_SIZES = [0, ...Array.from({ length: 14 }, (_, i) => 1024 << (i + 4))];
 
@@ -65,7 +68,9 @@ export function taskParams(form: CreatorForm, libtorrent2: boolean): CreatorTask
   if (libtorrent2) params.format = form.format;
   else {
     params.optimizeAlignment = form.optimizeAlignment;
-    params.paddedFileSizeLimit = form.optimizeAlignment && form.padFiles ? Math.max(0, Math.round(form.paddedFileSizeLimitKiB)) : -1;
+    // Bytes, like qBittorrent's own dialog (KiB × 1024), kept within a 32-bit int.
+    const kib = Math.min(MAX_PADDING_KIB, Math.max(0, Math.round(form.paddedFileSizeLimitKiB)));
+    params.paddedFileSizeLimit = form.optimizeAlignment && form.padFiles ? kib * 1024 : -1;
   }
   const trackers = encodeUrlLines(form.trackers);
   const urlSeeds = encodeUrlLines(form.urlSeeds);

@@ -22,7 +22,9 @@ describe('torrent creator form', () => {
   it('sends libtorrent 1 options only to libtorrent 1, and the format only to libtorrent 2', () => {
     const form = { ...defaultCreatorForm(), sourcePath: '/data/share', trackers: 'udp://a', comment: '  ', private: true };
     expect(taskParams(form, false)).toEqual({ sourcePath: '/data/share', pieceSize: 0, private: true, startSeeding: true, optimizeAlignment: true, paddedFileSizeLimit: -1, trackers: 'udp%3A%2F%2Fa' });
-    expect(taskParams({ ...form, padFiles: true, paddedFileSizeLimitKiB: 64 }, false)).toMatchObject({ paddedFileSizeLimit: 64 });
+    // qBittorrent takes bytes (its own dialog sends KiB × 1024); the stock Web UI's KiB label is a bug.
+    expect(taskParams({ ...form, padFiles: true, paddedFileSizeLimitKiB: 64 }, false)).toMatchObject({ paddedFileSizeLimit: 65_536 });
+    expect(taskParams({ ...form, padFiles: true, paddedFileSizeLimitKiB: 9_999_999 }, false)).toMatchObject({ paddedFileSizeLimit: 2_097_151 * 1024 });
     expect(taskParams(form, true)).toEqual({ sourcePath: '/data/share', pieceSize: 0, private: true, startSeeding: true, format: 'hybrid', trackers: 'udp%3A%2F%2Fa' });
   });
 

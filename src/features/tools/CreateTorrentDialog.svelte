@@ -14,7 +14,7 @@
   import SwitchRow from '../../ui/adw/SwitchRow.svelte';
   import TextAreaRow from '../../ui/adw/TextAreaRow.svelte';
   import PathEntry from '../paths/PathEntry.svelte';
-  import { defaultCreatorForm, isLibtorrent2, PIECE_SIZES, pieceSizeLabel, taskParams, torrentFileName } from './creator';
+  import { defaultCreatorForm, isLibtorrent2, MAX_PADDING_KIB, PIECE_SIZES, pieceSizeLabel, taskParams, torrentFileName } from './creator';
 
   let { close }: { close: () => void } = $props();
   const app = getAppContext();
@@ -103,7 +103,7 @@
         <SwitchRow title="Optimize alignment" subtitle="Pad files so pieces start at file boundaries" bind:checked={form.optimizeAlignment} />
         {#if form.optimizeAlignment}
           <SwitchRow title="Only pad files larger than a limit" bind:checked={form.padFiles} />
-          {#if form.padFiles}<SpinRow title="Padding limit" unit="KiB" bind:value={form.paddedFileSizeLimitKiB} />{/if}
+          {#if form.padFiles}<SpinRow title="Padding limit" unit="KiB" max={MAX_PADDING_KIB} bind:value={form.paddedFileSizeLimitKiB} />{/if}
         {/if}
       {/if}
     </BoxedList>
