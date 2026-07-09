@@ -5,11 +5,12 @@ import CookiesDialog from '../../src/features/tools/CookiesDialog.svelte';
 import DateRow from '../../src/ui/adw/DateRow.svelte';
 import { makeAppContext, withApp } from '../fixtures/app-context';
 
-const future = Math.floor(new Date(2031, 5, 1, 23, 59, 59).getTime() / 1000);
+const future = 1_900_000_000; // not at a day's end: the round trip must keep it exact
 const cookies = [
   { name: 'uid', domain: 'tracker.example', path: '/', value: 'user-secret-1', expirationDate: future },
   { name: 'pass', domain: 'tracker.example', path: '/', value: 'pass-secret-2', expirationDate: 0 },
 ];
+const sessionSent = { name: 'pass', domain: 'tracker.example', path: '/', value: 'pass-secret-2' };
 
 function setup() {
   const app = makeAppContext();
@@ -38,9 +39,11 @@ describe('CookiesDialog', () => {
     await vi.waitFor(() => expect(cards()).toHaveLength(2));
     expect(within(cards()[0]!).getByText('tracker.example · uid')).toBeInTheDocument();
     const value = within(cards()[0]!).getByLabelText('Value');
-    expect(value).toHaveAttribute('type', 'password');
-    await userEvent.click(within(cards()[0]!).getByRole('switch', { name: 'Show value' }));
+    // Masked by CSS, not a password field: browsers would offer to save tracker cookies as logins.
     expect(value).toHaveAttribute('type', 'text');
+    expect(value).toHaveAttribute('data-masked', 'true');
+    await userEvent.click(within(cards()[0]!).getByRole('switch', { name: 'Show value' }));
+    expect(value).toHaveAttribute('data-masked', 'false');
     expect(document.body.innerHTML).not.toMatch(/title="[^"]*secret/);
   });
 
@@ -53,7 +56,7 @@ describe('CookiesDialog', () => {
     await userEvent.clear(value);
     await userEvent.type(value, 'new-pass-3');
     await userEvent.click(save);
-    expect(app.adding.appApi.setCookies).toHaveBeenCalledWith([cookies[0], { ...cookies[1], value: 'new-pass-3' }]);
+    expect(app.adding.appApi.setCookies).toHaveBeenCalledWith([cookies[0], { ...sessionSent, value: 'new-pass-3' }]);
     await vi.waitFor(() => expect(show).toHaveBeenCalledWith({ title: 'Saved cookies' }));
     expect(JSON.stringify(show.mock.calls)).not.toContain('secret');
   });
@@ -68,6 +71,6 @@ describe('CookiesDialog', () => {
     await userEvent.click(within(cards()[2]!).getByRole('button', { name: /Remove/ }));
     await userEvent.click(within(cards()[0]!).getByRole('button', { name: /Remove/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
-    expect(app.adding.appApi.setCookies).toHaveBeenCalledWith([cookies[1]]);
+    expect(app.adding.appApi.setCookies).toHaveBeenCalledWith([sessionSent]);
   });
 });

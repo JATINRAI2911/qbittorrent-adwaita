@@ -15,8 +15,11 @@ export interface Cookie {
   domain: string;
   path: string;
   value: string;
-  /** Seconds since the epoch; 0 for a session cookie. */
-  expirationDate: number;
+  /**
+   * Seconds since the epoch. Leave it out for a session cookie: qBittorrent stores any value it's
+   * given, and 0 becomes a 1970 date, an expired cookie that is never sent.
+   */
+  expirationDate?: number;
 }
 
 export const appApi = {

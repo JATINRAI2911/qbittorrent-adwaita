@@ -10,7 +10,7 @@
   import Spinner from '../../ui/adw/Spinner.svelte';
   import StatusPage from '../../ui/adw/StatusPage.svelte';
   import SwitchRow from '../../ui/adw/SwitchRow.svelte';
-  import { cookieProblems, fromDraft, toDraft, type CookieDraft } from './cookies';
+  import { cookieProblems, fromDraft, newCookieDraft, toDraft, type CookieDraft } from './cookies';
 
   let { close }: { close: () => void } = $props();
   const app = getAppContext();
@@ -18,7 +18,8 @@
   // Cookies qBittorrent sends when downloading .torrent files and RSS feeds (private-tracker logins).
   // Values are secrets: hidden unless revealed, never in toasts or titles.
   let drafts = $state<CookieDraft[]>([]);
-  let original = $state.raw<Cookie[]>([]);
+  /** What Save would send before any edit: `changed` compares against this, not the server's raw list. */
+  let baseline = $state('');
   let revealed = $state<Record<number, boolean>>({});
   let status = $state<'loading' | 'ready' | 'error'>('loading');
   let loadError = $state('');
@@ -26,13 +27,14 @@
   let nextId = 0;
 
   const problems = $derived(cookieProblems(drafts));
-  const changed = $derived(JSON.stringify(drafts.map(fromDraft)) !== JSON.stringify(original));
+  const changed = $derived(JSON.stringify(drafts.map(fromDraft)) !== baseline);
 
   async function load() {
     status = 'loading';
     try {
-      original = await app.adding.appApi.cookies();
-      drafts = original.map((cookie) => toDraft(cookie, ++nextId));
+      const cookies: Cookie[] = await app.adding.appApi.cookies();
+      drafts = cookies.map((cookie) => toDraft(cookie, ++nextId));
+      baseline = JSON.stringify(drafts.map(fromDraft));
       status = 'ready';
     } catch (error) {
       loadError = errorText(error);
@@ -45,7 +47,7 @@
   });
 
   function add() {
-    drafts.push({ ...toDraft({ name: '', domain: '', path: '/', value: '', expirationDate: 0 }, ++nextId) });
+    drafts.push(newCookieDraft(++nextId));
   }
 
   async function save() {
@@ -80,9 +82,10 @@
         <EntryRow title="Domain" bind:value={draft.domain} />
         <EntryRow title="Path" bind:value={draft.path} />
         <EntryRow title="Name" bind:value={draft.name} />
-        <EntryRow title="Value" type={revealed[draft.id] ? 'text' : 'password'} autocomplete="off" bind:value={draft.value} />
+        <!-- Masked with CSS, not type=password: browsers would offer to save tracker cookies as logins. -->
+        <EntryRow title="Value" masked={!revealed[draft.id]} autocomplete="off" bind:value={draft.value} />
         <SwitchRow title="Show value" bind:checked={() => revealed[draft.id] ?? false, (on) => (revealed[draft.id] = on)} />
-        <SwitchRow title="Expires" subtitle={draft.expires ? undefined : 'Kept until qBittorrent quits'} bind:checked={draft.expires} />
+        <SwitchRow title="Expires" subtitle={draft.expires ? undefined : 'Forgotten when qBittorrent quits'} bind:checked={draft.expires} />
         {#if draft.expires}<DateRow title="Expires on" bind:value={draft.date} />{/if}
         {#if problems[draft.id]}<p class="row-note error">{problems[draft.id]}</p>{/if}
       </div>

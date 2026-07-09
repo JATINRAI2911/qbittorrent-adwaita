@@ -34,3 +34,4 @@
 .entry-row:focus-within input::placeholder { opacity: var(--dim-opacity); }
 /* Preferences search hits (CSS Custom Highlight API). */
 ::highlight(pref-search) { background-color: color-mix(in srgb, var(--accent-bg-color) 35%, transparent); color: inherit; }
+.entry-row input.masked { -webkit-text-security: disc; text-security: disc; }
