@@ -198,6 +198,8 @@
   .log-time { flex: none; opacity: var(--dim-opacity); font-size: smaller; }
   .log-text, .log-ip { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--monospace-font-size); }
   .log-text { flex: 1; }
+  /* A fixed column so the status pills line up (IPv6 addresses vary a lot in length). */
+  .log-ip { flex: none; width: 27ch; }
   .log-row.warning .log-text { color: var(--warning-color); }
   .log-row.critical .log-text { color: var(--error-color); }
   .log-pill { flex: none; padding: 1px 8px; border-radius: 99px; font-size: smaller; font-weight: 700; background: color-mix(in srgb, var(--error-color) 18%, transparent); color: var(--error-color); }
