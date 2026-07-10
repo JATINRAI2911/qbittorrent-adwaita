@@ -3,3 +3,6 @@ node_modules/
 dist/
 .DS_Store
 tests/fixtures/local/
+e2e/.tmp/
+test-results/
+playwright-report/
