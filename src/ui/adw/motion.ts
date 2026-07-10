@@ -15,12 +15,27 @@ export function motionEnabled(): boolean {
 
 const ms = (duration: number) => (motionEnabled() ? duration : 0);
 
-export function fade(node: Element, { duration = DURATION.normal }: { duration?: number } = {}): TransitionConfig {
+/** Svelte passes each transition its direction. */
+export interface TransitionOptions {
+  direction?: 'in' | 'out' | 'both';
+}
+
+/**
+ * An element that is leaving stays in the DOM for its exit animation; hide it from assistive tech at
+ * once (Svelte already makes it inert), so nobody meets a ghost dialog, popover or toast.
+ */
+function leaving(node: Element, options?: TransitionOptions): void {
+  if (options?.direction === 'out') node.setAttribute('aria-hidden', 'true');
+}
+
+export function fade(node: Element, { duration = DURATION.normal }: { duration?: number } = {}, options?: TransitionOptions): TransitionConfig {
+  leaving(node, options);
   return svelteFade(node, { duration: ms(duration), easing: cubicOut });
 }
 
 /** GtkRevealer's slide: animates height (or width), padding and margin. */
-export function slide(node: Element, { duration = DURATION.slow, axis = 'y' }: { duration?: number; axis?: 'x' | 'y' } = {}): TransitionConfig {
+export function slide(node: Element, { duration = DURATION.slow, axis = 'y' }: { duration?: number; axis?: 'x' | 'y' } = {}, options?: TransitionOptions): TransitionConfig {
+  leaving(node, options);
   return svelteSlide(node, { duration: ms(duration), easing: cubicOut, axis });
 }
 
@@ -36,7 +51,8 @@ export interface RiseOptions {
 }
 
 /** Fade plus a small move/scale, like popovers, dialogs and toasts appearing. */
-export function rise(node: Element, { duration = DURATION.normal, x = 0, y = 0, scale = 1, opacity = 0 }: RiseOptions = {}): TransitionConfig {
+export function rise(node: Element, { duration = DURATION.normal, x = 0, y = 0, scale = 1, opacity = 0 }: RiseOptions = {}, options?: TransitionOptions): TransitionConfig {
+  leaving(node, options);
   const inline = (node as HTMLElement).style?.transform;
   const computed = inline || getComputedStyle(node).transform;
   const base = computed && computed !== 'none' ? `${computed} ` : '';

@@ -42,4 +42,14 @@ describe('motion', () => {
     expect(css(0, 1)).toBe('opacity: 0; transform: translateX(-50%) translate(0px, 16px) scale(0.96);');
     expect(css(1, 0)).toBe('opacity: 1; transform: translateX(-50%) translate(0px, 0px) scale(1);');
   });
+
+  it('takes a leaving element out of the accessibility tree the moment its exit starts', () => {
+    const leaving = node();
+    fade(leaving, {}, { direction: 'out' });
+    expect(leaving.getAttribute('aria-hidden')).toBe('true');
+    const arriving = node();
+    rise(arriving, {}, { direction: 'in' });
+    slide(arriving, {}, { direction: 'in' });
+    expect(arriving.hasAttribute('aria-hidden')).toBe(false);
+  });
 });
