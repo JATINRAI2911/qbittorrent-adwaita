@@ -305,7 +305,8 @@
   .pref-group h4 { margin: 0 4px; }
   .pref-slot { border-bottom: 1px solid var(--card-shade-color); }
   .pref-slot:last-child { border-bottom: 0; }
-  .dimmed-row > :global(:first-child) { opacity: 0.55; }
+  /* Only the title dims: subtitles are already dim, and dimming twice drops below AA. */
+  .dimmed-row > :global(:first-child) :global(.title) { opacity: var(--dim-opacity); }
   .pref-slot :global(.row-note) { margin: -6px 0 0; padding: 0 14px 10px; font-size: smaller; opacity: var(--dim-opacity); }
   @media (max-width: 720px) {
     .prefs-dialog { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }

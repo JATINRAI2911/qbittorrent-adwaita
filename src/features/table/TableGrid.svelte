@@ -145,9 +145,9 @@
   .cv-h {
     width: 100%; min-height: 30px; padding: 3px 6px; border: 0; background: none; display: flex; align-items: center; gap: 6px;
     font: inherit; font-weight: 700; font-size: 82%; line-height: 100%; white-space: nowrap; cursor: default;
-    color: color-mix(in srgb, currentColor 40%, transparent);
+    color: color-mix(in srgb, currentColor var(--dim-opacity), transparent);
   }
-  .cv-h:hover { color: color-mix(in srgb, currentColor 70%, transparent); }
+  .cv-h:hover { color: color-mix(in srgb, currentColor 85%, transparent); }
   .cv-h:active { color: currentColor; }
   .cv-h.end { justify-content: flex-end; }
   .cv-h :global(.sort-i) { width: 16px; height: 16px; }
@@ -160,7 +160,7 @@
   :global(.cv-row.selected:hover) { background: var(--view-selected-hover-color); }
   :global(.cv-row.menu-target:not(.selected)) { background: var(--view-hover-color); }
   :global(.cv-row.kfocus) { outline: 2px solid var(--focus-ring-color); outline-offset: -2px; }
-  :global(.cv-row.inactive .cv-c.name .ellipsis) { color: color-mix(in srgb, var(--view-fg-color) 50%, transparent); }
+  :global(.cv-row.inactive .cv-c.name .ellipsis) { color: color-mix(in srgb, var(--view-fg-color) var(--dim-opacity), transparent); }
   :global(.cv-c) { padding: 0 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   :global(.cv-c.end) { text-align: right; }
   :global(.cv-c.name) { display: flex; align-items: center; gap: 10px; }

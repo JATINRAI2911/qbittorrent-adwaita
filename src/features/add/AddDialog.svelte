@@ -216,7 +216,7 @@
   .source-actions { display: flex; justify-content: flex-end; }
   .open-files { gap: 6px; cursor: default; }
   .add-item { gap: 12px; }
-  .add-item.dim .title { opacity: 0.6; }
+  .add-item.dim .title { opacity: var(--dim-opacity); }
   .add-item :global(.warn) { color: var(--warning-color); }
   .add-item .title-box { min-width: 0; }
   .add-files { max-height: 260px; overflow: auto; }

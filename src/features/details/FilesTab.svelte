@@ -123,6 +123,6 @@
   .file-name { flex: 1; min-width: 0; }
   .file-value { flex: none; }
   .prio-btn { min-width: 104px; justify-content: space-between; gap: 6px; padding: 5px 9px; font-weight: 400; }
-  .prio-btn.skip { opacity: 0.55; }
+  .prio-btn.skip { opacity: var(--dim-opacity); }
   .files-filter { width: 220px; }
 </style>

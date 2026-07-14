@@ -35,7 +35,7 @@
   --scrollbar-outline-color: #ffffff;
 
   --border-opacity: 15%;
-  --dim-opacity: 55%;
+  --dim-opacity: 75%;
   --disabled-opacity: 50%;
   --border-color: color-mix(in srgb, currentColor var(--border-opacity), transparent);
   --hover-color: color-mix(in srgb, currentColor 7%, transparent);

@@ -195,7 +195,8 @@
   .log-row-button:hover { background: var(--hover-color); }
   .log-row.selected .log-row-button { background: var(--selected-color); }
   .log-row-button:focus-visible { outline: 2px solid var(--focus-ring-color); outline-offset: -2px; }
-  .log-time { flex: none; opacity: var(--dim-opacity); font-size: smaller; }
+  /* The time stays neutral: warning rows colour only the message, and dimmed warning text drops below AA. */
+  .log-time { flex: none; color: var(--window-fg-color); opacity: var(--dim-opacity); font-size: smaller; }
   .log-text, .log-ip { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--monospace-font-size); }
   .log-text { flex: 1; }
   /* A fixed column so the status pills line up (IPv6 addresses vary a lot in length). */

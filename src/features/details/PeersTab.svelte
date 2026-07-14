@@ -100,7 +100,7 @@
     display: grid; grid-template-columns: minmax(180px, 1.4fr) minmax(140px, 1.2fr) 70px 80px 90px 90px 100px 100px 40px;
     gap: 12px; padding: 0 14px; align-items: center; min-width: 980px;
   }
-  .pt-h { min-height: 34px; font-weight: 700; font-size: 82%; color: color-mix(in srgb, currentColor 40%, transparent); }
+  .pt-h { min-height: 34px; font-weight: 700; font-size: 82%; color: color-mix(in srgb, currentColor var(--dim-opacity), transparent); }
   .pt-r { min-height: 44px; border-top: 1px solid var(--card-shade-color); }
   .end { text-align: right; }
   .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

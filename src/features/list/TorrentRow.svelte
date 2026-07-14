@@ -85,7 +85,7 @@
   .t-sub .subtitle:has(:global(.warning), :global(.error)) > :not(:global(.warning), :global(.error)) { opacity: var(--dim-opacity); }
   .eta { flex: none; }
   .sep { margin: 0 6px; opacity: 0.7; }
-  .inactive .t-name, .inactive .t-meta { color: color-mix(in srgb, var(--window-fg-color) 50%, transparent); }
+  .inactive .t-name { color: color-mix(in srgb, var(--window-fg-color) var(--dim-opacity), transparent); }
   .torrent-row :global(.progressbar) { margin-top: 4px; }
   .torrent-row:not(.selected):hover { background-color: color-mix(in srgb, currentColor 3%, transparent); }
   .torrent-row.selected { background-color: var(--view-selected-color); }
