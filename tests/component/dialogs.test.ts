@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { createRawSnippet, flushSync, tick } from 'svelte';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import AlertDialog from '../../src/ui/adw/AlertDialog.svelte';
 import Dialog from '../../src/ui/adw/Dialog.svelte';
 import DialogHost from '../../src/ui/adw/DialogHost.svelte';
@@ -79,5 +79,36 @@ describe('DialogHost', () => {
     expect(store.stack).toHaveLength(1);
     await userEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(store.isOpen).toBe(false);
+  });
+
+  it('traps Tab and Shift+Tab inside the top dialog', async () => {
+    const store = new DialogStore();
+    render(DialogHost, { store });
+    const outside = document.body.appendChild(Object.assign(document.createElement('button'), { textContent: 'Outside' }));
+    onTestFinished(() => outside.remove());
+    store.open(Dialog, { title: 'Statistics', children: field });
+    await tick();
+    const name = screen.getByLabelText('Name');
+    const closeButton = screen.getByRole('button', { name: 'Close' });
+    expect(name).toHaveFocus();
+    await userEvent.tab();
+    expect(closeButton).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    expect(name).toHaveFocus();
+    expect(outside).not.toHaveFocus();
+  });
+
+  it('returns focus to the opener when the dialog closes', async () => {
+    const store = new DialogStore();
+    render(DialogHost, { store });
+    const opener = document.body.appendChild(Object.assign(document.createElement('button'), { textContent: 'Open' }));
+    onTestFinished(() => opener.remove());
+    opener.focus();
+    store.open(Dialog, { title: 'Statistics', children: field });
+    await tick();
+    expect(opener).not.toHaveFocus();
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+    await tick();
+    expect(opener).toHaveFocus();
   });
 });

@@ -41,6 +41,11 @@
   const app = setAppContext(untrack(() => createApp(session, api, clientdata, undefined, detailsClient, appClient, add)));
   const { selection, list, table, prefs, details, commands, openers, popovers, dialogs, toasts, global } = app;
 
+  // The login covers everything: a menu left open would float above it.
+  $effect(() => {
+    if (session.connection === 'login') untrack(() => popovers.close());
+  });
+
   let scrolled = $state(false);
   let content = $state<HTMLElement>();
   let viewportHeight = $state(0);
@@ -148,6 +153,7 @@
     // Inside the details sheet only Esc reaches the app: its own controls (resize handle, tabs, filters) own the other keys.
     if (command !== 'escape' && event.target instanceof Element && event.target.closest('.sheet')) return;
     if (command === 'escape') {
+      if (session.connection === 'login') return;
       if (popovers.isOpen) popovers.close();
       else if (dialogs.isOpen) dialogs.closeTop();
       else if (list.filters.search) list.setFilters({ search: '' });
@@ -304,8 +310,8 @@
 {/if}
 
 <PopoverHost store={popovers} />
-<DialogHost store={dialogs} />
-<ToastOverlay store={toasts} bottom={selection.mode ? 52 : sheetInset} />
+<DialogHost store={dialogs} suspended={session.connection === 'login'} />
+<ToastOverlay store={toasts} bottom={selection.mode ? 52 : sheetInset} inert={dialogs.isOpen} />
 {#if dragging}<DropOverlay />{/if}
 
 <style>
@@ -316,6 +322,7 @@
   .content.table { overflow: hidden; }
   .content.offline { filter: saturate(0.3); opacity: 0.6; pointer-events: none; transition: opacity 300ms var(--ease-out-quad); }
   .loading { position: fixed; inset: 0; display: grid; place-items: center; color: var(--accent-color); }
-  .login-layer { position: fixed; inset: 0; z-index: 10; overflow: auto; background: var(--window-bg-color); }
+  /* Above dialogs (400), which wait underneath, inert, until the session is back. */
+  .login-layer { position: fixed; inset: 0; z-index: 450; overflow: auto; background: var(--window-bg-color); }
   .login-layer.over-app { background: color-mix(in srgb, var(--window-bg-color) 85%, transparent); backdrop-filter: blur(6px); }
 </style>

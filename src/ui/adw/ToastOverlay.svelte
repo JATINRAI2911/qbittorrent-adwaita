@@ -3,10 +3,11 @@
   import { DURATION, fade, rise } from './motion';
   import type { ToastStore } from './toast.svelte';
 
-  let { store, bottom = 0 }: { store: ToastStore; bottom?: number } = $props();
+  /** `inert` while a dialog is open: toasts stay visible but out of the dialog's tab order. */
+  let { store, bottom = 0, inert = false }: { store: ToastStore; bottom?: number; inert?: boolean } = $props();
 </script>
 
-<div class="toast-overlay" style:bottom="{bottom}px">
+<div class="toast-overlay" style:bottom="{bottom}px" {inert}>
   {#if store.current}
     {#key store.current.id}
       <div class="toast" role="status" in:rise|global={{ duration: DURATION.slow, y: 16 }} out:fade|global={{ duration: DURATION.fast }}>

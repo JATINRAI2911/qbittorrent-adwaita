@@ -90,4 +90,61 @@ describe('App', () => {
     expect(await screen.findByRole('button', { name: 'Log In' })).toBeEnabled();
     unmount();
   });
+
+  it('keeps toasts out of the tab order while a dialog is open', async () => {
+    const { unmount } = render(App, { session: makeSession({}) });
+    expect(await screen.findByText('ubuntu.iso')).toBeInTheDocument();
+    const overlay = document.querySelector<HTMLElement>('.toast-overlay')!;
+    expect(overlay.inert).not.toBe(true);
+    await userEvent.keyboard('{Control>}?{/Control}');
+    expect(await screen.findByRole('dialog', { name: 'Keyboard Shortcuts' })).toBeInTheDocument();
+    expect(overlay.inert).toBe(true);
+    unmount();
+  });
+
+  it('puts the login above an open dialog when the session expires, and keeps the dialog for afterwards', async () => {
+    let expired = false;
+    const maindata = vi.fn(async () => {
+      if (expired) throw new ApiError('auth', 403, '');
+      return full;
+    });
+    const login = vi.fn(async () => {
+      expired = false;
+      return 'ok' as const;
+    });
+    const { unmount } = render(App, { session: makeSession({ maindata, login }) });
+    expect(await screen.findByText('ubuntu.iso')).toBeInTheDocument();
+    await userEvent.keyboard('{Control>}?{/Control}');
+    const dialog = await screen.findByRole('dialog', { name: 'Keyboard Shortcuts' });
+    expired = true;
+
+    const username = await screen.findByLabelText('Username', {}, { timeout: 3000 });
+    const host = dialog.closest<HTMLElement>('.dialog-host')!;
+    expect(host.inert).toBe(true);
+    await userEvent.keyboard('{Escape}');
+    expect(dialog).toBeInTheDocument();
+
+    await userEvent.type(username, 'admin');
+    await userEvent.type(screen.getByLabelText('Password'), 'secret');
+    await userEvent.click(screen.getByRole('button', { name: 'Log In' }));
+    await vi.waitFor(() => expect(screen.queryByLabelText('Username')).not.toBeInTheDocument());
+    expect(host.inert).toBe(false);
+    unmount();
+  });
+
+  it('closes an open menu when the session expires', async () => {
+    let expired = false;
+    const maindata = vi.fn(async () => {
+      if (expired) throw new ApiError('auth', 403, '');
+      return full;
+    });
+    const { unmount } = render(App, { session: makeSession({ maindata }) });
+    expect(await screen.findByText('ubuntu.iso')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Main Menu' }));
+    expect(await screen.findByRole('menu')).toBeInTheDocument();
+    expired = true;
+    await screen.findByLabelText('Username', {}, { timeout: 3000 });
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    unmount();
+  });
 });
