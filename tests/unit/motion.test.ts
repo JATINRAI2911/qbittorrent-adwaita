@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fade, motionEnabled, rise, slide } from '../../src/ui/adw/motion';
+import type { TransitionConfig } from 'svelte/transition';
+import { fade as fadeT, motionEnabled, rise as riseT, slide as slideT, type Transition } from '../../src/ui/adw/motion';
+
+// Called without a direction, the helpers return a plain config.
+const plain = <A extends unknown[]>(fn: (...args: A) => Transition) => (...args: A) => fn(...args) as TransitionConfig;
+const fade = plain(fadeT);
+const slide = plain(slideT);
+const rise = plain(riseT);
 
 const node = () => document.createElement('div');
 const original = Element.prototype.animate;
@@ -51,5 +58,22 @@ describe('motion', () => {
     rise(arriving, {}, { direction: 'in' });
     slide(arriving, {}, { direction: 'in' });
     expect(arriving.hasAttribute('aria-hidden')).toBe(false);
+  });
+
+  it('also hides a bidirectional (transition:) element while it leaves, and shows it again if it comes back', () => {
+    type Deferred = (options: { direction: 'in' | 'out' }) => TransitionConfig;
+    const el = node();
+    const config = slideT(el, {}, { direction: 'both' }) as Deferred;
+    expect(config({ direction: 'out' }).duration).toBe(0);
+    expect(el.getAttribute('aria-hidden')).toBe('true');
+    config({ direction: 'in' });
+    expect(el.hasAttribute('aria-hidden')).toBe(false);
+
+    const decorative = node();
+    decorative.setAttribute('aria-hidden', 'true');
+    const again = fadeT(decorative, {}, { direction: 'both' }) as Deferred;
+    again({ direction: 'out' });
+    again({ direction: 'in' });
+    expect(decorative.getAttribute('aria-hidden')).toBe('true');
   });
 });
