@@ -18,6 +18,8 @@ export async function login(page: Page): Promise<void> {
   await page.getByLabel('Password').fill(PASSWORD);
   await page.getByRole('button', { name: 'Log In' }).click();
   await expect(page.getByRole('banner')).toBeVisible();
+  // The login layer fades out; wait until it has gone so later lookups can't land on it.
+  await expect(page.locator('.login-layer')).toHaveCount(0);
 }
 
 /** Random files under the container's /downloads/src/<name>; returns the path qBittorrent sees. */
