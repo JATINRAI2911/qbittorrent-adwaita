@@ -43,7 +43,7 @@ describe('row interactions', () => {
 
   it('starts or stops from the row button without selecting the row', async () => {
     const { app, torrents, row } = setup();
-    await userEvent.click(screen.getAllByRole('button', { name: 'Stop' })[0]!);
+    await userEvent.click(screen.getByRole('button', { name: 'Stop one' }));
     expect(app.commands.toggle).toHaveBeenCalledWith([torrents[0]]);
     expect(row('one')).not.toHaveClass('selected');
   });
@@ -63,5 +63,20 @@ describe('row interactions', () => {
     app.selection.selectAll([torrents[0]!.hash, torrents[1]!.hash]);
     await userEvent.pointer({ keys: '[MouseRight]', target: row('two') });
     expect(app.popovers.current?.model.sections.flat().some((i) => i.label === 'Delete 2 Torrents…')).toBe(true);
+  });
+
+  it('gives each row in selection mode a real checkbox that toggles that row on its own', async () => {
+    const { app, row } = setup();
+    const user = userEvent.setup();
+    await user.keyboard('{Control>}');
+    await user.click(row('one'));
+    await user.keyboard('{/Control}');
+    const check = screen.getByRole('checkbox', { name: 'Select two' });
+    expect(check.tagName).toBe('BUTTON');
+    await user.click(check);
+    expect(check).toBeChecked();
+    expect(app.selection.size).toBe(2);
+    await user.click(screen.getByRole('checkbox', { name: 'Select one' }));
+    expect(app.selection.size).toBe(1);
   });
 });

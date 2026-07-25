@@ -12,11 +12,17 @@
     type?: 'button' | 'submit';
     disabled?: boolean;
     title?: string;
+    /** Accessible name when it should say more than the tooltip (e.g. which torrent "Stop" acts on). */
+    ariaLabel?: string;
+    /** For buttons that open a menu or popover. */
+    haspopup?: 'menu' | 'dialog' | 'listbox';
+    /** For buttons that show and hide a region (collapse buttons). */
+    expanded?: boolean;
     onclick?: (event: MouseEvent) => void;
     children?: Snippet;
   }
 
-  let { label, icon, variant = 'default', pill = false, circular = false, type = 'button', disabled = false, title, onclick, children }: Props = $props();
+  let { label, icon, variant = 'default', pill = false, circular = false, type = 'button', disabled = false, title, ariaLabel, haspopup, expanded, onclick, children }: Props = $props();
 
   const hasText = $derived(Boolean(label) || Boolean(children));
   const shape = $derived(icon && !hasText ? 'image-button' : icon ? 'image-text-button' : 'text-button');
@@ -26,7 +32,9 @@
   {type}
   {disabled}
   {title}
-  aria-label={hasText ? undefined : title}
+  aria-label={ariaLabel ?? (hasText ? undefined : title)}
+  aria-haspopup={haspopup}
+  aria-expanded={expanded}
   class="btn {shape}"
   class:flat={variant === 'flat'}
   class:suggested-action={variant === 'suggested'}

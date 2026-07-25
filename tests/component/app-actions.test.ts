@@ -33,7 +33,7 @@ describe('App actions', () => {
   it('stops a torrent from its row and undoes it from the toast', async () => {
     const { api, unmount } = renderApp();
     const row = (await screen.findByText('ubuntu.iso')).closest('[data-hash]') as HTMLElement;
-    await userEvent.click(within(row).getByRole('button', { name: 'Stop' }));
+    await userEvent.click(within(row).getByRole('button', { name: 'Stop ubuntu.iso' }));
     expect(api.stop).toHaveBeenCalledWith(['aaa']);
     expect(await screen.findByRole('status')).toHaveTextContent('Stopped “ubuntu.iso”');
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));

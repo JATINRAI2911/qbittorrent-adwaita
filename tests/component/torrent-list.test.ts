@@ -23,6 +23,14 @@ describe('TorrentList', () => {
     expect(screen.getByText('broken.iso')).toBeInTheDocument();
   });
 
+  it('tells assistive tech whether a group is expanded', async () => {
+    render(TorrentList, { context: withApp(makeAppContext([makeTorrent({ state: 'downloading', name: 'ubuntu.iso' }), makeTorrent({ state: 'error', name: 'broken.iso' })])) });
+    const collapse = screen.getByRole('button', { name: 'Collapse Downloading' });
+    expect(collapse).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(collapse);
+    expect(screen.getByRole('button', { name: 'Expand Downloading' })).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('shows 8 rows per group and expands with Show All', async () => {
     render(TorrentList, { context: withApp(makeAppContext([...seeds(30), makeTorrent({ state: 'downloading' })])) });
     const seeding = screen.getByRole('region', { name: 'Seeding' });
@@ -82,8 +90,8 @@ describe('TorrentRow', () => {
   });
 
   it('offers Start on torrents that need attention', () => {
-    renderRow(makeTorrent({ state: 'missingFiles' }));
-    expect(screen.getByRole('button', { name: 'Start' })).toBeInTheDocument();
+    renderRow(makeTorrent({ state: 'missingFiles', name: 'lost.iso' }));
+    expect(screen.getByRole('button', { name: 'Start lost.iso' })).toHaveAttribute('title', 'Start');
   });
 
   it('hides the progress bar for finished torrents', () => {

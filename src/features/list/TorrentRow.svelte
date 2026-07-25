@@ -4,7 +4,7 @@
   import { getAppContext } from '../../app-context';
   import { needsStart } from '../../lib/torrent-state';
   import Button from '../../ui/adw/Button.svelte';
-  import Check from '../../ui/adw/Check.svelte';
+  import CheckButton from '../../ui/adw/CheckButton.svelte';
   import Icon from '../../ui/adw/Icon.svelte';
   import ProgressBar from '../../ui/adw/ProgressBar.svelte';
   import Bubble from './Bubble.svelte';
@@ -31,7 +31,10 @@
   role="listitem"
   in:fade={{ duration: DURATION.fast }}
 >
-  {#if app.selection.mode}<span class="row-check" transition:rise={{ duration: DURATION.fast, scale: 0.6 }}><Check checked={selected} label="Select {t.name}" round /></span>{/if}
+  {#if app.selection.mode}<span class="row-check" transition:rise={{ duration: DURATION.fast, scale: 0.6 }}
+      ><!-- Out of the Tab order: the list has its own keys (arrows, Space). -->
+      <CheckButton checked={selected} label="Select {t.name}" round tabindex={-1} onclick={() => app.selection.toggle(t.hash)} /></span
+    >{/if}
   <Bubble torrent={t} />
   <div class="t-main">
     <div class="t-line">
@@ -61,6 +64,7 @@
       circular
       icon={stopped ? 'play' : 'pause'}
       title={stopped ? 'Start' : 'Stop'}
+      ariaLabel="{stopped ? 'Start' : 'Stop'} {t.name}"
       onclick={(event) => {
         event.stopPropagation();
         void app.commands.toggle([t]);
