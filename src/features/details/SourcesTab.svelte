@@ -61,7 +61,7 @@
 {:else}
   <section class="pref-group">
     <div class="pg-header">
-      <div><h4 class="heading">{formatCount(webseeds.length)} {webseeds.length === 1 ? 'Web Seed' : 'Web Seeds'}</h4></div>
+      <div><h3 class="heading">{formatCount(webseeds.length)} {webseeds.length === 1 ? 'Web Seed' : 'Web Seeds'}</h3></div>
       <Button variant="flat" icon="list-add" title="Add Web Seeds" onclick={add} />
     </div>
     <div class="boxed-list">
@@ -69,7 +69,7 @@
         <div class="row">
           <Icon name="link" class="dimmed" />
           <span class="title monospace ellipsis seed-url">{seed.url}</span>
-          <button type="button" class="btn flat image-button circular" aria-label="More for {seed.url}" onclick={(event) => menu(seed, event)}><Icon name="view-more" /></button>
+          <button type="button" class="btn flat image-button circular" aria-label="More for {seed.url}" aria-haspopup="menu" onclick={(event) => menu(seed, event)}><Icon name="view-more" /></button>
         </div>
       {/each}
     </div>

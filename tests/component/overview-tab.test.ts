@@ -53,6 +53,7 @@ describe('OverviewTab', () => {
     expect(within(group('Transfer')).getByText('2.7 GB')).toBeInTheDocument();
     expect(within(group('Transfer')).getByText('3 (56)')).toBeInTheDocument();
     expect(within(group('Transfer')).getAllByText('27 days, 19 hours')).toHaveLength(2); // time active and seeding time
+    expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['Transfer', 'Location', 'Options', 'Limits', 'Information']);
   });
 
   it('moves, edits limits, and changes category and tags from Location and Limits', async () => {

@@ -31,6 +31,7 @@
           PRIORITIES.map((priority) => ({
             label: PRIORITY_LABEL[priority],
             checked: node.priority === priority,
+            radio: true,
             // Read `files` when chosen: a poll may have replaced the list since the menu opened.
             action: () => files && void app.detailCommands.setPriority(hash, files, node.ids, priority),
           })),
@@ -73,7 +74,7 @@
   <section class="pref-group">
     <div class="pg-header">
       <div>
-        <h4 class="heading">{formatCount(files.length)} {files.length === 1 ? 'File' : 'Files'}</h4>
+        <h3 class="heading">{formatCount(files.length)} {files.length === 1 ? 'File' : 'Files'}</h3>
         <p class="pg-desc numeric">{formatBytes(selectedSize(files))} of {formatBytes(total)} selected</p>
       </div>
       {#if files.length > 20 || query}<div class="files-filter"><SearchEntry label="Filter files" placeholder="Filter files" bind:value={query} /></div>{/if}
@@ -86,6 +87,7 @@
               type="button"
               class="btn flat image-button circular chevron"
               aria-label="{collapsed.has(node.path) ? 'Expand' : 'Collapse'} {node.name}"
+              aria-expanded={!collapsed.has(node.path)}
               onclick={() => (collapsed.has(node.path) ? collapsed.delete(node.path) : collapsed.add(node.path))}
             >
               <Icon name={collapsed.has(node.path) ? 'pan-end' : 'pan-down'} />
@@ -107,7 +109,7 @@
           >
             <span>{PRIORITY_LABEL[node.priority]}</span><Icon name="pan-down" class="arrow-i" />
           </button>
-          <button type="button" class="btn flat image-button circular" aria-label="More for {node.name}" onclick={(event) => rowMenu(node, event)}>
+          <button type="button" class="btn flat image-button circular" aria-label="More for {node.name}" aria-haspopup="menu" onclick={(event) => rowMenu(node, event)}>
             <Icon name="view-more" />
           </button>
         </div>

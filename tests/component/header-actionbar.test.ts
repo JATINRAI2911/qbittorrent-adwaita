@@ -61,6 +61,7 @@ describe('MainHeader', () => {
     const items = app.popovers.current!.model.sections.flat();
     expect(items.map((i) => i.label)).toEqual(['Activity', 'Name', 'Date Added', 'Size', 'Progress', 'Ratio']);
     expect(items.find((i) => i.label === 'Activity')!.checked).toBe(true);
+    expect(items.every((i) => i.radio)).toBe(true);
     items.find((i) => i.label === 'Ratio')!.action!();
     expect(app.prefs.listSort).toBe('ratio');
   });
@@ -74,6 +75,7 @@ describe('MainHeader', () => {
     const columns = model.sections.flat().find((i) => i.label === 'Columns')!.submenu!();
     columns.sections.flat().find((i) => i.label === 'Size')!.action!();
     expect(app.prefs.columns).not.toContain('size');
+    expect(model.sections.flat().filter((i) => i.radio).map((i) => i.label)).toEqual(['Ascending', 'Descending']);
     model.sections.flat().find((i) => i.label === 'Ascending')!.action!();
     expect(app.prefs.tableSort.descending).toBe(false);
   });
@@ -143,10 +145,13 @@ describe('header health controls', () => {
     const health = { level: 'warning' as const, line: 'Low disk space', banner: null };
     render(MainHeader, { props: { torrents: app.session.torrents, server: {}, offline: false, health }, context: withApp(app) });
     const status = screen.getByRole('button', { name: 'Status: Low disk space' });
-    expect(status).toHaveAttribute('aria-expanded', 'false');
+    // The menu button pattern: aria-expanded only while open.
+    expect(status).not.toHaveAttribute('aria-expanded');
     await userEvent.click(status);
     expect(app.popovers.panel).not.toBeNull();
     expect(status).toHaveAttribute('aria-expanded', 'true');
+    app.popovers.close();
+    expect(status).not.toHaveAttribute('aria-expanded');
   });
 
   it('disables the turtle while offline', () => {

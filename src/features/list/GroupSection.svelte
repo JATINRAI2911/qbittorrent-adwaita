@@ -27,7 +27,7 @@
     <span class="dimmed numeric">{formatCount(view.total)}</span>
     <span class="spacer"></span>
     {#if !single}
-      <Button variant="flat" icon={view.collapsed ? 'pan-end' : 'pan-down'} title="{view.collapsed ? 'Expand' : 'Collapse'} {view.title}" onclick={oncollapse} />
+      <Button variant="flat" icon={view.collapsed ? 'pan-end' : 'pan-down'} title="{view.collapsed ? 'Expand' : 'Collapse'} {view.title}" expanded={!view.collapsed} onclick={oncollapse} />
     {/if}
   </div>
   <!-- Expanding a group reveals its rows like a GtkRevealer. -->

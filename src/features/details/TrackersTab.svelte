@@ -78,7 +78,7 @@
   <div class="ov-cols two">
     <section class="pref-group">
       <div class="pg-header">
-        <div><h4 class="heading">Trackers</h4></div>
+        <div><h3 class="heading">Trackers</h3></div>
         <Button variant="flat" label="Reannounce" onclick={() => void app.commands.reannounce([torrent])} />
         <Button variant="flat" icon="list-add" title="Add Trackers" onclick={addTrackers} />
       </div>
@@ -91,7 +91,7 @@
               <span class="title monospace ellipsis">{maskTrackerUrl(tracker.url)}</span>
               <span class="subtitle" class:error={tone === 'bad'}>{trackerSummary(tracker, now)}</span>
             </div>
-            <button type="button" class="btn flat image-button circular" aria-label="More for {hostOf(tracker.url)}" onclick={(event) => menu(tracker, event)}>
+            <button type="button" class="btn flat image-button circular" aria-label="More for {hostOf(tracker.url)}" aria-haspopup="menu" onclick={(event) => menu(tracker, event)}>
               <Icon name="view-more" />
             </button>
           </div>
@@ -101,7 +101,7 @@
       </div>
     </section>
     <section class="pref-group">
-      <div class="pg-header"><div><h4 class="heading">Other Peer Sources</h4></div></div>
+      <div class="pg-header"><div><h3 class="heading">Other Peer Sources</h3></div></div>
       <div class="boxed-list">
         {#each split.sources as source (source.url)}
           {@const tone = trackerTone(source)}

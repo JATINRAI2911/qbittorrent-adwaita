@@ -56,7 +56,7 @@ test('sets a category on several torrents in selection mode', async ({ page }) =
   await row(page, 'delta').click();
   await expect(page.getByText('2 Selected')).toBeVisible();
   await page.getByRole('toolbar', { name: 'Selection actions' }).getByRole('button', { name: 'Category' }).click();
-  await page.getByRole('menuitemcheckbox', { name: 'E2E' }).click();
+  await page.getByRole('menuitemradio', { name: 'E2E' }).click();
   await until(() => torrents(client), (all) => all.filter((t) => t.category === 'E2E').length === 2, 'both torrents in E2E');
 });
 

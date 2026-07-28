@@ -18,7 +18,8 @@ const season = () => [f(0, 'Show/E01.mkv', 1e9), f(1, 'Show/E02.mkv', 1e9, 0), f
 describe('FilesTab', () => {
   it('lists the tree with a summary of what is selected', () => {
     setup(season());
-    expect(screen.getByRole('heading', { name: '3 Files' })).toBeInTheDocument();
+    // Sections sit under the sheet's h2 title.
+    expect(screen.getByRole('heading', { name: '3 Files', level: 3 })).toBeInTheDocument();
     expect(screen.getByText('1.5 GB of 2.5 GB selected')).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Download Show' })).toHaveAttribute('aria-checked', 'mixed');
     expect(screen.getByRole('checkbox', { name: 'Download E02.mkv' })).toHaveAttribute('aria-checked', 'false');
@@ -26,8 +27,10 @@ describe('FilesTab', () => {
 
   it('collapses a folder', async () => {
     setup(season());
+    expect(screen.getByRole('button', { name: 'Collapse Extras' })).toHaveAttribute('aria-expanded', 'true');
     await userEvent.click(screen.getByRole('button', { name: 'Collapse Extras' }));
     expect(screen.queryByText('Bonus.mkv')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Expand Extras' })).toHaveAttribute('aria-expanded', 'false');
     await userEvent.click(screen.getByRole('button', { name: 'Expand Extras' }));
     expect(screen.getByText('Bonus.mkv')).toBeInTheDocument();
   });
@@ -45,6 +48,7 @@ describe('FilesTab', () => {
     const files = season();
     const app = setup(files);
     await userEvent.click(screen.getByRole('button', { name: 'Priority of E01.mkv: Normal' }));
+    expect(app.popovers.current!.model.sections.flat().every((i) => i.radio)).toBe(true);
     app.popovers.current!.model.sections.flat().find((i) => i.label === 'Maximum')!.action!();
     expect(app.detailCommands.setPriority).toHaveBeenCalledWith('h', files, [0], 'maximum');
   });

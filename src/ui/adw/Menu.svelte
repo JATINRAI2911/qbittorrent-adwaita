@@ -97,7 +97,7 @@
         type="button"
         class="menu-item"
         class:destructive={item.destructive}
-        role={item.checked === undefined ? 'menuitem' : 'menuitemcheckbox'}
+        role={item.checked === undefined ? 'menuitem' : item.radio ? 'menuitemradio' : 'menuitemcheckbox'}
         aria-checked={item.checked === undefined ? undefined : item.checked}
         aria-haspopup={item.submenu ? 'menu' : undefined}
         data-menu-item

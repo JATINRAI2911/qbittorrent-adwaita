@@ -47,7 +47,7 @@
   {#if pieces}<div class="overview-pieces"><PieceMap states={pieces} have={p.pieces_have} total={p.pieces_num} /></div>{/if}
   <div class="ov-cols">
     <section class="pref-group" aria-label="Transfer">
-      <div class="pg-header"><div><h4 class="heading">Transfer</h4></div></div>
+      <div class="pg-header"><div><h3 class="heading">Transfer</h3></div></div>
       <div class="boxed-list">
         <PropertyRow title="Downloaded" value={formatBytes(p.total_downloaded)} />
         <PropertyRow title="Uploaded" value={formatBytes(p.total_uploaded)} />
@@ -61,18 +61,18 @@
     </section>
 
     <section class="pref-group" aria-label="Location">
-      <div class="pg-header"><div><h4 class="heading">Location</h4></div></div>
+      <div class="pg-header"><div><h3 class="heading">Location</h3></div></div>
       <div class="boxed-list">
         <PropertyRow title="Save path" value={p.save_path} mono>
           <Button label="Move…" onclick={() => app.openers.move([t])} />
         </PropertyRow>
         {#if p.download_path}<PropertyRow title="Download path" value={p.download_path} mono />{/if}
-        <button type="button" class="row activatable menu-row" onclick={(event) => app.popovers.toggleMenu(categoryMenu([t], menuContext(app)), event.currentTarget, 'end')}>
+        <button type="button" class="row activatable menu-row" aria-haspopup="menu" onclick={(event) => app.popovers.toggleMenu(categoryMenu([t], menuContext(app)), event.currentTarget, 'end')}>
           <span class="title">Category</span>
           <span class="dimmed">{t.category || 'None'}</span>
           <Icon name="pan-down" class="dimmed" />
         </button>
-        <button type="button" class="row activatable menu-row" onclick={(event) => app.popovers.toggleMenu(tagMenu([t], menuContext(app)), event.currentTarget, 'end')}>
+        <button type="button" class="row activatable menu-row" aria-haspopup="menu" onclick={(event) => app.popovers.toggleMenu(tagMenu([t], menuContext(app)), event.currentTarget, 'end')}>
           <span class="title">Tags</span>
           <span class="dimmed">{parseTags(t.tags).join(', ') || 'None'}</span>
           <Icon name="pan-down" class="dimmed" />
@@ -81,7 +81,7 @@
     </section>
 
     <section class="pref-group" aria-label="Options">
-      <div class="pg-header"><div><h4 class="heading">Options</h4></div></div>
+      <div class="pg-header"><div><h3 class="heading">Options</h3></div></div>
       <div class="boxed-list">
         {#each OPTIONS as o (o.option)}
           <SwitchRow
@@ -96,7 +96,7 @@
     </section>
 
     <section class="pref-group" aria-label="Limits">
-      <div class="pg-header"><div><h4 class="heading">Limits</h4></div><Button variant="flat" label="Edit" onclick={() => app.openers.limits([t])} /></div>
+      <div class="pg-header"><div><h3 class="heading">Limits</h3></div><Button variant="flat" label="Edit" onclick={() => app.openers.limits([t])} /></div>
       <div class="boxed-list">
         <PropertyRow title="Download" value={limit(t.dl_limit)} />
         <PropertyRow title="Upload" value={limit(t.up_limit)} />
@@ -105,7 +105,7 @@
     </section>
 
     <section class="pref-group" aria-label="Information">
-      <div class="pg-header"><div><h4 class="heading">Information</h4></div></div>
+      <div class="pg-header"><div><h3 class="heading">Information</h3></div></div>
       <div class="boxed-list">
         <PropertyRow title="Total size" value={formatBytes(p.total_size)} />
         <PropertyRow title="Pieces" value="{p.pieces_num.toLocaleString()} × {formatBytes(p.piece_size)}" />

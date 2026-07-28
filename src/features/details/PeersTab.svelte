@@ -65,7 +65,7 @@
 {:else}
   <section class="pref-group">
     <div class="pg-header">
-      <div><h4 class="heading">{formatCount(rows.length)} {rows.length === 1 ? 'Peer' : 'Peers'}</h4></div>
+      <div><h3 class="heading">{formatCount(rows.length)} {rows.length === 1 ? 'Peer' : 'Peers'}</h3></div>
       <Button variant="flat" icon="list-add" title="Add Peers" onclick={addPeers} />
     </div>
     <div class="boxed-list peer-table" role="table" aria-label="Peers">
@@ -86,7 +86,7 @@
           <span role="cell" class="end numeric">{formatBytes(p.downloaded)}</span>
           <span role="cell" class="end numeric">{formatBytes(p.uploaded)}</span>
           <span role="cell">
-            <button type="button" class="btn flat image-button circular" aria-label="More for {id}" onclick={(event) => menu(id, event)}><Icon name="view-more" /></button>
+            <button type="button" class="btn flat image-button circular" aria-label="More for {id}" aria-haspopup="menu" onclick={(event) => menu(id, event)}><Icon name="view-more" /></button>
           </span>
         </div>
       {/each}

@@ -23,6 +23,7 @@ export function categoryMenu(ts: readonly Torrent[], ctx: TorrentMenuContext): M
       ctx.categories.map((category) => ({
         label: category,
         checked: list.length > 0 && list.every((t) => t.category === category),
+        radio: true,
         action: () => void ctx.commands.setCategory(list, category),
       })),
       [

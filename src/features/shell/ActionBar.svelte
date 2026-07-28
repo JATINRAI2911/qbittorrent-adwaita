@@ -18,10 +18,10 @@
     <Button icon="play" label="Start" disabled={!targets.some(needsStart)} onclick={() => void app.commands.start(targets)} />
     <Button icon="pause" label="Stop" disabled={!targets.some(isRunning)} onclick={() => void app.commands.stop(targets)} />
     <span class="spacer"></span>
-    <Button icon="folder" label="Category" disabled={none} onclick={menu(categoryMenu, 'start')} />
-    <Button icon="tag" label="Tags" disabled={none} onclick={menu(tagMenu, 'start')} />
+    <Button icon="folder" label="Category" haspopup="menu" disabled={none} onclick={menu(categoryMenu, 'start')} />
+    <Button icon="tag" label="Tags" haspopup="menu" disabled={none} onclick={menu(tagMenu, 'start')} />
     <Button icon="folder" label="Move…" disabled={none} onclick={() => app.openers.move(targets)} />
-    <Button icon="view-more" title="More" disabled={none} onclick={menu(torrentMenu, 'end')} />
+    <Button icon="view-more" title="More" haspopup="menu" disabled={none} onclick={menu(torrentMenu, 'end')} />
     <span class="spacer"></span>
     <Button icon="trash" title="Delete" variant="destructive" disabled={none} onclick={() => app.openers.confirmDelete(targets)} />
   </div>

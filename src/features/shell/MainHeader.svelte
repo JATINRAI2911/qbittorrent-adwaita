@@ -78,7 +78,7 @@
 
   function viewMenu(): MenuModel {
     if (!table) {
-      return { sections: [LIST_SORTS.map((s) => ({ label: s.label, checked: app.prefs.listSort === s.value, action: () => app.prefs.setListSort(s.value) }))] };
+      return { sections: [LIST_SORTS.map((s) => ({ label: s.label, checked: app.prefs.listSort === s.value, radio: true, action: () => app.prefs.setListSort(s.value) }))] };
     }
     const sort = app.prefs.tableSort;
     return {
@@ -99,8 +99,8 @@
           },
         ],
         [
-          { label: 'Ascending', checked: !sort.descending, action: () => app.prefs.setTableSort({ ...sort, descending: false }) },
-          { label: 'Descending', checked: sort.descending, action: () => app.prefs.setTableSort({ ...sort, descending: true }) },
+          { label: 'Ascending', checked: !sort.descending, radio: true, action: () => app.prefs.setTableSort({ ...sort, descending: false }) },
+          { label: 'Descending', checked: sort.descending, radio: true, action: () => app.prefs.setTableSort({ ...sort, descending: true }) },
         ],
       ],
     };
@@ -142,13 +142,12 @@
         aria-label="Status: {health.line}"
         title="Status"
         aria-haspopup="dialog"
-        aria-expanded={app.popovers.panel?.component === StatusPopover}
         onclick={(event) => app.popovers.togglePanel(StatusPopover, { health: () => health }, event.currentTarget, 'start')}
       ><Icon name={STATUS_ICON[health.level]} /></button>
     {/snippet}
     {#snippet title()}<WindowTitle title="qBittorrent" {subtitle} />{/snippet}
     {#snippet end()}
-      <Button icon="open-menu" title="Main Menu" onclick={openMainMenu} />
+      <Button icon="open-menu" title="Main Menu" haspopup="menu" onclick={openMainMenu} />
       <div class="split-button">
         <Button icon={table ? 'view-list' : 'view-columns'} title={table ? 'List View' : 'Table View'} onclick={() => app.prefs.setView(table ? 'list' : 'table')} />
         <button type="button" class="btn image-button arrow" aria-label="View Options" aria-haspopup="menu" onclick={(event) => app.popovers.toggleMenu(viewMenu(), event.currentTarget, 'end')}>

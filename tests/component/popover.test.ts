@@ -87,6 +87,21 @@ describe('PopoverStore', () => {
     anchor.remove();
   });
 
+  it('marks the anchor expanded while its menu or panel is open (menu button pattern)', () => {
+    const store = new PopoverStore();
+    const button = document.body.appendChild(document.createElement('button'));
+    const other = document.body.appendChild(document.createElement('button'));
+    store.toggleMenu({ sections: [] }, button);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    store.togglePanel((() => {}) as never, {}, other);
+    expect(button).not.toHaveAttribute('aria-expanded');
+    expect(other).toHaveAttribute('aria-expanded', 'true');
+    store.close();
+    expect(other).not.toHaveAttribute('aria-expanded');
+    button.remove();
+    other.remove();
+  });
+
   it('runs onclose once when replaced', () => {
     const store = new PopoverStore();
     const onclose = vi.fn();

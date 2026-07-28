@@ -84,4 +84,10 @@ describe('Menu', () => {
     await userEvent.keyboard('{Escape}');
     expect(onclose).toHaveBeenCalledTimes(1);
   });
+
+  it('renders one-of-many choices as radio items', () => {
+    render(Menu, { model: { sections: [[{ label: 'Name', checked: true, radio: true }, { label: 'Size', checked: false, radio: true }]] }, onclose: vi.fn() });
+    expect(screen.getByRole('menuitemradio', { name: 'Name' })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('menuitemradio', { name: 'Size' })).toHaveAttribute('aria-checked', 'false');
+  });
 });

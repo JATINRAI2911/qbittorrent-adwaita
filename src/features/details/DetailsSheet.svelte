@@ -49,7 +49,7 @@
           <span class="subtitle numeric ellipsis">{status}</span>
         </div>
         <Button icon={stopped ? 'play' : 'pause'} label={stopped ? 'Start' : 'Stop'} onclick={() => void app.commands.toggle([t])} />
-        <Button variant="flat" icon="view-more" title="More" onclick={(event) => app.popovers.toggleMenu(torrentMenu([t], menuContext(app)), event.currentTarget as HTMLElement, 'end')} />
+        <Button variant="flat" icon="view-more" title="More" haspopup="menu" onclick={(event) => app.popovers.toggleMenu(torrentMenu([t], menuContext(app)), event.currentTarget as HTMLElement, 'end')} />
         <Button variant="flat" icon="pan-down" title="Minimize" onclick={() => details.minimize()} />
         <Button variant="flat" icon="close" title="Close" onclick={() => details.close()} />
       </div>

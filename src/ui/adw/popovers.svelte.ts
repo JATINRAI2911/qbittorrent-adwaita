@@ -32,6 +32,7 @@ export class PopoverStore {
   openMenu(model: MenuModel, anchor: PopoverAnchor, onclose?: () => void): void {
     this.close();
     this.current = { id: ++this.#id, model, anchor, onclose };
+    expand(anchor, true);
   }
 
   /** For menu buttons: a second click on the same button closes its menu. */
@@ -49,6 +50,7 @@ export class PopoverStore {
       anchor,
       onclose,
     };
+    expand(anchor, true);
   }
 
   togglePanel<P extends { close: () => void }>(component: Component<P>, props: Omit<P, 'close'>, element: HTMLElement, align: 'start' | 'center' | 'end' = 'start'): void {
@@ -62,6 +64,7 @@ export class PopoverStore {
     this.current = null;
     this.panel = null;
     open.onclose?.();
+    expand(open.anchor, false);
     if ('element' in open.anchor) open.anchor.element.focus();
   }
 
@@ -69,4 +72,14 @@ export class PopoverStore {
     const open = this.current ?? this.panel;
     return open !== null && 'element' in open.anchor && open.anchor.element === element;
   }
+}
+
+/**
+ * The WAI-ARIA menu button pattern: the button that opened a popover is aria-expanded while it is
+ * open, and has no aria-expanded otherwise. Done here so every trigger gets it.
+ */
+function expand(anchor: PopoverAnchor, open: boolean): void {
+  if (!('element' in anchor)) return;
+  if (open) anchor.element.setAttribute('aria-expanded', 'true');
+  else anchor.element.removeAttribute('aria-expanded');
 }

@@ -77,6 +77,8 @@ describe('categoryMenu and tagMenu', () => {
     const menu = categoryMenu(ts, ctx);
     expect(item(menu, 'Films').checked).toBe(true);
     expect(item(menu, 'ISOs').checked).toBe(false);
+    // A torrent has one category: the choices are radio items.
+    expect(item(menu, 'Films').radio).toBe(true);
     item(menu, 'ISOs').action!();
     expect(ctx.commands.setCategory).toHaveBeenCalledWith(ts, 'ISOs');
     item(menu, 'Remove Category').action!();

@@ -16,7 +16,7 @@
 .pref-group:last-child { margin-bottom: 0; }
 .pg-header { display: flex; align-items: center; gap: 6px; min-height: 34px; margin-bottom: 6px; padding: 0 2px 0 4px; }
 .pg-header > div:first-child { flex: 1; min-width: 0; }
-.pg-header h4 { margin: 0; }
+.pg-header h3 { margin: 0; }
 .pg-desc { margin: 6px 0 0; opacity: var(--dim-opacity); font-size: inherit; }
 .tab-loading { display: grid; place-items: center; min-height: 160px; color: var(--accent-color); }
 .ov-cols { columns: 3 300px; column-gap: 24px; }
