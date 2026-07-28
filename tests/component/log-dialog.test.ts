@@ -54,6 +54,8 @@ describe('Execution Log', () => {
     setup();
     await vi.waitFor(() => expect(rows()).toHaveLength(4));
     await userEvent.click(within(rows()[3]!).getByRole('button'));
+    expect(within(rows()[3]!).getByRole('button')).toHaveAttribute('aria-current', 'true');
+    expect(within(rows()[2]!).getByRole('button')).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('region', { name: 'Selected message' })).toHaveTextContent('File error alert. Reason: No space left on device');
     await userEvent.click(screen.getByRole('button', { name: 'Copy' }));
     expect(copyText).toHaveBeenCalledWith('File error alert. Reason: No space left on device');

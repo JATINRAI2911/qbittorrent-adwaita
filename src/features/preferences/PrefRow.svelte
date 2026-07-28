@@ -31,6 +31,8 @@
   const edit = (value: unknown, debounce = false) => model.edit(def, value, held && debounce ? { commit: true } : { debounce });
   const commit = () => void model.flush();
   const problem = $derived(model.errors[def.key]);
+  // The note under an entry, path or spin row describes its field.
+  const noteId = $props.id();
   const lister = (files: boolean) => (dir: string) => app.adding.appApi.directoryContent(dir, files ? 'all' : 'dirs');
   const plural = (n: number, word: string) => `${n} ${n === 1 ? word : /(s|x|sh|ch)$/.test(word) ? `${word}es` : `${word}s`}`;
 
@@ -59,8 +61,9 @@
     unit={def.unit}
     bind:value={() => ui as number, (value) => edit(value, true)}
     oncommit={commit}
+    describedby={problem ? noteId : undefined}
   />
-  {#if problem}<p class="row-note error">{problem}</p>{/if}
+  {#if problem}<p class="row-note error" id={noteId}>{problem}</p>{/if}
 {:else if def.kind === 'limit'}
   <LimitRow
     title={def.label}
@@ -88,11 +91,12 @@
     placeholder={def.placeholder}
     bind:value={() => ui as string, (value) => edit(value, true)}
     oncommit={commit}
+    describedby={problem || subtitle ? noteId : undefined}
   />
-  {#if problem}<p class="row-note error">{problem}</p>{:else if subtitle}<p class="row-note">{subtitle}</p>{/if}
+  {#if problem}<p class="row-note error" id={noteId}>{problem}</p>{:else if subtitle}<p class="row-note" id={noteId}>{subtitle}</p>{/if}
 {:else if def.kind === 'path'}
-  <PathEntry title={def.label} placeholder={def.placeholder} list={lister(def.files ?? false)} bind:value={() => ui as string, (value) => edit(value, true)} oncommit={commit} />
-  {#if problem}<p class="row-note error">{problem}</p>{:else if subtitle}<p class="row-note">{subtitle}</p>{/if}
+  <PathEntry title={def.label} placeholder={def.placeholder} list={lister(def.files ?? false)} bind:value={() => ui as string, (value) => edit(value, true)} oncommit={commit} describedby={problem || subtitle ? noteId : undefined} />
+  {#if problem}<p class="row-note error" id={noteId}>{problem}</p>{:else if subtitle}<p class="row-note" id={noteId}>{subtitle}</p>{/if}
 {:else if def.kind === 'list'}
   {@const items = ui as string[]}
   {@const itemLabel = def.itemLabel}

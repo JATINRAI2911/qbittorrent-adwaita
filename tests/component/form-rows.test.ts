@@ -5,6 +5,7 @@ import Check from '../../src/ui/adw/Check.svelte';
 import ComboRow from '../../src/ui/adw/ComboRow.svelte';
 import SpinRow from '../../src/ui/adw/SpinRow.svelte';
 import SwitchRow from '../../src/ui/adw/SwitchRow.svelte';
+import TextAreaRow from '../../src/ui/adw/TextAreaRow.svelte';
 import TimeRow from '../../src/ui/adw/TimeRow.svelte';
 
 describe('SwitchRow', () => {
@@ -120,5 +121,19 @@ describe('Check', () => {
     const check = screen.getByRole('checkbox', { name: 'Select ubuntu.iso' });
     expect(check).toHaveAttribute('aria-checked', 'true');
     expect(check).toHaveClass('round');
+  });
+});
+
+describe('row groups and hints', () => {
+  it('groups the hour and minute fields of a TimeRow under its title', () => {
+    render(TimeRow, { title: 'From', value: '08:05' });
+    const group = screen.getByRole('group', { name: 'From' });
+    expect(group).toContainElement(screen.getByRole('spinbutton', { name: 'From hour' }));
+  });
+
+  it('shows a TextAreaRow hint under the field even once it has text, and describes the field with it', () => {
+    render(TextAreaRow, { title: 'Trackers', hint: 'One URL per line', value: 'udp://tracker.example:1337' });
+    expect(screen.getByText('One URL per line')).toBeVisible();
+    expect(screen.getByLabelText('Trackers')).toHaveAccessibleDescription('One URL per line');
   });
 });

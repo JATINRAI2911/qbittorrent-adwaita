@@ -14,8 +14,10 @@
     placeholder?: string;
     /** Enter (without a suggestion picked) or leaving the field: the typed path is final. */
     oncommit?: () => void;
+    /** Id of a note under the row that explains or reports on this field. */
+    describedby?: string;
   }
-  let { title, value = $bindable(''), list, autofocus = false, placeholder, oncommit }: Props = $props();
+  let { title, value = $bindable(''), list, autofocus = false, placeholder, oncommit, describedby }: Props = $props();
   const id = $props.id();
 
   const cache = new Map<string, string[]>();
@@ -130,6 +132,7 @@
     aria-expanded={suggestions.length > 0}
     aria-controls="{id}-list"
     aria-activedescendant={active >= 0 ? `${id}-${active}` : undefined}
+    aria-describedby={describedby}
     spellcheck="false"
     autocomplete="off"
     {autofocus}

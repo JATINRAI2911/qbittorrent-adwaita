@@ -60,6 +60,7 @@ describe('preference rows', () => {
     await userEvent.tab();
     await vi.waitFor(() => expect(api.setPreferences).toHaveBeenLastCalledWith({ proxy_ip: '10.0.0.1' }));
     expect(screen.getByText(/%N name · %L category/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Command')).toHaveAccessibleDescription(/%N name · %L category/);
   });
 
   it('edits lists in a dialog, one item per line, joined with the key’s separator', async () => {
@@ -109,6 +110,7 @@ describe('preference rows', () => {
     await userEvent.clear(username);
     await userEvent.type(username, 'ab{Enter}');
     expect(screen.getByText('At least 3 characters')).toBeInTheDocument();
+    expect(username).toHaveAccessibleDescription('At least 3 characters');
     expect(api.setPreferences).not.toHaveBeenCalled();
     expect(screen.getByLabelText('New password')).toHaveAttribute('autocomplete', 'new-password');
     void confirm;

@@ -26,6 +26,7 @@ describe('DateRow', () => {
   it('edits a date in spin fields, clamping the day to the month', async () => {
     render(DateRow, { title: 'Expires on', value: '2031-01-31' });
     const month = screen.getByRole('spinbutton', { name: 'Expires on month' });
+    expect(screen.getByRole('group', { name: 'Expires on' })).toContainElement(month);
     month.focus();
     await userEvent.keyboard('{ArrowUp}');
     expect(screen.getByRole('spinbutton', { name: 'Expires on day' })).toHaveValue('28');

@@ -14,6 +14,7 @@ describe('CategoryDialog', () => {
     const onconfirm = vi.fn();
     render(CategoryDialog, { onconfirm, close: vi.fn() });
     expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
+    expect(screen.getByLabelText('Name')).toHaveAccessibleDescription('Use “/” in the name for a subcategory, like “Linux/ISOs”.');
     await userEvent.type(screen.getByLabelText('Name'), 'TV');
     await userEvent.type(screen.getByRole('combobox', { name: 'Save path' }), '/tv');
     await userEvent.click(folderSetting());

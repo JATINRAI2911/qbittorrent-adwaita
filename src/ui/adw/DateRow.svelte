@@ -1,5 +1,6 @@
 <script lang="ts">
   let { title, value = $bindable('') }: { title: string; value?: string } = $props();
+  const titleId = $props.id();
 
   // Year, month and day spin fields (no native date picker), like TimeRow.
   const RANGE = { year: [1970, 9999], month: [1, 12], day: [1, 31] } as const;
@@ -36,8 +37,8 @@
   }
 </script>
 
-<div class="row date-row">
-  <span class="title">{title}</span>
+<div class="row date-row" role="group" aria-labelledby={titleId}>
+  <span class="title" id={titleId}>{title}</span>
   <div class="date-fields">
     {#each ['year', 'month', 'day'] as const as part, i (part)}
       {#if i > 0}<span class="date-sep" aria-hidden="true">-</span>{/if}

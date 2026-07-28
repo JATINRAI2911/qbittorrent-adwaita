@@ -122,8 +122,8 @@
   <section class="pref-group" aria-label="Trackers and Seeds">
     <h4 class="heading">Trackers and Web Seeds</h4>
     <BoxedList>
-      <TextAreaRow title="Trackers" placeholder="One URL per line; a blank line starts a new tier" monospace bind:value={form.trackers} />
-      <TextAreaRow title="Web seeds" placeholder="One URL per line" monospace bind:value={form.urlSeeds} />
+      <TextAreaRow title="Trackers" hint="One URL per line; a blank line starts a new tier" monospace bind:value={form.trackers} />
+      <TextAreaRow title="Web seeds" hint="One URL per line" monospace bind:value={form.urlSeeds} />
       <TextAreaRow title="Comment" bind:value={form.comment} />
     </BoxedList>
   </section>

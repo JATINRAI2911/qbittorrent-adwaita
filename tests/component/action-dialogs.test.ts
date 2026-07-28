@@ -36,6 +36,7 @@ describe('MoveDialog', () => {
     const onconfirm = vi.fn();
     render(MoveDialog, { torrents: [makeTorrent({ save_path: '/old', auto_tmm: true })], onconfirm, close: vi.fn() });
     const input = screen.getByLabelText('Location');
+    expect(input).toHaveAccessibleDescription(/Files are moved on the server\./);
     expect(input).toHaveValue('/old');
     expect(screen.getByRole('button', { name: 'Move' })).toBeDisabled();
     expect(screen.getByText(/Automatic management will be turned off/)).toBeInTheDocument();
@@ -84,6 +85,7 @@ describe('NameDialog', () => {
     await userEvent.type(screen.getByLabelText('Name'), 'a,b');
     expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
     expect(screen.getByText('Tag names can’t contain commas.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toHaveAccessibleDescription('Tag names can’t contain commas.');
   });
 
   it('passes the optional path for categories', async () => {

@@ -33,6 +33,7 @@
     { value: 'no', label: 'No' },
   ];
   const invalid = $derived(name.trim() === '' || name.includes('\\'));
+  const noteId = $props.id();
 </script>
 
 <Dialog
@@ -47,10 +48,10 @@
   }}
 >
   <BoxedList>
-    <EntryRow title="Name" bind:value={name} disabled={initial !== undefined} autofocus={!initial} />
+    <EntryRow title="Name" bind:value={name} disabled={initial !== undefined} autofocus={!initial} describedby={noteId} />
     <PathEntry title="Save path" bind:value={savePath} {list} placeholder="Default save path" />
     <ComboRow title="Use incomplete folder" subtitle="Keep unfinished downloads somewhere else" options={FOLDER_OPTIONS} bind:value={folder} />
     {#if folder === 'yes'}<PathEntry title="Incomplete folder" bind:value={downloadPath} {list} placeholder="Default incomplete folder" />{/if}
   </BoxedList>
-  <p class="dialog-note">Use “/” in the name for a subcategory, like “Linux/ISOs”.</p>
+  <p class="dialog-note" id={noteId}>Use “/” in the name for a subcategory, like “Linux/ISOs”.</p>
 </Dialog>

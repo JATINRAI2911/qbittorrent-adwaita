@@ -157,7 +157,7 @@
             style:top="{(win.start + i) * ROW}px"
             role="listitem"
           >
-            <button type="button" class="log-row-button" onclick={() => (selected = entry.id)}>
+            <button type="button" class="log-row-button" aria-current={entry.id === selected ? 'true' : undefined} onclick={() => (selected = entry.id)}>
               <span class="log-time numeric">{time(entry.timestamp)}</span>
               {#if isMessage(entry)}
                 <span class="log-text monospace">{maskSecrets(entry.message)}</span>

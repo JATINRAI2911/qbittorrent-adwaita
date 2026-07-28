@@ -15,8 +15,10 @@
     masked?: boolean;
     /** Enter or leaving the field: the moment a typed value is final. */
     oncommit?: () => void;
+    /** Id of a note under the row that explains or reports on this field. */
+    describedby?: string;
   }
-  let { title, value = $bindable(''), type = 'text', name, autocomplete, autofocus = false, disabled = false, placeholder, oncommit, masked }: Props = $props();
+  let { title, value = $bindable(''), type = 'text', name, autocomplete, autofocus = false, disabled = false, placeholder, oncommit, masked, describedby }: Props = $props();
   const id = $props.id();
 </script>
 
@@ -31,6 +33,7 @@
     {autofocus}
     {disabled}
     {placeholder}
+    aria-describedby={describedby}
     data-masked={masked === undefined ? undefined : String(masked)}
     class:masked
     spellcheck="false"

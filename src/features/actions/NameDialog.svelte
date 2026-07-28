@@ -16,6 +16,7 @@
   let name = $state('');
   let path = $state('');
   const hasComma = $derived(forbidComma && name.includes(','));
+  const noteId = $props.id();
 </script>
 
 <Dialog
@@ -29,8 +30,8 @@
   }}
 >
   <BoxedList>
-    <EntryRow title="Name" bind:value={name} autofocus />
+    <EntryRow title="Name" bind:value={name} autofocus describedby={hasComma ? noteId : undefined} />
     {#if pathLabel}<EntryRow title={pathLabel} bind:value={path} />{/if}
   </BoxedList>
-  {#if hasComma}<p class="dialog-note error">Tag names can’t contain commas.</p>{/if}
+  {#if hasComma}<p class="dialog-note error" id={noteId}>Tag names can’t contain commas.</p>{/if}
 </Dialog>

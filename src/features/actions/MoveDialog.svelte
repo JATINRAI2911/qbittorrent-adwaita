@@ -18,6 +18,7 @@
   // Starts from the current folder; later syncs must not overwrite what the user types.
   let location = $state(untrack(() => torrents[0]?.save_path ?? ''));
   const unchanged = $derived(location.trim() === '' || torrents.every((t) => t.save_path === location.trim()));
+  const noteId = $props.id();
   const turnsOffAuto = $derived(torrents.some((t) => t.auto_tmm));
 </script>
 
@@ -31,6 +32,6 @@
     close();
   }}
 >
-  <BoxedList><PathEntry title="Location" bind:value={location} {list} autofocus /></BoxedList>
-  <p class="dialog-note">Files are moved on the server.{turnsOffAuto ? ' Automatic management will be turned off.' : ''}</p>
+  <BoxedList><PathEntry title="Location" bind:value={location} {list} autofocus describedby={noteId} /></BoxedList>
+  <p class="dialog-note" id={noteId}>Files are moved on the server.{turnsOffAuto ? ' Automatic management will be turned off.' : ''}</p>
 </Dialog>

@@ -1,5 +1,6 @@
 <script lang="ts">
   let { title, value = $bindable('00:00') }: { title: string; value?: string } = $props();
+  const titleId = $props.id();
 
   // Hour and minute spin fields, like GNOME Clocks, instead of the browser's native time picker.
   const MAX = { hour: 23, minute: 59 } as const;
@@ -39,8 +40,8 @@
   }
 </script>
 
-<div class="row time-row">
-  <span class="title">{title}</span>
+<div class="row time-row" role="group" aria-labelledby={titleId}>
+  <span class="title" id={titleId}>{title}</span>
   <div class="time-fields">
     {#each ['hour', 'minute'] as const as part, i (part)}
       {#if i > 0}<span class="time-sep" aria-hidden="true">:</span>{/if}

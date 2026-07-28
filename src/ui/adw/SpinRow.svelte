@@ -12,8 +12,10 @@
     unit?: string;
     /** Focus leaving the row (after typing or +/−), or Enter: the value is final. */
     oncommit?: () => void;
+    /** Id of a note under the row that explains or reports on this field. */
+    describedby?: string;
   }
-  let { title, subtitle, value = $bindable(0), min = 0, max = Number.MAX_SAFE_INTEGER, step = 1, digits = 0, unit, oncommit }: Props = $props();
+  let { title, subtitle, value = $bindable(0), min = 0, max = Number.MAX_SAFE_INTEGER, step = 1, digits = 0, unit, oncommit, describedby }: Props = $props();
 
   const text = $derived(value.toFixed(digits));
 
@@ -44,6 +46,7 @@
       type="text"
       inputmode="decimal"
       aria-label={title}
+      aria-describedby={describedby}
       value={text}
       onchange={(event) => commit(event.currentTarget)}
       onkeydown={(event) => {
