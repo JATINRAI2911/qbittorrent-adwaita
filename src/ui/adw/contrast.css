@@ -1,0 +1,43 @@
+/*
+ * Accessibility modes. Loaded last so these win over the regular styles.
+ *
+ * prefers-contrast: more - libadwaita's high-contrast style: tokens.css raises the border and dim
+ * opacities, and raised controls, cards and popups get a visible 1px outline.
+ */
+@media (prefers-contrast: more) {
+  .btn:not(.flat, :is(.headerbar, .actionbar) .btn:is(.image-button, .image-text-button)) { box-shadow: inset 0 0 0 1px var(--border-color); }
+  .entry, .switch, .progressbar, .toggle-group > .toggle.checked { box-shadow: inset 0 0 0 1px var(--border-color); }
+  .check:not(.checked, .indeterminate) { box-shadow: inset 0 0 0 2px var(--border-color); }
+  .boxed-list, .dialog, .popover > .contents { box-shadow: 0 0 0 1px var(--border-color); }
+}
+
+/*
+ * forced-colors: active (Windows High Contrast and similar). The browser replaces colours with the
+ * user's system palette and drops box-shadows, so anything drawn only with a background or a shadow
+ * (outlines of controls, switch and check states, selection, progress) is redrawn with system colours.
+ */
+@media (forced-colors: active) {
+  .btn:not(.flat, :is(.headerbar, .actionbar) .btn:is(.image-button, .image-text-button)),
+  .entry, .boxed-list, .dialog, .popover > .contents { border: 1px solid CanvasText; }
+
+  .switch { forced-color-adjust: none; padding: 2px; border: 1px solid CanvasText; background: Canvas; }
+  .switch .slider { background: CanvasText; }
+  .switch.checked, .switch-row:hover .switch.checked { background: Highlight; border-color: Highlight; }
+  .switch.checked .slider { background: HighlightText; }
+
+  .check { forced-color-adjust: none; border: 2px solid CanvasText; padding: 1px; background: Canvas; color: CanvasText; }
+  .check.checked, .check.indeterminate { border-color: Highlight; background: Highlight; }
+  .check svg.i { color: HighlightText; }
+
+  .progressbar { forced-color-adjust: none; border: 1px solid CanvasText; background: Canvas; }
+  .progressbar > .fill, .progressbar > .fill[class*='tone-'] { background: Highlight; }
+
+  /* Selected and pressed things: Highlight, like native lists and toggle buttons. */
+  .torrent-row.selected, .cv-row.selected, .log-row.selected .log-row-button, .pd-page.active,
+  .toggle-group > .toggle.checked, .btn.checked, [role='option'][aria-selected='true'],
+  .menu-item:is(:hover, :focus-visible), .menu-back:is(:hover, :focus-visible) {
+    forced-color-adjust: none; background: Highlight !important; color: HighlightText !important;
+  }
+  :is(.torrent-row.selected, .cv-row.selected, .log-row.selected) * { color: HighlightText !important; }
+  :focus-visible { outline-color: Highlight; }
+}
