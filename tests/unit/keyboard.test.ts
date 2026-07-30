@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { isButtonTarget, isTypingTarget, keyCommand } from '../../src/features/shell/keyboard';
 
-const key = (k: string, mods: Partial<{ shiftKey: boolean; ctrlKey: boolean; metaKey: boolean; altKey: boolean }> = {}) => ({
+const key = (k: string, mods: Partial<{ shiftKey: boolean; ctrlKey: boolean; metaKey: boolean; altKey: boolean; repeat: boolean; code: string }> = {}) => ({
   key: k, shiftKey: false, ctrlKey: false, metaKey: false, altKey: false, ...mods,
 });
 const free = { typing: false, onButton: false };
@@ -33,6 +33,19 @@ describe('keyCommand', () => {
     ['u', {}, 'type'],
     ['É', {}, 'type'],
   ] as const)('%s %j → %s', (k, mods, expected) => expect(keyCommand(key(k, mods), free)).toBe(expected));
+
+  it('switches views with Alt+1 / Alt+2 too (Ctrl/Cmd+1/2 switch browser tabs), by key position', () => {
+    expect(keyCommand(key('1', { altKey: true, code: 'Digit1' }), free)).toBe('view-list');
+    // macOS: Option+1 types “¡”, Option+2 “™”.
+    expect(keyCommand(key('¡', { altKey: true, code: 'Digit1' }), free)).toBe('view-list');
+    expect(keyCommand(key('™', { altKey: true, code: 'Digit2' }), free)).toBe('view-table');
+    expect(keyCommand(key('1', { altKey: true, ctrlKey: true, code: 'Digit1' }), free)).toBeNull();
+  });
+
+  it('does not repeat toggle, delete or rename while the key is held', () => {
+    for (const k of [' ', 'Delete', 'Backspace', 'F2']) expect(keyCommand(key(k, { repeat: true }), free)).toBeNull();
+    expect(keyCommand(key('ArrowDown', { repeat: true }), free)).toBe('focus-next');
+  });
 
   it('ignores everything but Escape while typing', () => {
     for (const k of [' ', 'Backspace', 'Delete', 'ArrowDown', 'F2']) expect(keyCommand(key(k), { typing: true, onButton: false })).toBeNull();

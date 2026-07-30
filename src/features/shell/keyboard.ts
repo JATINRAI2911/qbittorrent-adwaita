@@ -23,12 +23,31 @@ export interface KeyInput {
   ctrlKey: boolean;
   metaKey: boolean;
   altKey: boolean;
+  /** Auto-repeat from a held key. */
+  repeat?: boolean;
+  /** The physical key, e.g. 'Digit1' (Option+1 types “¡” on macOS). */
+  code?: string;
 }
+
+/** Commands that must run once per press: holding Space, Delete or F2 should not repeat them. */
+const ONCE: readonly KeyCommand[] = ['toggle', 'delete', 'rename'];
 
 /** Ctrl means Cmd on macOS. */
 export function keyCommand(event: KeyInput, context: { typing: boolean; onButton: boolean }): KeyCommand | null {
+  const command = mapKey(event, context);
+  return command && event.repeat && ONCE.includes(command) ? null : command;
+}
+
+function mapKey(event: KeyInput, context: { typing: boolean; onButton: boolean }): KeyCommand | null {
   if (event.key === 'Escape') return 'escape';
-  if (context.typing || event.altKey) return null;
+  if (context.typing) return null;
+  if (event.altKey) {
+    // Alt+1 / Alt+2 switch views like Ctrl/Cmd+1/2, which browsers keep for switching tabs.
+    if (event.ctrlKey || event.metaKey || event.shiftKey) return null;
+    if (event.code === 'Digit1') return 'view-list';
+    if (event.code === 'Digit2') return 'view-table';
+    return null;
+  }
   if (event.ctrlKey || event.metaKey) {
     const key = event.key.toLowerCase();
     if (key === 'a') return 'select-all';
