@@ -141,14 +141,22 @@
     else document.querySelector(`[data-hash="${hash}"]`)?.scrollIntoView?.({ block: 'nearest' });
   }
 
-  function focusFirstRow() {
+  // Set by ↓ from the search entry, cleared by the next key: Backspace right then still edits the search.
+  let leftSearch = false;
+
+  function focusFirstRow(): boolean {
     selection.focus = null;
     const hash = selection.moveFocus(1, false, viewOrder(app));
     if (hash) reveal(hash);
+    leftSearch = hash !== null;
+    return leftSearch;
   }
 
   function handleKey(event: KeyboardEvent) {
-    const command = keyCommand(event, { typing: isTypingTarget(event.target), onButton: isButtonTarget(event.target) });
+    const typing = isTypingTarget(event.target);
+    const fromSearch = leftSearch && !typing;
+    if (!typing) leftSearch = false;
+    const command = keyCommand(event, { typing, onButton: isButtonTarget(event.target) });
     if (!command) return;
     // Inside the details sheet only Esc reaches the app: its own controls (resize handle, tabs, filters) own the other keys.
     if (command !== 'escape' && event.target instanceof Element && event.target.closest('.sheet')) return;
@@ -183,7 +191,10 @@
         } else if (targets.length) void commands.toggle(targets);
         break;
       case 'delete':
-        openers.confirmDelete(targets);
+        if (fromSearch && event.key === 'Backspace') {
+          list.setFilters({ search: list.filters.search.slice(0, -1) });
+          list.openSearch(false);
+        } else openers.confirmDelete(targets);
         break;
       case 'rename':
         if (targets.length === 1) openers.rename(targets[0]!);

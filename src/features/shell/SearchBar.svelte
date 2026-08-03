@@ -4,7 +4,8 @@
   import { getAppContext } from '../../app-context';
   import SearchEntry from '../../ui/adw/SearchEntry.svelte';
 
-  let { onleave }: { onleave: () => void } = $props();
+  /** ↓ moves into the list; returns false when there is no row to move to (focus stays here). */
+  let { onleave }: { onleave: () => boolean } = $props();
 
   const app = getAppContext();
   let input = $state<HTMLInputElement>();
@@ -29,8 +30,7 @@
       onkeydown={(event) => {
         if (event.key === 'ArrowDown') {
           event.preventDefault();
-          input?.blur();
-          onleave();
+          if (onleave()) input?.blur();
         }
       }}
     />

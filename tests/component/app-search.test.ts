@@ -65,6 +65,30 @@ describe('App search', () => {
     unmount();
   });
 
+  it('keeps focus in the search entry when ↓ finds no rows', async () => {
+    const { unmount } = await renderApp();
+    await userEvent.keyboard('{Control>}f{/Control}');
+    const box = screen.getByRole('searchbox');
+    await userEvent.type(box, 'nothing matches');
+    await userEvent.keyboard('{ArrowDown}');
+    expect(box).toHaveFocus();
+    unmount();
+  });
+
+  it('edits the search with Backspace right after ↓, instead of deleting the focused torrent', async () => {
+    const { unmount } = await renderApp();
+    await userEvent.keyboard('{Control>}f{/Control}');
+    await userEvent.type(screen.getByRole('searchbox'), 'firstx');
+    await userEvent.keyboard('{Backspace}');
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByText('first.iso').closest('[data-hash]')).toHaveClass('kfocus');
+    await userEvent.keyboard('{Backspace}');
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(screen.getByRole('searchbox')).toHaveValue('firs');
+    expect(screen.getByRole('searchbox')).toHaveFocus();
+    unmount();
+  });
+
   it('drops torrents hidden by a filter from the selection', async () => {
     const { unmount } = await renderApp();
     await userEvent.keyboard('{Control>}a{/Control}');
@@ -75,11 +99,15 @@ describe('App search', () => {
     unmount();
   });
 
-  it('switches views with Ctrl+2 and Ctrl+1', async () => {
+  it('switches views with Ctrl+2 and Ctrl+1, or Alt+2 and Alt+1', async () => {
     const { unmount } = await renderApp();
     await userEvent.keyboard('{Control>}2{/Control}');
     expect(screen.getByRole('grid', { name: 'Torrents' })).toBeInTheDocument();
     await userEvent.keyboard('{Control>}1{/Control}');
+    expect(screen.queryByRole('grid')).toBeNull();
+    await userEvent.keyboard('{Alt>}2{/Alt}');
+    expect(screen.getByRole('grid', { name: 'Torrents' })).toBeInTheDocument();
+    await userEvent.keyboard('{Alt>}1{/Alt}');
     expect(screen.queryByRole('grid')).toBeNull();
     unmount();
   });
