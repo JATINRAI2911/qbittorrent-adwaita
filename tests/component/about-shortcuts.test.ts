@@ -19,6 +19,9 @@ describe('shortcuts', () => {
     const general = screen.getByRole('region', { name: 'General' });
     expect(within(general).getByText('Add torrents').closest('.row')).toHaveTextContent(/O/);
     expect(within(screen.getByRole('region', { name: 'Torrents' })).getByText('Rename')).toBeInTheDocument();
+    // Alt+1/2 first: Ctrl/Cmd+1/2 usually switch browser tabs before the page sees them.
+    const views = [...within(general).getByText('List / table view').closest('.row')!.querySelectorAll('kbd')].map((k) => k.textContent);
+    expect(views.slice(0, 4)).toEqual(['Alt', '1', 'Alt', '2']);
   });
 });
 

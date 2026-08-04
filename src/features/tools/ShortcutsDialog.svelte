@@ -4,6 +4,8 @@
 
   let { close }: { close: () => void } = $props();
   const mod = isMac() ? '⌘' : 'Ctrl';
+  const alt = isMac() ? '⌥' : 'Alt';
+  const label = (key: string) => (key === 'Mod' ? mod : key === 'Alt' ? alt : key);
   const groups = (['General', 'Torrents'] as const).map((name) => ({ name, items: SHORTCUTS.filter((s) => s.group === name) }));
 </script>
 
@@ -20,7 +22,7 @@
               <span class="keys">
                 {#each shortcut.keys as combo, i (i)}
                   {#if i > 0}<span class="or">or</span>{/if}
-                  {#each combo as key (key)}<kbd>{key === 'Mod' ? mod : key}</kbd>{/each}
+                  {#each combo as key (key)}<kbd>{label(key)}</kbd>{/each}
                 {/each}
               </span>
             </div>

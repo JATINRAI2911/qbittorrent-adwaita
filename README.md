@@ -41,7 +41,7 @@ npm test   # tests/unit/maindata-real.test.ts now runs against it
 | Ctrl/Cmd + , | Preferences |
 | Ctrl/Cmd + ? | Keyboard shortcuts |
 | Paste (nothing focused) | Add magnet links or URLs |
-| Ctrl/Cmd + 1 / 2 | List / Table view |
+| Alt + 1 / 2 (or Ctrl/Cmd + 1 / 2) | List / Table view |
 | Enter | Open details |
 | Esc | Close menu or dialog → clear search → close search → leave selection mode → close details |
 

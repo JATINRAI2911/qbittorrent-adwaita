@@ -2,7 +2,7 @@
 export interface Shortcut {
   group: 'Torrents' | 'General';
   label: string;
-  /** Alternatives, each a key combination; "Mod" is Ctrl, or ⌘ on macOS. */
+  /** Alternatives, each a key combination; "Mod" is Ctrl, or ⌘ on macOS, and "Alt" is ⌥ there. */
   keys: string[][];
   /** The README's Keys column and, when it differs from the label, its Action column. */
   readme: string;
@@ -21,7 +21,13 @@ export const SHORTCUTS: Shortcut[] = [
   { group: 'General', label: 'Preferences', keys: [['Mod', ',']], readme: 'Ctrl/Cmd + ,' },
   { group: 'General', label: 'Keyboard shortcuts', keys: [['Mod', '?']], readme: 'Ctrl/Cmd + ?' },
   { group: 'General', label: 'Add from the clipboard', keys: [['Mod', 'V']], readme: 'Paste (nothing focused)', readmeAction: 'Add magnet links or URLs' },
-  { group: 'General', label: 'List / table view', keys: [['Mod', '1'], ['Mod', '2']], readme: 'Ctrl/Cmd + 1 / 2', readmeAction: 'List / Table view' },
+  {
+    group: 'General',
+    label: 'List / table view',
+    keys: [['Alt', '1'], ['Alt', '2'], ['Mod', '1'], ['Mod', '2']],
+    readme: 'Alt + 1 / 2 (or Ctrl/Cmd + 1 / 2)',
+    readmeAction: 'List / Table view',
+  },
   { group: 'Torrents', label: 'Open details', keys: [['Enter']], readme: 'Enter' },
   {
     group: 'General',
