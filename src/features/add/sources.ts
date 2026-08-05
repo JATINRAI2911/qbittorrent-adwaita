@@ -25,13 +25,23 @@ export function base32ToHex(value: string): string {
   return hex;
 }
 
+/** decodeURIComponent, or null for a malformed escape like "%zz" (pasted text is often mangled). */
+function safeDecode(text: string): string | null {
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return null;
+  }
+}
+
 /** The torrent's id as qBittorrent shows it: v1 hex, or the v2 hash truncated to 40 hex characters. */
 export function infoHashOf(magnet: string): string | null {
   const query = magnet.slice(magnet.indexOf('?') + 1);
   for (const pair of query.split('&')) {
     const [key, raw = ''] = pair.split('=');
     if (!/^xt(\.\d+)?$/i.test(key ?? '')) continue;
-    const value = decodeURIComponent(raw);
+    const value = safeDecode(raw);
+    if (value === null) continue;
     const v1 = /^urn:btih:([0-9a-f]{40}|[a-z2-7]{32})$/i.exec(value)?.[1];
     if (v1) return v1.length === 40 ? v1.toLowerCase() : base32ToHex(v1);
     const v2 = /^urn:btmh:1220([0-9a-f]{64})$/i.exec(value)?.[1];

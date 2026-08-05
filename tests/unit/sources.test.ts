@@ -11,6 +11,12 @@ describe('infoHashOf', () => {
     expect(infoHashOf('magnet:?dn=nothing')).toBeNull();
   });
 
+  it('treats a malformed percent-escape as no hash instead of throwing', () => {
+    expect(infoHashOf('magnet:?xt=urn:btih:%zz')).toBeNull();
+    expect(() => parseSources('magnet:?xt=urn%E0%A4%A:btih:abc&dn=x')).not.toThrow();
+    expect(parseSources('magnet:?xt=urn:btih:%zz').invalid).toEqual(['magnet:?xt=urn:btih:%zz']);
+  });
+
   it('converts base32 to hex', () => {
     expect(base32ToHex('AERUKZ4JVPG66AJDIVTYTK6N54ASGRKN')).toBe('0123456789abcdef0123456789abcdef0123454d');
   });
