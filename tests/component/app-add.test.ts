@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import App from '../../src/App.svelte';
 import type { MaindataResponse } from '../../src/api/types';
+import { ApiError } from '../../src/api/client';
 import { Session } from '../../src/state/session.svelte';
 import { fakeAddApi } from '../fixtures/fake-add-api';
 import { fakeAppApi } from '../fixtures/fake-app-api';
@@ -70,6 +71,32 @@ describe('App add entry points', () => {
     expect(screen.queryByText('Drop to Add Torrents')).toBeNull();
     expect(await screen.findByRole('dialog', { name: 'Add Torrents' })).toBeInTheDocument();
     expect(add.parseMetadata).toHaveBeenCalledWith([file]);
+    unmount();
+  });
+
+  it('ignores drops and pastes while the login is showing', async () => {
+    const full: MaindataResponse = { rid: 1, full_update: true, torrents: { aaa: { name: 'first.iso', state: 'uploading', progress: 1 } }, server_state: {} };
+    let expired = false;
+    const maindata = vi.fn(async () => {
+      if (expired) throw new ApiError('auth', 403, '');
+      return full;
+    });
+    const session = new Session({ login: vi.fn(async () => 'ok' as const), logout: vi.fn(async () => {}), maindata, isHidden: () => false, onVisible: () => () => {} });
+    const { unmount } = render(App, { session, api: fakeTorrentApi(), clientdata: fakeClientData(), details: fakeDetailsApi(), appClient: fakeAppApi(), add: fakeAddApi() });
+    await screen.findByText('first.iso');
+    expired = true;
+    await screen.findByLabelText('Username', {}, { timeout: 3000 });
+
+    const data = { types: ['Files'], files: [new File(['1'], 'debian.torrent')], getData: () => '' };
+    await fireEvent.dragEnter(window, { dataTransfer: data });
+    expect(screen.queryByText('Drop to Add Torrents')).toBeNull();
+    const drop = new Event('drop', { bubbles: true, cancelable: true });
+    Object.defineProperty(drop, 'dataTransfer', { value: data });
+    window.dispatchEvent(drop);
+    expect(drop.defaultPrevented).toBe(true); // the browser still must not open the file
+    paste(MAGNET);
+    await Promise.resolve();
+    expect(screen.queryByRole('dialog', { name: 'Add Torrents' })).toBeNull();
     unmount();
   });
 

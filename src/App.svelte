@@ -246,7 +246,8 @@
   }
 
   function ondragenter(event: DragEvent) {
-    if (!carriesTorrents(event.dataTransfer) || dialogs.isOpen) return;
+    // Logged out or offline, nothing could be added: no hint, and the drop is swallowed below.
+    if (!carriesTorrents(event.dataTransfer) || dialogs.isOpen || session.connection !== 'online') return;
     event.preventDefault();
     dragDepth++;
     dragging = true;
