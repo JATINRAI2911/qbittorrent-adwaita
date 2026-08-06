@@ -70,6 +70,12 @@ describe('maskSecrets in tracker messages', () => {
     expect(maskSecrets('Unregistered torrent')).toBe('Unregistered torrent');
   });
 
+  it('keeps long ordinary words readable: a bare token needs both a digit and a letter', () => {
+    expect(maskSecrets('Torrent_is_not_authorized_for_use_on_this_tracker')).toBe('Torrent_is_not_authorized_for_use_on_this_tracker');
+    expect(maskSecrets('id 123456789012345678901234567890')).toBe('id 123456789012345678901234567890');
+    expect(maskSecrets('key abcd1234efgh5678ijkl9012mnop')).toBe('key ••••');
+  });
+
   it('is applied to tracker summaries', () => {
     expect(trackerSummary(t({ status: 5, msg: 'Bad passkey 0123456789abcdef0123456789abcdef' }), now)).toBe('Tracker error · Bad passkey ••••');
   });

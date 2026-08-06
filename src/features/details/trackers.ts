@@ -107,7 +107,10 @@ export function maskTrackerUrl(url: string): string {
   }
 }
 
+/** A bare token in free text: 24+ characters with at least one digit and one letter, so long words stay. */
+const BARE_TOKEN = /\b(?=[A-Za-z0-9_-]*\d)(?=[A-Za-z0-9_-]*[A-Za-z])[A-Za-z0-9_-]{24,}\b/g;
+
 /** Mask URLs and long tokens inside free text a tracker sent back (some echo the passkey). */
 export function maskSecrets(text: string): string {
-  return text.replace(/[a-z][a-z0-9+.-]*:\/\/[^\s"'<>]+/gi, (url) => maskTrackerUrl(url)).replace(/\b[A-Za-z0-9_-]{24,}\b/g, MASK);
+  return text.replace(/[a-z][a-z0-9+.-]*:\/\/[^\s"'<>]+/gi, (url) => maskTrackerUrl(url)).replace(BARE_TOKEN, MASK);
 }
