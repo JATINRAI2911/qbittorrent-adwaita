@@ -24,6 +24,8 @@ export class LogModel<T extends { id: number }> {
   #lastId = -1;
   #running = false;
   #busy = false;
+  /** After a failed poll or a hidden spell, check the server still has our last entry: a restart resets ids to 0. */
+  #verify = false;
   #timer: ReturnType<typeof setTimeout> | undefined;
   #unlisten: (() => void) | undefined;
 
@@ -34,7 +36,10 @@ export class LogModel<T extends { id: number }> {
   start(): void {
     if (this.#running) return;
     this.#running = true;
-    this.#unlisten = this.#deps.onVisible(() => void this.#tick());
+    this.#unlisten = this.#deps.onVisible(() => {
+      this.#verify = true;
+      void this.#tick();
+    });
     void this.#tick();
   }
 
@@ -50,8 +55,22 @@ export class LogModel<T extends { id: number }> {
     if (!this.#running || this.#busy || this.#deps.isHidden()) return;
     this.#busy = true;
     try {
-      const fresh = (await this.#deps.fetch(this.#lastId)).filter((entry) => entry.id > this.#lastId);
+      const verify = this.#verify && this.#lastId >= 0;
+      // One id back, so the answer includes our last entry if the server still has it.
+      let page = await this.#deps.fetch(verify ? this.#lastId - 1 : this.#lastId);
       if (!this.#running) return;
+      if (verify) {
+        this.#verify = false;
+        const kept = page.find((entry) => entry.id === this.#lastId);
+        if (!kept || JSON.stringify(kept) !== JSON.stringify(this.entries.at(-1))) {
+          // qBittorrent restarted: its log began again at id 0. Start over.
+          this.#lastId = -1;
+          this.entries = [];
+          page = await this.#deps.fetch(-1);
+          if (!this.#running) return;
+        }
+      }
+      const fresh = page.filter((entry) => entry.id > this.#lastId);
       if (fresh.length) {
         this.#lastId = fresh.at(-1)!.id;
         const next = [...this.entries, ...fresh];
@@ -61,6 +80,7 @@ export class LogModel<T extends { id: number }> {
       this.error = null;
     } catch (error) {
       this.error = errorText(error);
+      this.#verify = true;
     } finally {
       this.#busy = false;
       this.loading = false;

@@ -46,7 +46,8 @@ describe('LogModel', () => {
 
   it('stops polling when stopped, and pauses while the page is hidden', async () => {
     let hidden = false;
-    const { fetch, model, becomeVisible } = setup([[msg(0)]], { hidden: () => hidden });
+    // The second page is the server's answer on return: it still has entry 0 (no restart).
+    const { fetch, model, becomeVisible } = setup([[msg(0)], [msg(0)]], { hidden: () => hidden });
     model.start();
     await vi.advanceTimersByTimeAsync(0);
     hidden = true;
@@ -89,3 +90,58 @@ describe('filterMessages', () => {
     expect(filterMessages(entries, 'all', 'ERROR space').map((m) => m.id)).toEqual([3]);
   });
 });
+
+describe('LogModel after qBittorrent restarts', () => {
+  // A fake server: ids restart at 0 when it restarts, like qBittorrent's log.
+  function server() {
+    let log: LogMessage[] = [msg(0), msg(1), msg(2)];
+    let down = false;
+    const fetch = vi.fn(async (lastId: number) => {
+      if (down) throw new TypeError('Failed to fetch');
+      return log.filter((m) => m.id > lastId);
+    });
+    const model = new LogModel<LogMessage>({ fetch, isHidden: () => false, onVisible: () => () => {}, pollMs: 2000 });
+    return {
+      model,
+      fetch,
+      restart(fresh: LogMessage[]) {
+        log = fresh;
+      },
+      setDown(value: boolean) {
+        down = value;
+      },
+    };
+  }
+
+  it('starts over when the connection comes back to a restarted server', async () => {
+    const s = server();
+    s.model.start();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(s.model.entries.map((m) => m.id)).toEqual([0, 1, 2]);
+    s.setDown(true);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(s.model.error).not.toBeNull();
+    s.restart([msg(0, 2, 'qBittorrent v5.2.0 started'), msg(1, 2, 'Web UI: Now listening')]);
+    s.setDown(false);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(s.model.entries.map((m) => m.message)).toEqual(['qBittorrent v5.2.0 started', 'Web UI: Now listening']);
+    s.restart([msg(0, 2, 'qBittorrent v5.2.0 started'), msg(1, 2, 'Web UI: Now listening'), msg(2, 2, 'later')]);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(s.model.entries.map((m) => m.id)).toEqual([0, 1, 2]);
+    s.model.stop();
+  });
+
+  it('keeps what it has when the server was only unreachable for a moment', async () => {
+    const s = server();
+    s.model.start();
+    await vi.advanceTimersByTimeAsync(0);
+    s.setDown(true);
+    await vi.advanceTimersByTimeAsync(2000);
+    s.setDown(false);
+    s.restart([msg(0), msg(1), msg(2), msg(3)]);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(s.model.entries.map((m) => m.id)).toEqual([0, 1, 2, 3]);
+    s.model.stop();
+  });
+});
+
