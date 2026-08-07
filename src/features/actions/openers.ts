@@ -1,3 +1,4 @@
+import { ApiError, type ApiErrorKind } from '../../api/client';
 import type { Category, Torrent } from '../../api/types';
 import type { TorrentCommands } from '../../commands/torrent-commands';
 import type { DialogStore } from '../../ui/adw/dialogs.svelte';
@@ -44,10 +45,17 @@ export interface DialogOpeners {
   statistics(): void;
 }
 
+/** Errors that mean the connection went away, which is what quitting looks like from here. */
+const GONE: readonly ApiErrorKind[] = ['network', 'timeout', 'aborted'];
+
 export function createDialogOpeners(
   dialogs: DialogStore,
   commands: TorrentCommands,
-  extra: { listDirectories?: (dir: string) => Promise<string[]>; shutdown?: () => Promise<void> } = {},
+  extra: {
+    listDirectories?: (dir: string) => Promise<string[]>;
+    shutdown?: () => Promise<void>;
+    toast?: { show(toast: { title: string }): void };
+  } = {},
 ): DialogOpeners {
   return {
     add(initial = {}) {
@@ -108,6 +116,9 @@ export function createDialogOpeners(
       dialogs.open(AboutDialog, {});
     },
     quit() {
+      const quitFailed = (error: unknown) => {
+        if (!(error instanceof ApiError && GONE.includes(error.kind))) extra.toast?.show({ title: 'Couldn’t quit qBittorrent' });
+      };
       dialogs.open(AlertDialog, {
         heading: 'Quit qBittorrent?',
         body: 'Downloads and seeding stop until qBittorrent is started again on the computer it runs on.',
@@ -116,7 +127,7 @@ export function createDialogOpeners(
           { id: 'quit', label: 'Quit', variant: 'destructive' },
         ],
         onresponse: (id: string) => {
-          if (id === 'quit') void extra.shutdown?.();
+          if (id === 'quit') void extra.shutdown?.().catch(quitFailed);
         },
       });
     },
