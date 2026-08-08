@@ -25,7 +25,8 @@
     const [min, max] = RANGE[part];
     if (part === 'year') set(part, parts.year + delta);
     else {
-      const span = max - min + 1;
+      // The day wraps within this month (28 February ↑ is 1 February), not at 31.
+      const span = part === 'day' ? daysIn(parts.year, parts.month) : max - min + 1;
       set(part, ((((parts[part] - min + delta) % span) + span) % span) + min);
     }
   }
