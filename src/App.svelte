@@ -311,6 +311,8 @@
   <StatusPage icon="offline" title="Can’t Reach qBittorrent" description="Retrying in {session.retryIn} s…">
     <Button variant="suggested" pill label="Retry Now" onclick={() => session.retryNow()} />
   </StatusPage>
+{:else if session.syncError && session.connection === 'online'}
+  <StatusPage icon="warning" title="Can’t Read qBittorrent’s Data" description="Its answer didn’t make sense ({session.syncError}). Trying again…" />
 {:else if session.connection === 'starting'}
   <div class="loading"><Spinner size={32} label="Connecting to qBittorrent" /></div>
 {/if}

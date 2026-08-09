@@ -115,6 +115,22 @@ describe('Session', () => {
     session.stop();
   });
 
+  it('reports a response it cannot apply, asks for everything again, and recovers', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const broken = { rid: 1, full_update: true, torrents_removed: 5 } as unknown as MaindataResponse;
+    const maindata = vi.fn<(rid: number) => Promise<MaindataResponse>>().mockResolvedValueOnce(broken).mockResolvedValue(full);
+    const session = new Session(deps({ maindata }));
+    session.start();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(session.loaded).toBe(false);
+    expect(session.syncError).toMatch(/.+/);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(maindata).toHaveBeenLastCalledWith(0);
+    expect(session.loaded).toBe(true);
+    expect(session.syncError).toBeNull();
+    session.stop();
+  });
+
   it('polls immediately when the tab becomes visible again', async () => {
     let visible!: () => void;
     const maindata = vi.fn(async () => full);

@@ -29,6 +29,8 @@ export class Session implements SyncState {
   /** True once any torrent data has arrived; stays true across re-logins so the list is kept. */
   loaded = $state(false);
   retryIn = $state(0);
+  /** A response that could not be applied (malformed data); cleared by the next one that applies. */
+  syncError = $state<string | null>(null);
   server = $state<Partial<ServerState>>({});
   rid = 0;
   readonly torrents = new SvelteMap<string, Torrent>();
@@ -48,7 +50,16 @@ export class Session implements SyncState {
     this.#poller = new Poller({
       fetch: () => deps.maindata(this.rid),
       apply: (response) => {
-        const summary = applyMaindata(this, response, reactive);
+        let summary: ReturnType<typeof applyMaindata>;
+        try {
+          summary = applyMaindata(this, response, reactive);
+        } catch (error) {
+          // Ask for everything again: a full update replaces whatever was half-applied.
+          this.rid = 0;
+          this.syncError = error instanceof Error ? error.message : String(error);
+          throw error;
+        }
+        this.syncError = null;
         if (summary.desync) this.rid = 0;
         this.loaded = true;
         this.speeds.push({ t: Date.now(), dl: this.server.dl_info_speed ?? 0, ul: this.server.up_info_speed ?? 0 });

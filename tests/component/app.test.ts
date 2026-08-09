@@ -147,4 +147,12 @@ describe('App', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     unmount();
   });
+
+  it('explains a first sync it cannot read instead of showing a blank window', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const broken = { rid: 1, full_update: true, torrents_removed: 5 } as unknown as MaindataResponse;
+    const { unmount } = render(App, { session: makeSession({ maindata: vi.fn(async () => broken) }) });
+    expect(await screen.findByRole('heading', { name: 'Can’t Read qBittorrent’s Data' })).toBeInTheDocument();
+    unmount();
+  });
 });
