@@ -93,14 +93,23 @@ describe('MainHeader', () => {
 });
 
 describe('ActionBar', () => {
-  function bar() {
+  function bar(offline = false) {
     const running = makeTorrent({ state: 'downloading' });
     const stopped = makeTorrent({ state: 'stoppedDL' });
     const app = makeAppContext([running, stopped]);
     app.selection.enter();
-    render(ActionBar, { context: withApp(app) });
+    render(ActionBar, { props: { offline }, context: withApp(app) });
     return { app, running, stopped };
   }
+
+  it('is disabled while qBittorrent is unreachable, even with a selection', () => {
+    const { app, running, stopped } = bar(true);
+    app.selection.selectAll([running.hash, stopped.hash]);
+    flushSync();
+    for (const name of ['Start', 'Stop', 'Category', 'Tags', 'Move…', 'More', 'Delete']) {
+      expect(screen.getByRole('button', { name })).toBeDisabled();
+    }
+  });
 
   it('is disabled with nothing selected', () => {
     bar();

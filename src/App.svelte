@@ -304,7 +304,7 @@
     >
       {#if prefs.view === 'table'}<TableView />{:else}<TorrentList />{/if}
     </main>
-    {#if selection.mode}<ActionBar />{/if}
+    {#if selection.mode}<ActionBar {offline} />{/if}
     {#if !selection.mode}<DetailsSheet />{/if}
   </div>
 {:else if offline}
