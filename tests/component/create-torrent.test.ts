@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/svelte';
+import { fireEvent, render, screen, within } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ApiError } from '../../src/api/client';
@@ -69,5 +69,34 @@ describe('Create Torrent', () => {
     expect(failed).toHaveTextContent('Permission denied');
     await userEvent.click(within(failed!).getByRole('button', { name: 'Remove broken' }));
     expect(app.tools.creator.deleteTask).toHaveBeenCalledWith('t3');
+  });
+
+  it('polls nothing after it closes, even when two refreshes overlapped (no orphaned timer)', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const running = { taskID: 't1', sourcePath: '/data/share', pieceSize: 0, private: false, timeAdded: '', status: 'Running' as const, progress: 1 };
+      const failed = { taskID: 't3', sourcePath: '/data/broken', pieceSize: 0, private: false, timeAdded: '', status: 'Failed' as const, errorMessage: 'x' };
+      const app = makeAppContext();
+      app.tools.creator.status.mockResolvedValue([running, failed]);
+      app.adding.appApi.buildInfo.mockResolvedValue({ qt: '6', libtorrent: '1.2.20.0', boost: '1', openssl: '3', zlib: '1', bitness: 64, platform: 'macos' });
+      const { unmount } = render(CreateTorrentDialog, { props: { close: vi.fn() }, context: withApp(app) });
+      await vi.advanceTimersByTimeAsync(0);
+      const pending: (() => void)[] = [];
+      app.tools.creator.status.mockImplementation(() => new Promise((resolve) => pending.push(() => resolve([running, failed]))));
+      await vi.advanceTimersByTimeAsync(1000); // the poll starts, and waits on the server
+      await fireEvent.click(screen.getByRole('button', { name: 'Remove broken' })); // a second refresh overlaps it
+      await vi.advanceTimersByTimeAsync(0);
+      expect(pending).toHaveLength(2);
+      pending.shift()!();
+      await vi.advanceTimersByTimeAsync(300);
+      pending.shift()!();
+      await vi.advanceTimersByTimeAsync(0);
+      unmount();
+      const before = app.tools.creator.status.mock.calls.length;
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(app.tools.creator.status.mock.calls.length).toBe(before);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

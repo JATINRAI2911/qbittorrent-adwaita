@@ -34,17 +34,22 @@
   ] as const;
   const name = (path: string) => torrentFileName(path).replace(/\.torrent$/, '');
 
-  // Tasks are polled every second while any is still waiting or running.
+  // Tasks are polled every second while any is still waiting or running. Only the latest refresh
+  // schedules the next one, so overlapping refreshes (a poll and Create or Remove) leave no orphan timer.
   let timer: ReturnType<typeof setTimeout> | undefined;
   let alive = true;
+  let latest = 0;
   async function refresh() {
     clearTimeout(timer);
+    const mine = ++latest;
     try {
-      tasks = await app.tools.creator.status();
+      const next = await app.tools.creator.status();
+      if (mine === latest) tasks = next;
     } catch {
       // Keep the last list; the next poll retries.
     }
-    if (alive && tasks.some((t) => t.status === 'Queued' || t.status === 'Running')) timer = setTimeout(() => void refresh(), 1000);
+    if (!alive || mine !== latest) return;
+    if (tasks.some((t) => t.status === 'Queued' || t.status === 'Running')) timer = setTimeout(() => void refresh(), 1000);
   }
 
   $effect(() => {
