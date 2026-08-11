@@ -11,6 +11,9 @@
   import TimeRow from '../../ui/adw/TimeRow.svelte';
   import { formFromPreferences, preferenceChanges, SCHEDULE_DAYS, type SpeedLimitsForm } from './speed-limits';
 
+  /** Where qBittorrent's own speed limit boxes stop. */
+  const MAX_KIB = 2_000_000;
+
   let { close }: { close: () => void } = $props();
   const app = getAppContext();
 
@@ -50,15 +53,15 @@
     <section class="pref-group" aria-label="Global limits">
       <h4 class="heading">Global Limits</h4>
       <BoxedList>
-        <SpinRow title="Download" subtitle="0 means unlimited" unit="KiB/s" bind:value={form.dl} />
-        <SpinRow title="Upload" subtitle="0 means unlimited" unit="KiB/s" bind:value={form.up} />
+        <SpinRow title="Download" subtitle="0 means unlimited" unit="KiB/s" max={MAX_KIB} bind:value={form.dl} />
+        <SpinRow title="Upload" subtitle="0 means unlimited" unit="KiB/s" max={MAX_KIB} bind:value={form.up} />
       </BoxedList>
     </section>
     <section class="pref-group" aria-label="Alternative limits">
       <h4 class="heading">Alternative Limits</h4>
       <BoxedList>
-        <SpinRow title="Alternative download" subtitle="0 means unlimited" unit="KiB/s" bind:value={form.altDl} />
-        <SpinRow title="Alternative upload" subtitle="0 means unlimited" unit="KiB/s" bind:value={form.altUp} />
+        <SpinRow title="Alternative download" subtitle="0 means unlimited" unit="KiB/s" max={MAX_KIB} bind:value={form.altDl} />
+        <SpinRow title="Alternative upload" subtitle="0 means unlimited" unit="KiB/s" max={MAX_KIB} bind:value={form.altUp} />
       </BoxedList>
     </section>
     <section class="pref-group" aria-label="Schedule">

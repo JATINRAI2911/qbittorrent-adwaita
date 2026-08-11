@@ -29,6 +29,16 @@ describe('SpeedLimitsDialog', () => {
     expect(close).toHaveBeenCalled();
   });
 
+  it('caps limits at 2,000,000 KiB/s, like qBittorrent', async () => {
+    const { app } = setup();
+    const upload = await screen.findByRole('textbox', { name: 'Upload' });
+    await userEvent.clear(upload);
+    await userEvent.type(upload, '99999999{Enter}');
+    expect(upload).toHaveValue('2000000');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(app.global.commands.savePreferences).toHaveBeenCalledWith({ up_limit: 2_000_000 * 1024 }, 'Saved speed limits');
+  });
+
   it('reveals the schedule when it is switched on', async () => {
     const { app } = setup();
     await userEvent.click(await screen.findByRole('switch', { name: /Use alternative limits on a schedule/ }));
