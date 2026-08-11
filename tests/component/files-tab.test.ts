@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, onTestFinished } from 'vitest';
 import type { TorrentFile } from '../../src/api/details';
 import FilesTab from '../../src/features/details/FilesTab.svelte';
 import { makeAppContext, withApp } from '../fixtures/app-context';
@@ -82,5 +82,28 @@ describe('FilesTab', () => {
     const app = makeAppContext([]);
     render(FilesTab, { props: { hash: 'h', files: null }, context: withApp(app) });
     expect(screen.getByRole('progressbar', { name: 'Loading files' })).toBeInTheDocument();
+  });
+
+  it('renders only the rows in view for a huge torrent, and they still work', async () => {
+    const files = Array.from({ length: 3000 }, (_, i) => f(i, `Pack/part-${String(i).padStart(4, '0')}.bin`, 1e6));
+    // Inside the details sheet, the sheet body is what scrolls.
+    const scroller = document.body.appendChild(Object.assign(document.createElement('div'), { className: 'sheet-body' }));
+    onTestFinished(() => scroller.remove());
+    const app = makeAppContext([]);
+    render(FilesTab, { target: scroller, props: { hash: 'h', files }, context: withApp(app) });
+    const list = screen.getByRole('list', { name: 'Files' });
+    const items = () => within(list).getAllByRole('listitem');
+    expect(items().length).toBeLessThan(80);
+    expect(items()[0]).toHaveAttribute('aria-setsize', '3001'); // the folder and its 3,000 files
+    expect(items()[0]).toHaveAttribute('aria-posinset', '1');
+
+    Object.defineProperty(scroller, 'scrollTop', { value: 48 * 1500, configurable: true });
+    scroller.dispatchEvent(new Event('scroll'));
+    await Promise.resolve();
+    expect(screen.queryByText('part-0000.bin')).toBeNull();
+    const row = screen.getByText('part-1500.bin').closest('[role="listitem"]')!;
+    expect(row).toHaveAttribute('aria-posinset', '1502');
+    await userEvent.click(within(row as HTMLElement).getByRole('checkbox', { name: 'Download part-1500.bin' }));
+    expect(app.detailCommands.setPriority).toHaveBeenCalledWith('h', files, [1500], 'skip');
   });
 });
