@@ -61,8 +61,8 @@ export async function torrents(client: APIRequestContext): Promise<ServerTorrent
 }
 
 /** Adds a local torrent over the API, seeding from its source folder. */
-export async function seed(client: APIRequestContext, name: string): Promise<ServerTorrent> {
-  const file = await createTorrentFile(client, makeSource(name));
+export async function seed(client: APIRequestContext, name: string, files = 2): Promise<ServerTorrent> {
+  const file = await createTorrentFile(client, makeSource(name, files, files > 2 ? 1024 : undefined));
   await client.post('/api/v2/torrents/add', {
     multipart: { torrents: { name: `${name}.torrent`, mimeType: 'application/x-bittorrent', buffer: file }, savepath: '/downloads/src', skip_checking: 'true' },
   });
