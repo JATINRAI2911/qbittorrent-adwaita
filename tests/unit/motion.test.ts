@@ -76,4 +76,23 @@ describe('motion', () => {
     again({ direction: 'in' });
     expect(decorative.getAttribute('aria-hidden')).toBe('true');
   });
+
+  it('releases focus held inside a leaving element, so keys stop going to it', () => {
+    const leaving = document.body.appendChild(node());
+    const button = leaving.appendChild(document.createElement('button'));
+    button.focus();
+    expect(button).toHaveFocus();
+    fade(leaving, {}, { direction: 'out' });
+    expect(button).not.toHaveFocus();
+    leaving.remove();
+
+    const staying = document.body.appendChild(node());
+    const elsewhere = document.body.appendChild(document.createElement('button'));
+    elsewhere.focus();
+    fade(staying, {}, { direction: 'out' });
+    expect(elsewhere).toHaveFocus();
+    staying.remove();
+    elsewhere.remove();
+  });
 });
+

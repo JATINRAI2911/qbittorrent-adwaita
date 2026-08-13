@@ -28,6 +28,8 @@ const hiddenByUs = new WeakSet<Element>();
 
 function mark(node: Element, direction: 'in' | 'out'): void {
   if (direction === 'out') {
+    // Focus left inside would keep receiving keys until the exit ends (a closing sheet swallowing shortcuts).
+    if (document.activeElement instanceof HTMLElement && node.contains(document.activeElement)) document.activeElement.blur();
     if (!node.hasAttribute('aria-hidden')) {
       node.setAttribute('aria-hidden', 'true');
       hiddenByUs.add(node);
@@ -39,7 +41,8 @@ function mark(node: Element, direction: 'in' | 'out'): void {
 
 /**
  * An element that is leaving stays in the DOM for its exit animation; hide it from assistive tech at
- * once (Svelte already makes it inert), so nobody meets a ghost dialog, popover or toast. A
+ * once and release any focus inside it (Svelte makes it inert, but focus can linger), so nobody meets
+ * a ghost dialog, popover or toast. A
  * bidirectional `transition:` only learns its direction when it runs, so it gets a deferred config.
  */
 function withExit(node: Element, options: TransitionOptions | undefined, config: () => TransitionConfig): Transition {
