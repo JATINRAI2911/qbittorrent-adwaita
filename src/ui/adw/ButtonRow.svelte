@@ -1,8 +1,15 @@
 <script lang="ts">
-  let { title, subtitle, onclick }: { title: string; subtitle?: string; onclick?: () => void } = $props();
+  /** `listitem`: inside a role=list, the row is a list item holding the button. */
+  let { title, subtitle, listitem = false, onclick }: { title: string; subtitle?: string; listitem?: boolean; onclick?: () => void } = $props();
 </script>
 
-<button type="button" class="row button-row" {onclick}>
+{#snippet content()}
   <span class="heading">{title}</span>
   {#if subtitle}<span class="dimmed">{subtitle}</span>{/if}
-</button>
+{/snippet}
+
+{#if listitem}
+  <div class="row button-row-item" role="listitem"><button type="button" class="button-row" {onclick}>{@render content()}</button></div>
+{:else}
+  <button type="button" class="row button-row" {onclick}>{@render content()}</button>
+{/if}

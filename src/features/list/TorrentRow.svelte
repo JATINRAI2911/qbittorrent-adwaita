@@ -41,8 +41,8 @@
       <span class="t-name heading" title={t.name} dir="auto">{t.name}</span>
       {#if t.category || tags.length}
         <span class="t-meta caption">
-          {#if t.category}<span class="t-m"><Icon name="folder" />{t.category}</span>{/if}
-          {#if tags.length}<span class="t-m"><Icon name="tag" />{tags.join(', ')}</span>{/if}
+          {#if t.category}<span class="t-m"><Icon name="folder" /><span class="ellipsis">{t.category}</span></span>{/if}
+          {#if tags.length}<span class="t-m"><Icon name="tag" /><span class="ellipsis">{tags.join(', ')}</span></span>{/if}
         </span>
       {/if}
     </div>
@@ -80,7 +80,8 @@
   .t-line { display: flex; align-items: baseline; gap: 16px; min-width: 0; }
   .t-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .t-meta { flex: none; display: flex; gap: 12px; max-width: 45%; overflow: hidden; white-space: nowrap; opacity: var(--dim-opacity); }
-  .t-m { display: inline-flex; align-items: center; gap: 4px; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .t-m { display: inline-flex; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
+  .t-m > .ellipsis { min-width: 0; }
   .t-m :global(svg.i) { width: 12px; height: 12px; stroke-width: 2; align-self: center; }
   .t-sub { display: flex; gap: 12px; min-width: 0; }
   .t-sub .subtitle { font-size: smaller; opacity: var(--dim-opacity); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

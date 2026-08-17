@@ -35,16 +35,16 @@
   <div class="group-body" in:slide={{ duration: DURATION.slow }}>
   <BoxedList role="list">
     {#if view.collapsed}
-      <ButtonRow title="Show {formatCount(view.total)} {view.total === 1 ? 'Torrent' : 'Torrents'}" onclick={oncollapse} />
+      <ButtonRow listitem title="Show {formatCount(view.total)} {view.total === 1 ? 'Torrent' : 'Torrents'}" onclick={oncollapse} />
     {:else}
       {#each view.items as torrent (torrent.hash)}
         <TorrentRow {torrent} />
       {/each}
       {#if view.hidden > 0}
         {#if single}
-          <ButtonRow title="Show {formatCount(Math.min(PAGE_SIZE, view.hidden))} More" subtitle="{formatCount(view.hidden)} remaining" onclick={onexpand} />
+          <ButtonRow listitem title="Show {formatCount(Math.min(PAGE_SIZE, view.hidden))} More" subtitle="{formatCount(view.hidden)} remaining" onclick={onexpand} />
         {:else}
-          <ButtonRow title="Show All {formatCount(view.total)}" onclick={onexpand} />
+          <ButtonRow listitem title="Show All {formatCount(view.total)}" onclick={onexpand} />
         {/if}
       {/if}
     {/if}

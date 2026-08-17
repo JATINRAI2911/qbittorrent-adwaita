@@ -8,6 +8,8 @@ import { makeAppContext, withApp } from '../fixtures/app-context';
 import { makeTorrent } from '../fixtures/torrents';
 
 const renderRow = (torrent: Torrent) => render(TorrentRow, { props: { torrent }, context: withApp(makeAppContext([torrent])) });
+/** Torrent rows only (the Show More / Show All row is a list item too). */
+const torrentRows = (el: HTMLElement) => el.querySelectorAll('[data-hash]');
 const seeds = (n: number) => Array.from({ length: n }, () => makeTorrent({ state: 'stalledUP', progress: 1 }));
 
 describe('TorrentList', () => {
@@ -31,29 +33,42 @@ describe('TorrentList', () => {
     expect(screen.getByRole('button', { name: 'Expand Downloading' })).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('keeps only list items inside a group list, including its Show All row', () => {
+    render(TorrentList, { context: withApp(makeAppContext([...seeds(30), makeTorrent({ state: 'downloading' })])) });
+    const list = within(screen.getByRole('region', { name: 'Seeding' })).getByRole('list');
+    expect([...list.children].map((child) => child.getAttribute('role'))).toEqual(Array(9).fill('listitem'));
+    expect(within(list).getByRole('button', { name: 'Show All 30' }).closest('[role="listitem"]')).not.toBeNull();
+  });
+
+  it('ellipsizes long category and tag captions', () => {
+    renderRow(makeTorrent({ category: 'A very long category name indeed', tags: 'one, two' }));
+    expect(screen.getByText('A very long category name indeed')).toHaveClass('ellipsis');
+    expect(screen.getByText('one, two')).toHaveClass('ellipsis');
+  });
+
   it('shows 8 rows per group and expands with Show All', async () => {
     render(TorrentList, { context: withApp(makeAppContext([...seeds(30), makeTorrent({ state: 'downloading' })])) });
     const seeding = screen.getByRole('region', { name: 'Seeding' });
-    expect(within(seeding).getAllByRole('listitem')).toHaveLength(8);
+    expect(torrentRows(seeding)).toHaveLength(8);
     await userEvent.click(within(seeding).getByRole('button', { name: 'Show All 30' }));
-    expect(within(seeding).getAllByRole('listitem')).toHaveLength(30);
+    expect(torrentRows(seeding)).toHaveLength(30);
   });
 
   it('collapses a large Stopped group in a large library and reveals it on request', async () => {
     const stopped = Array.from({ length: 10 }, () => makeTorrent({ state: 'stoppedUP', progress: 1 }));
     render(TorrentList, { context: withApp(makeAppContext([...stopped, ...seeds(20)])) });
     const group = screen.getByRole('region', { name: 'Stopped' });
-    expect(within(group).queryAllByRole('listitem')).toHaveLength(0);
+    expect(torrentRows(group)).toHaveLength(0);
     await userEvent.click(within(group).getByRole('button', { name: 'Show 10 Torrents' }));
-    expect(within(group).getAllByRole('listitem')).toHaveLength(8);
+    expect(torrentRows(group)).toHaveLength(8);
   });
 
   it('pages 100 at a time when only one group is visible', async () => {
     render(TorrentList, { context: withApp(makeAppContext(seeds(150))) });
     const group = screen.getByRole('region', { name: 'Seeding' });
-    expect(within(group).getAllByRole('listitem')).toHaveLength(100);
+    expect(torrentRows(group)).toHaveLength(100);
     await userEvent.click(within(group).getByRole('button', { name: /Show 50 More/ }));
-    expect(within(group).getAllByRole('listitem')).toHaveLength(150);
+    expect(torrentRows(group)).toHaveLength(150);
   });
 
   it('shows No Results Found with Clear Filters when filters hide everything', async () => {

@@ -19,6 +19,9 @@
 }
 .button-row:hover { background-color: color-mix(in srgb, currentColor 3%, transparent); }
 .button-row:active { background-color: color-mix(in srgb, currentColor 8%, transparent); }
+/* In a list the row is the list item and the button fills it (border and corners stay on the row). */
+.button-row-item { padding: 0; min-height: 44px; overflow: hidden; }
+.button-row-item > .button-row { display: flex; align-items: center; padding: 2px 14px; }
 
 .entry-row { display: block; position: relative; cursor: text; }
 .entry-row .er-title {
