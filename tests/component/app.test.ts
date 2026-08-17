@@ -91,14 +91,14 @@ describe('App', () => {
     unmount();
   });
 
-  it('keeps toasts out of the tab order while a dialog is open', async () => {
+  it('keeps toasts announced, but not inert, while a dialog is open', async () => {
     const { unmount } = render(App, { session: makeSession({}) });
     expect(await screen.findByText('ubuntu.iso')).toBeInTheDocument();
     const overlay = document.querySelector<HTMLElement>('.toast-overlay')!;
-    expect(overlay.inert).not.toBe(true);
     await userEvent.keyboard('{Control>}?{/Control}');
     expect(await screen.findByRole('dialog', { name: 'Keyboard Shortcuts' })).toBeInTheDocument();
-    expect(overlay.inert).toBe(true);
+    // inert would also silence role=status toasts raised inside the dialog ("Couldn’t …").
+    expect(overlay.inert).not.toBe(true);
     unmount();
   });
 

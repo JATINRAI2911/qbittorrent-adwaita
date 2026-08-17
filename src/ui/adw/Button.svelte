@@ -18,11 +18,12 @@
     haspopup?: 'menu' | 'dialog' | 'listbox';
     /** For buttons that show and hide a region (collapse buttons). */
     expanded?: boolean;
+    tabindex?: number;
     onclick?: (event: MouseEvent) => void;
     children?: Snippet;
   }
 
-  let { label, icon, variant = 'default', pill = false, circular = false, type = 'button', disabled = false, title, ariaLabel, haspopup, expanded, onclick, children }: Props = $props();
+  let { label, icon, variant = 'default', pill = false, circular = false, type = 'button', disabled = false, title, ariaLabel, haspopup, expanded, tabindex, onclick, children }: Props = $props();
 
   const hasText = $derived(Boolean(label) || Boolean(children));
   const shape = $derived(icon && !hasText ? 'image-button' : icon ? 'image-text-button' : 'text-button');
@@ -35,6 +36,7 @@
   aria-label={ariaLabel ?? (hasText ? undefined : title)}
   aria-haspopup={haspopup}
   aria-expanded={expanded}
+  {tabindex}
   class="btn {shape}"
   class:flat={variant === 'flat'}
   class:suggested-action={variant === 'suggested'}

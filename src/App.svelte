@@ -325,7 +325,7 @@
 
 <PopoverHost store={popovers} />
 <DialogHost store={dialogs} suspended={session.connection === 'login'} />
-<ToastOverlay store={toasts} bottom={selection.mode ? 52 : sheetInset} inert={dialogs.isOpen} />
+<ToastOverlay store={toasts} bottom={selection.mode ? 52 : sheetInset} behindDialog={dialogs.isOpen} />
 {#if dragging}<DropOverlay />{/if}
 
 <style>

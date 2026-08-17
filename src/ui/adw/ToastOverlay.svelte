@@ -3,17 +3,21 @@
   import { DURATION, fade, rise } from './motion';
   import type { ToastStore } from './toast.svelte';
 
-  /** `inert` while a dialog is open: toasts stay visible but out of the dialog's tab order. */
-  let { store, bottom = 0, inert = false }: { store: ToastStore; bottom?: number; inert?: boolean } = $props();
+  /**
+   * `behindDialog`: toasts stay visible and announced (not inert, which would silence role=status),
+   * but their buttons leave the Tab order so focus stays in the dialog.
+   */
+  let { store, bottom = 0, behindDialog = false }: { store: ToastStore; bottom?: number; behindDialog?: boolean } = $props();
+  const tabindex = $derived(behindDialog ? -1 : undefined);
 </script>
 
-<div class="toast-overlay" style:bottom="{bottom}px" {inert}>
+<div class="toast-overlay" style:bottom="{bottom}px">
   {#if store.current}
     {#key store.current.id}
       <div class="toast" role="status" in:rise|global={{ duration: DURATION.slow, y: 16 }} out:fade|global={{ duration: DURATION.fast }}>
         <span class="toast-title">{store.current.title}</span>
-        {#if store.current.undo}<Button label="Undo" onclick={() => store.undo()} />{/if}
-        <Button icon="close" circular variant="flat" title="Dismiss" onclick={() => store.dismiss()} />
+        {#if store.current.undo}<Button label="Undo" {tabindex} onclick={() => store.undo()} />{/if}
+        <Button icon="close" circular variant="flat" title="Dismiss" {tabindex} onclick={() => store.dismiss()} />
       </div>
     {/key}
   {/if}

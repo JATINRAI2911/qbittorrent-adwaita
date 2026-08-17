@@ -43,6 +43,17 @@ describe('ToastStore', () => {
 });
 
 describe('ToastOverlay', () => {
+  it('behind a dialog, still announces the toast but keeps its buttons out of the Tab order', () => {
+    const store = new ToastStore();
+    render(ToastOverlay, { store, behindDialog: true });
+    store.show({ title: 'Couldn’t save the cookies', undo: vi.fn() });
+    flushSync();
+    expect(document.querySelector<HTMLElement>('.toast-overlay')!.inert).not.toBe(true);
+    expect(screen.getByRole('status')).toHaveTextContent('Couldn’t save the cookies');
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toHaveAttribute('tabindex', '-1');
+  });
+
   it('announces the toast and offers Undo and Close', async () => {
     vi.useRealTimers();
     const store = new ToastStore();
