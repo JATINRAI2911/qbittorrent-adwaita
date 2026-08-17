@@ -32,8 +32,8 @@
   in:fade={{ duration: DURATION.fast }}
 >
   {#if app.selection.mode}<span class="row-check" transition:rise={{ duration: DURATION.fast, scale: 0.6 }}
-      ><!-- Out of the Tab order: the list has its own keys (arrows, Space). -->
-      <CheckButton checked={selected} label="Select {t.name}" round tabindex={-1} onclick={() => app.selection.toggle(t.hash)} /></span
+      ><!-- Takes the Tab stop of the Start/Stop button, which selection mode hides. -->
+      <CheckButton checked={selected} label="Select {t.name}" round onclick={() => app.selection.toggle(t.hash)} /></span
     >{/if}
   <Bubble torrent={t} />
   <div class="t-main">

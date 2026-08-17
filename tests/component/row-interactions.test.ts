@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, within } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import TorrentList from '../../src/features/list/TorrentList.svelte';
@@ -73,6 +73,9 @@ describe('row interactions', () => {
     await user.keyboard('{/Control}');
     const check = screen.getByRole('checkbox', { name: 'Select two' });
     expect(check.tagName).toBe('BUTTON');
+    // In the Tab order: in selection mode it takes the place of the row's Start/Stop button.
+    expect(check.tabIndex).toBe(0);
+    expect(within(row('two') as HTMLElement).queryByRole('button', { name: /^(Start|Stop) / })).toBeNull();
     await user.click(check);
     expect(check).toBeChecked();
     expect(app.selection.size).toBe(2);
