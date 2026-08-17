@@ -33,6 +33,9 @@ function mark(node: Element, direction: 'in' | 'out'): void {
     if (!node.hasAttribute('aria-hidden')) {
       node.setAttribute('aria-hidden', 'true');
       hiddenByUs.add(node);
+      // An exit reversed before it ends (the {#if} came back) resumes this same element through its
+      // intro, which may be a separate in: transition that never calls us with 'in'.
+      node.addEventListener('introstart', () => mark(node, 'in'), { once: true });
     }
   } else if (hiddenByUs.delete(node)) {
     node.removeAttribute('aria-hidden');
