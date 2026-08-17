@@ -43,6 +43,6 @@
   .tag-chips { flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .tag-chip { border: 0; border-radius: 99px; padding: 4px 12px; font: inherit; font-size: smaller; font-weight: 700; color: inherit; background: var(--button-color); }
   .tag-chip:hover { background: var(--button-hover-color); }
-  .tag-chip.on { background: var(--accent-bg-color); color: var(--accent-fg-color); }
+  .tag-chip.on { background: var(--accent-text-bg-color); color: var(--accent-fg-color); }
   .tag-new { flex: 1; min-width: 100px; border: 0; background: none; font: inherit; color: inherit; outline: none; padding: 4px; }
 </style>

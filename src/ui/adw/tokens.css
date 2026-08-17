@@ -3,6 +3,9 @@
   --list-column-width: 836px;
   --accent-bg-color: #3584e4;
   --accent-fg-color: #ffffff;
+  /* Fills that carry text (suggested buttons, chosen chips): Adwaita blue 4, since white on the
+     accent blue 3 is only 3.8:1, below WCAG AA for text. */
+  --accent-text-bg-color: #1c71d8;
   --standalone-color-oklab: min(l, 0.5) a b;
   --accent-color: oklab(from var(--accent-bg-color) var(--standalone-color-oklab));
   --destructive-bg-color: #e01b24;

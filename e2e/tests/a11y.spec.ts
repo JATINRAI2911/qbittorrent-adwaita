@@ -21,6 +21,13 @@ async function scan(page: Page, what: string) {
 }
 
 for (const scheme of ['light', 'dark'] as const) {
+  test(`login screen, ${scheme} theme`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
+    await page.goto('/');
+    await expect(page.getByRole('button', { name: 'Log In' })).toBeEnabled();
+    await scan(page, 'login');
+  });
+
   test.describe(`${scheme} theme`, () => {
     test.beforeEach(async ({ page }) => {
       // Reduced motion makes transitions instant, so axe sees settled colours and no leaving elements.

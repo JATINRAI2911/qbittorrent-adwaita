@@ -25,7 +25,7 @@
 .actionbar .btn:is(.image-button, .image-text-button):not(.suggested-action, .destructive-action):active { background: var(--active-color); }
 .btn.flat:disabled { filter: opacity(30%); }
 
-.btn.suggested-action { color: var(--accent-fg-color); background-color: var(--accent-bg-color); }
+.btn.suggested-action { color: var(--accent-fg-color); background-color: var(--accent-text-bg-color); }
 .btn.suggested-action:hover { background-image: linear-gradient(color-mix(in srgb, currentColor 10%, transparent) 0 0); }
 .btn.suggested-action:active { background-image: linear-gradient(rgb(0 0 6 / 20%) 0 0); }
 .btn.suggested-action:focus-visible { outline-offset: 1px; }
