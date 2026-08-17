@@ -68,6 +68,9 @@ describe('row flags', () => {
     expect(showProgress(makeTorrent({ progress: 1, state: 'stalledUP' }))).toBe(false);
     expect(showProgress(makeTorrent({ progress: 1, state: 'checkingUP' }))).toBe(true);
     expect(showProgress(makeTorrent({ progress: 0.5, state: 'downloading' }))).toBe(true);
+    // Missing files at 0 %: an empty red track says nothing the error line doesn't.
+    expect(showProgress(makeTorrent({ progress: 0, state: 'missingFiles' }))).toBe(false);
+    expect(showProgress(makeTorrent({ progress: 0.4, state: 'missingFiles' }))).toBe(true);
   });
 
   it('picks the progress tone from the state', () => {

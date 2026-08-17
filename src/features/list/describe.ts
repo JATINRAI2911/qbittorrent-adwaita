@@ -98,6 +98,7 @@ export function isInactive(t: Torrent): boolean {
 }
 
 export function showProgress(t: Torrent): boolean {
+  if (t.state === 'missingFiles' && !(t.progress > 0)) return false; // an empty red track adds nothing to the error line
   return !(t.progress >= 1) || t.state.startsWith('checking');
 }
 
