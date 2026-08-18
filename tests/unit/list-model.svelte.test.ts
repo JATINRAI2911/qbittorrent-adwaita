@@ -1,5 +1,5 @@
 import { SvelteMap } from 'svelte/reactivity';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Torrent } from '../../src/api/types';
 import { ListModel } from '../../src/features/list/list-model.svelte';
 import type { ListSort } from '../../src/state/groups';
@@ -11,6 +11,18 @@ const live = (overrides: Partial<Torrent>) => {
 };
 
 describe('ListModel filters', () => {
+  it('reads tracker hosts only while a tracker filter is set', () => {
+    const a = live({ name: 'Ubuntu', state: 'downloading' });
+    const hosts = vi.fn(() => new Map([[a.hash, new Set(['t.example'])]]));
+    const model = new ListModel(new SvelteMap([[a.hash, a]]), { hosts });
+    model.setFilters({ search: 'ubu' });
+    expect(model.matching).toHaveLength(1);
+    expect(hosts).not.toHaveBeenCalled();
+    model.setFilters({ tracker: 't.example' });
+    expect(model.matching).toHaveLength(1);
+    expect(hosts).toHaveBeenCalled();
+  });
+
   it('filters by search, category, tag and tracker, and reports that it is filtering', () => {
     const a = live({ name: 'Ubuntu', category: 'ISOs', state: 'downloading' });
     const b = live({ name: 'Debian', category: '', state: 'downloading' });

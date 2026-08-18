@@ -57,7 +57,16 @@ export function isFiltering(f: Filters): boolean {
 }
 
 export function matches(t: Torrent, f: Filters, hosts: ReadonlyMap<string, ReadonlySet<string>>): boolean {
+  return matcher(f, hosts)(t);
+}
+
+/** `matches` with the query normalized once, for testing many torrents against the same filters. */
+export function matcher(f: Filters, hosts: ReadonlyMap<string, ReadonlySet<string>>): (t: Torrent) => boolean {
   const query = f.search.trim().toLocaleLowerCase();
+  return (t) => passes(t, f, query, hosts);
+}
+
+function passes(t: Torrent, f: Filters, query: string, hosts: ReadonlyMap<string, ReadonlySet<string>>): boolean {
   if (query && !t.name.toLocaleLowerCase().includes(query)) return false;
   if (f.category !== null && t.category !== f.category) return false;
   if (f.tag !== null) {

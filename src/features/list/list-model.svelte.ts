@@ -1,6 +1,6 @@
 import { untrack } from 'svelte';
 import type { Torrent } from '../../api/types';
-import { isFiltering, matches, NO_FILTERS, type Filters } from '../../state/filters';
+import { isFiltering, matcher, NO_FILTERS, type Filters } from '../../state/filters';
 import { compareBy, expansionAfter, groupOf, layoutGroups, sortSignature, type GroupKey, type GroupView, type ListSort, type StatusFilter } from '../../state/groups';
 
 export interface ListModelOptions {
@@ -35,9 +35,10 @@ export class ListModel {
   /** Torrents passing search / category / tag / tracker. Each view applies the status filter on top. */
   readonly matching = $derived.by(() => {
     const filters = this.filters;
-    const hosts = this.#hosts();
+    // Tracker hosts change often; depend on them only while a tracker filter needs them.
+    const test = matcher(filters, filters.tracker !== null ? this.#hosts() : NO_HOSTS);
     const out: Torrent[] = [];
-    for (const t of this.torrents.values()) if (matches(t, filters, hosts)) out.push(t);
+    for (const t of this.torrents.values()) if (test(t)) out.push(t);
     return out;
   });
 
