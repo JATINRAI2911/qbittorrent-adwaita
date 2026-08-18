@@ -33,6 +33,8 @@ describe('torrentMenu', () => {
     expect(item(menu, 'Rename…').disabled).toBe(true);
     expect(item(menu, 'Queue').disabled).toBe(true);
     expect(item(menu, 'Delete 2 Torrents…')).toMatchObject({ destructive: true, accel: 'Del' });
+    // Space toggles: it stops when anything is running, so only that item shows it.
+    expect([item(menu, 'Start').accel, item(menu, 'Stop').accel].filter(Boolean)).toEqual(['Space']);
   });
 
   it('shows option states as checks and disables super seeding for incomplete torrents', () => {

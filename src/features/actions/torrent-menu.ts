@@ -59,8 +59,9 @@ export function torrentMenu(ts: readonly Torrent[], ctx: TorrentMenuContext): Me
   return {
     sections: [
       [
-        { label: 'Start', accel: 'Space', disabled: !list.some(needsStart), action: () => void commands.start(list) },
-        { label: 'Stop', accel: 'Space', disabled: !list.some(isRunning), action: () => void commands.stop(list) },
+        // Space toggles (it stops when anything is running), so only the item it would run shows it.
+        { label: 'Start', accel: list.some(isRunning) ? undefined : 'Space', disabled: !list.some(needsStart), action: () => void commands.start(list) },
+        { label: 'Stop', accel: list.some(isRunning) ? 'Space' : undefined, disabled: !list.some(isRunning), action: () => void commands.stop(list) },
         { label: 'Force Start', disabled: list.every((t) => t.force_start), action: () => void commands.forceStart(list) },
       ],
       [
