@@ -32,3 +32,4 @@
   color: var(--window-fg-color);
 }
 .banner-title { font-weight: 700; text-align: center; min-width: 0; }
+.banner-detail { font-weight: 400; }

@@ -1,6 +1,5 @@
 import type { ServerState, Torrent } from '../api/types';
 import { formatBytes } from '../lib/format';
-import { groupOf } from './groups';
 import type { Connection } from './session.svelte';
 
 export type HealthLevel = 'ok' | 'warning' | 'error';
@@ -10,7 +9,8 @@ export interface Health {
   level: HealthLevel;
   /** Short line for the status popover and the status button's accessible name. */
   line: string;
-  banner: { text: string; tone: 'warning' | 'error'; action: BannerAction } | null;
+  /** `detail` is shown but not announced (it changes every second). */
+  banner: { text: string; detail?: string; tone: 'warning' | 'error'; action: BannerAction } | null;
 }
 
 export interface HealthInput {
@@ -28,7 +28,8 @@ export const HEALTHY: Health = { level: 'ok', line: 'Connected', banner: null };
 
 export function remainingDownloads(torrents: HealthInput['torrents']): number {
   let left = 0;
-  for (const t of torrents) if (groupOf(t) === 'downloading') left += Math.max(0, t.amount_left);
+  // Everything still to come, queued included; stopped torrents only once they're started again.
+  for (const t of torrents) if (t.state === 'downloading' || (/DL$/.test(t.state) && t.state !== 'stoppedDL')) left += Math.max(0, t.amount_left);
   return left;
 }
 
@@ -38,7 +39,7 @@ export function assessHealth(input: HealthInput): Health {
     return {
       level: 'error',
       line: 'Can’t reach qBittorrent',
-      banner: { tone: 'error', action: 'retry', text: `Can’t reach qBittorrent at ${input.host}. Retrying in ${input.retryIn} s…` },
+      banner: { tone: 'error', action: 'retry', text: `Can’t reach qBittorrent at ${input.host}.`, detail: `Retrying in ${input.retryIn} s…` },
     };
   }
   if (input.connection !== 'online') return { level: 'ok', line: 'Connecting…', banner: null };

@@ -63,4 +63,10 @@ describe('Banner', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Retry Now' }));
     expect(onaction).toHaveBeenCalledTimes(1);
   });
+
+  it('shows a changing detail (a countdown) without putting it in the alert', () => {
+    render(Banner, { title: 'Can’t reach qBittorrent.', detail: 'Retrying in 4 s…', tone: 'error' });
+    expect(screen.getByText('Retrying in 4 s…')).toBeVisible();
+    expect(screen.getByRole('alert')).toHaveTextContent(/^Can’t reach qBittorrent\.$/);
+  });
 });

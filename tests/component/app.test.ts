@@ -45,6 +45,7 @@ describe('App', () => {
     const { unmount } = render(App, { session: makeSession({ maindata }) });
 
     expect(await screen.findByRole('heading', { name: 'Can’t Reach qBittorrent' })).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`at ${location.host.replace(/[.:]/g, '\\$&')}`))).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Retry Now' }));
     expect(await screen.findByText('ubuntu.iso')).toBeInTheDocument();
     unmount();

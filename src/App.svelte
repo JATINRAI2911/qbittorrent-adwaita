@@ -288,7 +288,7 @@
       <MainHeader torrents={session.torrents} server={session.server} {offline} {health} />
       {#if health.banner}
         {@const action = BANNER_ACTIONS[health.banner.action]}
-        <Banner tone={health.banner.tone} title={health.banner.text} actionLabel={action?.label} onaction={action?.run} />
+        <Banner tone={health.banner.tone} title={health.banner.text} detail={health.banner.detail} actionLabel={action?.label} onaction={action?.run} />
       {/if}
       {#if list.searchOpen}<SearchBar onleave={focusFirstRow} />{/if}
       {#if !selection.mode && (session.torrents.size > 10 || list.filtering)}<FilterBar />{/if}
@@ -308,7 +308,7 @@
     {#if !selection.mode}<DetailsSheet />{/if}
   </div>
 {:else if offline}
-  <StatusPage icon="offline" title="Can’t Reach qBittorrent" description="Retrying in {session.retryIn} s…">
+  <StatusPage icon="offline" title="Can’t Reach qBittorrent" description="Nothing answered at {location.host}. Retrying in {session.retryIn} s…">
     <Button variant="suggested" pill label="Retry Now" onclick={() => session.retryNow()} />
   </StatusPage>
 {:else if session.syncError && session.connection === 'online'}

@@ -24,7 +24,8 @@ describe('assessHealth', () => {
     expect(health).toEqual({
       level: 'error',
       line: 'Can’t reach qBittorrent',
-      banner: { tone: 'error', action: 'retry', text: 'Can’t reach qBittorrent at nas.local:8080. Retrying in 4 s…' },
+      // The countdown changes every second, so it sits outside the announced text.
+      banner: { tone: 'error', action: 'retry', text: 'Can’t reach qBittorrent at nas.local:8080.', detail: 'Retrying in 4 s…' },
     });
   });
 
@@ -77,8 +78,10 @@ describe('remainingDownloads', () => {
       makeTorrent({ state: 'downloading', progress: 0.5, amount_left: 3 }),
       makeTorrent({ state: 'stalledDL', progress: 0.5, amount_left: 4 }),
       makeTorrent({ state: 'stoppedDL', progress: 0.5, amount_left: 100 }),
+      makeTorrent({ state: 'queuedDL', progress: 0, amount_left: 20 }), // will download when its turn comes
+      makeTorrent({ state: 'metaDL', progress: 0, amount_left: 0 }),
     ];
-    expect(remainingDownloads(torrents)).toBe(7);
+    expect(remainingDownloads(torrents)).toBe(27);
     expect(LOW_SPACE_FLOOR).toBe(10 * GiB);
   });
 });
