@@ -30,7 +30,7 @@ export function loadThemeSettings(storage: Pick<Storage, 'getItem'> | undefined)
       if (
         (value.preference === 'system' || value.preference === 'light' || value.preference === 'dark') &&
         typeof value.accent === 'string' &&
-        value.accent in ACCENTS
+        Object.hasOwn(ACCENTS, value.accent)
       ) {
         return { preference: value.preference, accent: value.accent };
       }
