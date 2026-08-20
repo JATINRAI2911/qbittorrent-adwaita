@@ -64,6 +64,7 @@ describe('TableView', () => {
     expect(app.selection.mode).toBe(true);
     expect(app.selection.size).toBe(2);
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+    expect(screen.getByRole('grid')).toHaveAttribute('aria-multiselectable', 'true');
   });
 
   it('opens the torrent menu on right-click', async () => {

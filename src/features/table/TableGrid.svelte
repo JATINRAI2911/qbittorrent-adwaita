@@ -101,6 +101,7 @@
   role="grid"
   tabindex="-1"
   aria-label="Torrents"
+  aria-multiselectable={app.selection.mode}
   aria-rowcount={table.rows.length + 1}
   bind:this={scroller}
   onscroll={(event) => (scrollTop = event.currentTarget.scrollTop)}

@@ -28,6 +28,7 @@
   class:kfocus={app.selection.keyboard && app.selection.focus === t.hash}
   class:menu-target={app.selection.menuTarget === t.hash}
   data-hash={t.hash}
+  tabindex="-1"
   role="listitem"
   in:fade={{ duration: DURATION.fast }}
 >

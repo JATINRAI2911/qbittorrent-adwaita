@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, within } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import App from '../../src/App.svelte';
@@ -38,6 +38,51 @@ describe('App keyboard', () => {
     expect(screen.getByRole('alertdialog', { name: 'Delete Torrent?' })).toBeInTheDocument();
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('alertdialog')).toBeNull();
+    unmount();
+  });
+
+  it('moves real focus to the row, so screen readers follow it', async () => {
+    const { unmount } = renderApp(async (rid) => (rid === 0 ? full : { rid: 2 }));
+    const first = (await screen.findByText('first.iso')).closest<HTMLElement>('[data-hash]')!;
+    await userEvent.keyboard('{ArrowDown}');
+    expect(first).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByText('second.iso').closest('[data-hash]')).toHaveFocus();
+    unmount();
+  });
+
+  it('hides the keyboard ring when focus moves elsewhere', async () => {
+    const { unmount } = renderApp(async (rid) => (rid === 0 ? full : { rid: 2 }));
+    const first = (await screen.findByText('first.iso')).closest<HTMLElement>('[data-hash]')!;
+    await userEvent.keyboard('{ArrowDown}');
+    expect(first).toHaveClass('kfocus');
+    screen.getByRole('button', { name: 'Search' }).focus();
+    await Promise.resolve();
+    expect(first).not.toHaveClass('kfocus');
+    unmount();
+  });
+
+  it('returns focus to the torrent when Esc closes its details', async () => {
+    const { unmount } = renderApp(async (rid) => (rid === 0 ? full : { rid: 2 }));
+    const first = (await screen.findByText('first.iso')).closest<HTMLElement>('[data-hash]')!;
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    const sheet = await screen.findByRole('region', { name: /details/i });
+    sheet.querySelector<HTMLElement>('[role="radio"]')!.focus();
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('region', { name: /details/i })).toBeNull();
+    expect(first).toHaveFocus();
+    unmount();
+  });
+
+  it('returns focus to the torrent when the sheet is closed or minimized with its buttons', async () => {
+    const { unmount } = renderApp(async (rid) => (rid === 0 ? full : { rid: 2 }));
+    const first = (await screen.findByText('first.iso')).closest<HTMLElement>('[data-hash]')!;
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    const sheet = await screen.findByRole('region', { name: /details/i });
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Minimize' }));
+    expect(first).toHaveFocus();
+    await userEvent.click(within(await screen.findByRole('region', { name: /details/i })).getByRole('button', { name: 'Close' }));
+    expect(first).toHaveFocus();
     unmount();
   });
 

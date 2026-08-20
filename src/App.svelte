@@ -14,6 +14,7 @@
   import FilterBar from './features/filters/FilterBar.svelte';
   import Login from './features/login/Login.svelte';
   import TorrentList from './features/list/TorrentList.svelte';
+  import { focusRow } from './features/list/focus-row';
   import TableView from './features/table/TableView.svelte';
   import ActionBar from './features/shell/ActionBar.svelte';
   import { isButtonTarget, isTypingTarget, keyCommand } from './features/shell/keyboard';
@@ -147,7 +148,10 @@
   function focusFirstRow(): boolean {
     selection.focus = null;
     const hash = selection.moveFocus(1, false, viewOrder(app));
-    if (hash) reveal(hash);
+    if (hash) {
+      reveal(hash);
+      focusRow(hash);
+    }
     leftSearch = hash !== null;
     return leftSearch;
   }
@@ -167,7 +171,11 @@
       else if (list.filters.search) list.setFilters({ search: '' });
       else if (list.searchOpen) list.closeSearch();
       else if (selection.mode) selection.exit();
-      else if (details.sheet !== 'closed') details.close();
+      else if (details.sheet !== 'closed') {
+        const hash = details.hash;
+        details.close();
+        if (hash) focusRow(hash);
+      }
       else selection.clear();
       return;
     }
@@ -180,8 +188,11 @@
       case 'extend-next':
       case 'extend-previous': {
         const hash = selection.moveFocus(command.endsWith('next') ? 1 : -1, command.startsWith('extend'), viewOrder(app));
-        if (hash) reveal(hash);
-        if (hash) details.show(hash);
+        if (hash) {
+          reveal(hash);
+          focusRow(hash);
+          details.show(hash);
+        }
         break;
       }
       case 'toggle':
@@ -232,6 +243,11 @@
     }
   }
 
+  // The keyboard ring marks the row arrows move from; it goes once focus is somewhere else.
+  function onfocusin(event: FocusEvent) {
+    if (!(event.target instanceof Element && event.target.closest('[data-hash]'))) selection.keyboard = false;
+  }
+
   let dragging = $state(false);
   let dragDepth = 0;
   const carriesTorrents = (data: DataTransfer | null) => !!data && (data.types.includes('Files') || data.types.includes('text/uri-list'));
@@ -280,7 +296,7 @@
   }
 </script>
 
-<svelte:window onkeydown={handleKey} bind:innerHeight={viewportHeight} {onpaste} {ondragenter} {ondragover} {ondragleave} {ondrop} />
+<svelte:window onkeydown={handleKey} {onfocusin} bind:innerHeight={viewportHeight} {onpaste} {ondragenter} {ondragover} {ondragleave} {ondrop} />
 
 {#if session.loaded}
   <div class="window" inert={session.connection === 'login' || dialogs.isOpen}>

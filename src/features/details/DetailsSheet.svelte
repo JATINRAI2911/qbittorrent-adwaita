@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { focusRow } from '../list/focus-row';
   import { DURATION, fade } from '../../ui/adw/motion';
   import { getAppContext, menuContext } from '../../app-context';
   import { needsStart } from '../../lib/torrent-state';
@@ -21,6 +22,13 @@
   const status = $derived(t ? [...describeRow(t).map((s) => s.text), etaText(t)].filter(Boolean).join(' - ') : '');
   const stopped = $derived(t ? needsStart(t) : false);
   const tabs = $derived(DETAIL_TABS.map((tab) => (tab.value === 'trackers' && t?.has_tracker_error ? { ...tab, badge: 'has errors' } : tab)));
+
+  // Closing or minimizing hands focus back to the torrent's row instead of dropping it to the page.
+  function back(change: () => void) {
+    const hash = details.hash;
+    change();
+    if (hash) focusRow(hash);
+  }
 </script>
 
 {#if t && details.sheet !== 'closed'}
@@ -38,7 +46,7 @@
       </button>
       <Button variant="flat" circular icon={stopped ? 'play' : 'pause'} title={stopped ? 'Start' : 'Stop'} onclick={() => void app.commands.toggle([t])} />
       <Button variant="flat" icon="pan-up" title="Expand" onclick={() => details.expand()} />
-      <Button variant="flat" icon="close" title="Close" onclick={() => details.close()} />
+      <Button variant="flat" icon="close" title="Close" onclick={() => back(() => details.close())} />
     {/snippet}
 
     {#snippet head()}
@@ -50,8 +58,8 @@
         </div>
         <Button icon={stopped ? 'play' : 'pause'} label={stopped ? 'Start' : 'Stop'} onclick={() => void app.commands.toggle([t])} />
         <Button variant="flat" icon="view-more" title="More" haspopup="menu" onclick={(event) => app.popovers.toggleMenu(torrentMenu([t], menuContext(app)), event.currentTarget as HTMLElement, 'end')} />
-        <Button variant="flat" icon="pan-down" title="Minimize" onclick={() => details.minimize()} />
-        <Button variant="flat" icon="close" title="Close" onclick={() => details.close()} />
+        <Button variant="flat" icon="pan-down" title="Minimize" onclick={() => back(() => details.minimize())} />
+        <Button variant="flat" icon="close" title="Close" onclick={() => back(() => details.close())} />
       </div>
       <div class="sheet-tabs"><ToggleGroup label="Details sections" options={tabs} value={details.tab} onchange={(tab) => details.setTab(tab)} /></div>
     {/snippet}
