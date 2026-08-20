@@ -1,5 +1,5 @@
 <script lang="ts">
-  import pkg from '../../../package.json';
+  import { version as uiVersion } from '../../../package.json';
   import type { BuildInfo } from '../../api/app';
   import { getAppContext } from '../../app-context';
   import Dialog from '../../ui/adw/Dialog.svelte';
@@ -31,7 +31,7 @@
   </div>
   <div class="boxed-list">
     <div class="row"><span class="title">Web API</span><span class="dimmed numeric">{webapi || '–'}</span></div>
-    <div class="row"><span class="title">Web UI</span><span class="dimmed">Adwaita {pkg.version}</span></div>
+    <div class="row"><span class="title">Web UI</span><span class="dimmed">Adwaita {uiVersion}</span></div>
   </div>
   {#if build}
     <section class="pref-group" aria-label="Build">
