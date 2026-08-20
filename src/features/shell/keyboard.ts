@@ -30,7 +30,7 @@ export interface KeyInput {
 }
 
 /** Commands that must run once per press: holding Space, Delete or F2 should not repeat them. */
-const ONCE: readonly KeyCommand[] = ['toggle', 'delete', 'rename'];
+const ONCE: readonly KeyCommand[] = ['toggle', 'delete', 'rename', 'escape'];
 
 /** Ctrl means Cmd on macOS. */
 export function keyCommand(event: KeyInput, context: { typing: boolean; onButton: boolean }): KeyCommand | null {

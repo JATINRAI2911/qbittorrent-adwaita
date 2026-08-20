@@ -45,6 +45,8 @@ describe('keyCommand', () => {
   it('does not repeat toggle, delete or rename while the key is held', () => {
     for (const k of [' ', 'Delete', 'Backspace', 'F2']) expect(keyCommand(key(k, { repeat: true }), free)).toBeNull();
     expect(keyCommand(key('ArrowDown', { repeat: true }), free)).toBe('focus-next');
+    // A held Esc would otherwise walk the whole cascade (menu, dialog, search, selection, sheet).
+    expect(keyCommand(key('Escape', { repeat: true }), free)).toBeNull();
   });
 
   it('ignores everything but Escape while typing', () => {
