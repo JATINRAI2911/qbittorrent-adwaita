@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { SvelteSet } from 'svelte/reactivity';
   import type { TorrentFile } from '../../api/details';
   import { getAppContext } from '../../app-context';
@@ -32,6 +33,18 @@
     virtual ? virtualWindow({ scrollTop, viewportHeight: viewport, rowHeight: ROW, count: rows.length }) : { start: 0, end: rows.length, offset: 0, total: 0 },
   );
   const shown = $derived(virtual ? rows.slice(win.start, win.end) : rows);
+
+  // Before rows leave the window: a focused one would take focus down with it (to the page, where
+  // Space starts or stops the torrent), so the list itself takes focus instead.
+  $effect.pre(() => {
+    const { start, end } = win;
+    untrack(() => {
+      const row = document.activeElement?.closest<HTMLElement>('[role="listitem"][aria-posinset]');
+      if (!list || !row || !list.contains(row)) return;
+      const index = Number(row.getAttribute('aria-posinset')) - 1;
+      if (index < start || index >= end) list.focus({ preventScroll: true });
+    });
+  });
 
   $effect(() => {
     const el = list;
@@ -115,7 +128,7 @@
       </div>
       {#if files.length > 20 || query}<div class="files-filter"><SearchEntry label="Filter files" placeholder="Filter files" bind:value={query} /></div>{/if}
     </div>
-    <div class="boxed-list" role="list" aria-label="Files" bind:this={list}>
+    <div class="boxed-list" role="list" aria-label="Files" tabindex="-1" bind:this={list}>
       {#if win.offset > 0}<div class="files-spacer" style:height="{win.offset}px" aria-hidden="true"></div>{/if}
       {#each shown as node, i (node.path)}
         <div class="row file-row" role="listitem" aria-setsize={rows.length} aria-posinset={win.start + i + 1} style:--depth={node.depth}>

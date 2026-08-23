@@ -97,10 +97,14 @@ describe('FilesTab', () => {
     expect(items()[0]).toHaveAttribute('aria-setsize', '3001'); // the folder and its 3,000 files
     expect(items()[0]).toHaveAttribute('aria-posinset', '1');
 
+    // A focused row about to scroll out of the window hands focus to the list, not to the page
+    // (where Space would start or stop the torrent).
+    screen.getByRole('button', { name: 'Priority of part-0000.bin: Normal' }).focus();
     Object.defineProperty(scroller, 'scrollTop', { value: 48 * 1500, configurable: true });
     scroller.dispatchEvent(new Event('scroll'));
     await Promise.resolve();
     expect(screen.queryByText('part-0000.bin')).toBeNull();
+    expect(list).toHaveFocus();
     const row = screen.getByText('part-1500.bin').closest('[role="listitem"]')!;
     expect(row).toHaveAttribute('aria-posinset', '1502');
     await userEvent.click(within(row as HTMLElement).getByRole('checkbox', { name: 'Download part-1500.bin' }));
