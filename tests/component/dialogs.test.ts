@@ -6,6 +6,7 @@ import AlertDialog from '../../src/ui/adw/AlertDialog.svelte';
 import Dialog from '../../src/ui/adw/Dialog.svelte';
 import DialogHost from '../../src/ui/adw/DialogHost.svelte';
 import { DialogStore } from '../../src/ui/adw/dialogs.svelte';
+import ComboDialog from '../fixtures/ComboDialog.svelte';
 
 const field = createRawSnippet(() => ({ render: () => '<input aria-label="Name" />' }));
 
@@ -111,4 +112,32 @@ describe('DialogHost', () => {
     await tick();
     expect(opener).toHaveFocus();
   });
+
+  it('keeps Tab inside when it leaves an open combo list that is the last control', async () => {
+    const store = new DialogStore();
+    render(DialogHost, { store });
+    const outside = document.body.appendChild(Object.assign(document.createElement('button'), { textContent: 'Outside' }));
+    onTestFinished(() => outside.remove());
+    store.open(ComboDialog, {});
+    await tick();
+    await userEvent.click(screen.getByRole('combobox', { name: /Fruit/ }));
+    expect(screen.getByRole('option', { name: 'Apple' })).toHaveFocus();
+    await userEvent.tab();
+    expect(document.querySelector('.dialog-host')!.contains(document.activeElement)).toBe(true);
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
+  });
+
+  it('brings Tab back into the dialog when focus fell outside it', async () => {
+    const store = new DialogStore();
+    render(DialogHost, { store });
+    const before = document.body.insertBefore(Object.assign(document.createElement('button'), { textContent: 'Before' }), document.body.firstChild);
+    onTestFinished(() => before.remove());
+    store.open(Dialog, { title: 'Statistics', children: field });
+    await tick();
+    (document.activeElement as HTMLElement).blur();
+    await userEvent.tab();
+    expect(before).not.toHaveFocus();
+    expect(document.querySelector('.dialog-host')!.contains(document.activeElement)).toBe(true);
+  });
 });
+
