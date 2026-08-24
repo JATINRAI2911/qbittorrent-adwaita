@@ -50,7 +50,7 @@
             { label: 'About qBittorrent', action: () => app.openers.about() },
           ],
           [
-            { label: 'Log Out', action: () => void app.session.logout().then(() => app.selection.exit()) },
+            { label: 'Log Out', action: () => void app.session.logout().catch(() => {}).finally(() => app.selection.exit()) },
             { label: 'Quit qBittorrent…', destructive: true, action: () => app.openers.quit() },
           ],
         ],

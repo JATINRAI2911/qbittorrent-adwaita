@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { flushSync } from 'svelte';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import ActionBar from '../../src/features/shell/ActionBar.svelte';
 import MainHeader from '../../src/features/shell/MainHeader.svelte';
 import { makeAppContext, withApp } from '../fixtures/app-context';
@@ -27,8 +27,12 @@ describe('MainHeader', () => {
     const { app } = header();
     await userEvent.click(screen.getByRole('button', { name: 'Main Menu' }));
     const logOut = app.popovers.current!.model.sections.flat().find((i) => i.label === 'Log Out')!;
+    app.selection.enter();
+    app.session.logout.mockRejectedValueOnce(new Error('offline'));
     logOut.action!();
     expect(app.session.logout).toHaveBeenCalled();
+    // Selection mode ends even when the logout request fails.
+    await vi.waitFor(() => expect(app.selection.mode).toBe(false));
     await userEvent.click(screen.getByRole('button', { name: 'Select' }));
     expect(app.selection.mode).toBe(true);
   });
