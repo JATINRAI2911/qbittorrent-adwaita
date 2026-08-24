@@ -1,3 +1,4 @@
+import { normalizeFolder } from '../lib/path';
 import type { CategoryDownloadPath, QueueMove, ShareLimits, TorrentApi } from '../api/torrents';
 import type { Torrent } from '../api/types';
 import { safeFilename } from '../lib/download';
@@ -25,6 +26,8 @@ export interface CommandDeps {
   resync(): void;
   copyText(text: string): Promise<void>;
   download(blob: Blob, filename: string): void;
+  /** Pause between downloads (browsers block a burst of them); a timer by default. */
+  wait?: (ms: number) => Promise<void>;
 }
 
 const hashesOf = (ts: readonly Torrent[]) => ts.map((t) => t.hash);
@@ -131,7 +134,12 @@ export function createTorrentCommands(deps: CommandDeps) {
           request: () => api.stop(hashes),
           success: `Stopped ${what(targets)}`,
           failure: 'Couldn’t stop',
-          undo: undoTo(targets, RUN_KEYS, before, () => api.start(hashes)),
+          // Force-started torrents come back forced; the rest are simply started again.
+          undo: undoTo(targets, RUN_KEYS, before, () => {
+            const forced = hashesOf(targets.filter((t) => t.force_start));
+            const plain = hashesOf(targets.filter((t) => !t.force_start));
+            return Promise.all([forced.length ? api.setForceStart(forced, true) : null, plain.length ? api.start(plain) : null]);
+          }),
         },
         toast,
       );
@@ -271,8 +279,8 @@ export function createTorrentCommands(deps: CommandDeps) {
     },
 
     setLocation(ts: readonly Torrent[], location: string): Promise<boolean> {
-      const path = location.trim();
-      const targets = ts.filter((t) => t.save_path !== path);
+      const path = normalizeFolder(location);
+      const targets = ts.filter((t) => normalizeFolder(t.save_path) !== path);
       if (!path || !targets.length) return Promise.resolve(false);
       const previous = groupBy(targets, (t) => t.save_path);
       const wasAuto = hashesOf(targets.filter((t) => t.auto_tmm));
@@ -413,14 +421,17 @@ export function createTorrentCommands(deps: CommandDeps) {
     },
 
     async exportFiles(ts: readonly Torrent[]): Promise<boolean> {
-      for (const t of ts) {
+      const wait = deps.wait ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+      for (const [i, t] of ts.entries()) {
         try {
+          if (i > 0) await wait(400);
           deps.download(await api.exportTorrent(t.hash), `${safeFilename(t.name)}.torrent`);
         } catch (error) {
           toast.show({ title: `Couldn’t export “${t.name}”: ${errorText(error)}` });
           return false;
         }
       }
+      toast.show({ title: ts.length === 1 ? `Exported “${safeFilename(ts[0]!.name)}.torrent”` : `Exported ${formatCount(ts.length)} .torrent files` });
       return true;
     },
 

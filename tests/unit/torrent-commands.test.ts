@@ -105,6 +105,16 @@ describe('torrents that need attention', () => {
 });
 
 describe('force start', () => {
+  it('undo of Stop forces a force-started torrent again instead of resuming it unforced', async () => {
+    const { api, commands, last } = setup();
+    const forced = makeTorrent({ hash: 'f', state: 'forcedUP', progress: 1, force_start: true });
+    const plain = makeTorrent({ hash: 'p', state: 'uploading', progress: 1 });
+    await commands.stop([forced, plain]);
+    last().undo!();
+    await vi.waitFor(() => expect(api.setForceStart).toHaveBeenCalledWith(['f'], true));
+    expect(api.start).toHaveBeenCalledWith(['p']);
+  });
+
   it('undo stops torrents that were stopped, and un-forces ones that were running', async () => {
     // qBittorrent's setForceStart(false) starts a torrent in auto-managed mode; it never stops it.
     const { api, commands, last } = setup();
@@ -294,6 +304,17 @@ describe('copy and export', () => {
     const { commands, last } = setup({ copyText: vi.fn(async () => Promise.reject(new Error('Clipboard unavailable'))) });
     await commands.copy([makeTorrent({ name: 'x' })], 'name');
     expect(last().title).toBe('Couldn’t copy to the clipboard');
+  });
+
+  it('says how many it exported, and spaces several downloads so the browser doesn’t block them', async () => {
+    const wait = vi.fn(async () => {});
+    const { commands, deps, last } = setup({ wait });
+    await commands.exportFiles([makeTorrent({ name: 'a' }), makeTorrent({ name: 'b' }), makeTorrent({ name: 'c' })]);
+    expect(deps.download).toHaveBeenCalledTimes(3);
+    expect(wait).toHaveBeenCalledTimes(2);
+    expect(last().title).toBe('Exported 3 .torrent files');
+    await commands.exportFiles([makeTorrent({ name: 'Ubuntu' })]);
+    expect(last().title).toBe('Exported “Ubuntu.torrent”');
   });
 
   it('downloads one .torrent per torrent with a safe filename', async () => {
