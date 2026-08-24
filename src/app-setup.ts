@@ -6,6 +6,7 @@ import { logApi, type LogApi } from './api/log';
 import { clientdataApi, type ClientDataApi } from './api/clientdata';
 import { detailsApi, type DetailsApi } from './api/details';
 import type { TorrentApi } from './api/torrents';
+import type { Torrent } from './api/types';
 import type { AppContext } from './app-context';
 import { createAddCommands } from './commands/add-commands';
 import { createGlobalCommands } from './commands/global-commands';
@@ -87,7 +88,10 @@ export function createApp(
     details: detailModel,
     detailCommands,
     commands,
-    openers: createDialogOpeners(dialogs, commands, { listDirectories: (dir) => appClient.directoryContent(dir), shutdown: () => appClient.shutdown(), toast: toasts }),
+    openers: createDialogOpeners(dialogs, commands, { listDirectories: (dir) => appClient.directoryContent(dir), shutdown: () => appClient.shutdown(),
+      toast: toasts,
+      current: (hashes) => hashes.map((hash) => session.torrents.get(hash)).filter((t): t is Torrent => t !== undefined),
+    }),
     popovers: new PopoverStore(),
     dialogs,
     toasts,

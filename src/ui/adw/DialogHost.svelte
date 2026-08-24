@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import type { DialogStore } from './dialogs.svelte';
   import { DURATION, fade } from './motion';
 
@@ -42,6 +43,11 @@
     event.preventDefault();
     target?.focus();
   }
+
+  // Dialogs whose subject went away close by themselves.
+  $effect(() => {
+    for (const entry of store.stack) if (entry.closeWhen?.()) untrack(() => store.close(entry.id));
+  });
 
   const topHost = () => [...document.querySelectorAll<HTMLElement>('.dialog-host')].findLast((el) => !el.inert && !el.hasAttribute('aria-hidden'));
 

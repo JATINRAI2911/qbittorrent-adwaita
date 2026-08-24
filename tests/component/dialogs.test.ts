@@ -7,6 +7,7 @@ import Dialog from '../../src/ui/adw/Dialog.svelte';
 import DialogHost from '../../src/ui/adw/DialogHost.svelte';
 import { DialogStore } from '../../src/ui/adw/dialogs.svelte';
 import ComboDialog from '../fixtures/ComboDialog.svelte';
+import { reactive } from '../fixtures/reactive.svelte';
 
 const field = createRawSnippet(() => ({ render: () => '<input aria-label="Name" />' }));
 
@@ -138,6 +139,20 @@ describe('DialogHost', () => {
     await userEvent.tab();
     expect(before).not.toHaveFocus();
     expect(document.querySelector('.dialog-host')!.contains(document.activeElement)).toBe(true);
+  });
+
+  it('closes a dialog by itself when its closeWhen turns true', async () => {
+    const store = new DialogStore();
+    render(DialogHost, { store });
+    const gone = reactive({ value: false });
+    const onclose = vi.fn();
+    store.open(Dialog, { title: 'Move', children: field }, onclose, { closeWhen: () => gone.value });
+    await tick();
+    expect(store.isOpen).toBe(true);
+    gone.value = true;
+    await tick();
+    expect(store.isOpen).toBe(false);
+    expect(onclose).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -55,32 +55,42 @@ export function createDialogOpeners(
     listDirectories?: (dir: string) => Promise<string[]>;
     shutdown?: () => Promise<void>;
     toast?: { show(toast: { title: string }): void };
+    /** The torrents with these hashes as they are now (missing ones left out); reactive. */
+    current?: (hashes: string[]) => Torrent[];
   } = {},
 ): DialogOpeners {
+  // A dialog shows its torrents as they were when it opened, but acts on them as they are when
+  // confirmed, and closes by itself once none of them exist any more.
+  const now = (torrents: readonly Torrent[]): Torrent[] => (extra.current ? extra.current(torrents.map((t) => t.hash)) : [...torrents]);
+  const act = (torrents: readonly Torrent[], run: (live: Torrent[]) => Promise<unknown>) => {
+    const live = now(torrents);
+    if (live.length) void run(live);
+  };
+  const whileAny = (torrents: readonly Torrent[]) => ({ closeWhen: extra.current ? () => now(torrents).length === 0 : undefined });
   return {
     add(initial = {}) {
       dialogs.open(AddDialog, { text: initial.text ?? '', files: initial.files ?? [] });
     },
     confirmDelete(torrents) {
       if (!torrents.length) return;
-      dialogs.open(DeleteDialog, { torrents, onconfirm: (deleteFiles: boolean) => void commands.remove(torrents, deleteFiles) });
+      dialogs.open(DeleteDialog, { torrents, onconfirm: (deleteFiles: boolean) => act(torrents, (live) => commands.remove(live, deleteFiles)) }, undefined, whileAny(torrents));
     },
     move(torrents) {
       if (!torrents.length) return;
-      dialogs.open(MoveDialog, { torrents, list: extra.listDirectories, onconfirm: (location: string) => void commands.setLocation(torrents, location) });
+      dialogs.open(MoveDialog, { torrents, list: extra.listDirectories, onconfirm: (location: string) => act(torrents, (live) => commands.setLocation(live, location)) }, undefined, whileAny(torrents));
     },
     rename(torrent) {
-      dialogs.open(RenameDialog, { torrent, onconfirm: (name: string) => void commands.rename(torrent, name) });
+      dialogs.open(RenameDialog, { torrent, onconfirm: (name: string) => act([torrent], ([live]) => commands.rename(live!, name)) }, undefined, whileAny([torrent]));
     },
     limits(torrents) {
       if (!torrents.length) return;
-      dialogs.open(LimitsDialog, { torrents, onconfirm: (changes) => void commands.setLimits(torrents, changes) });
+      dialogs.open(LimitsDialog, { torrents, onconfirm: (changes) => act(torrents, (live) => commands.setLimits(live, changes)) }, undefined, whileAny(torrents));
     },
     newCategory(torrents) {
       dialogs.open(CategoryDialog, {
         list: extra.listDirectories,
         onconfirm: async ({ name, savePath, download }) => {
-          if ((await commands.createCategory(name, savePath, download)) && torrents.length) await commands.setCategory(torrents, name);
+          if ((await commands.createCategory(name, savePath, download)) && now(torrents).length) await commands.setCategory(now(torrents), name);
         },
       });
     },
@@ -143,7 +153,7 @@ export function createDialogOpeners(
         confirmLabel: 'Create',
         forbidComma: true,
         onconfirm: async (name: string) => {
-          if ((await commands.createTag(name)) && torrents.length) await commands.toggleTag(torrents, name);
+          if ((await commands.createTag(name)) && now(torrents).length) await commands.toggleTag(now(torrents), name);
         },
       });
     },
