@@ -41,7 +41,10 @@ describe('MoveDialog', () => {
     expect(screen.getByRole('button', { name: 'Move' })).toBeDisabled();
     expect(screen.getByText(/Automatic management will be turned off/)).toBeInTheDocument();
     await userEvent.clear(input);
-    await userEvent.type(input, '/new{Enter}');
+    await userEvent.type(input, '/old/');
+    expect(screen.getByRole('button', { name: 'Move' })).toBeDisabled(); // a trailing slash is the same folder
+    await userEvent.clear(input);
+    await userEvent.type(input, '/new//{Enter}');
     expect(onconfirm).toHaveBeenCalledWith('/new');
   });
 });

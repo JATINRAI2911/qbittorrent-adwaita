@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { normalizeFolder } from '../../lib/path';
   import { untrack } from 'svelte';
   import type { Torrent } from '../../api/types';
   import { formatCount } from '../../lib/format';
@@ -17,7 +18,9 @@
 
   // Starts from the current folder; later syncs must not overwrite what the user types.
   let location = $state(untrack(() => torrents[0]?.save_path ?? ''));
-  const unchanged = $derived(location.trim() === '' || torrents.every((t) => t.save_path === location.trim()));
+  // "/data/" is the same folder as "/data".
+  const target = $derived(normalizeFolder(location));
+  const unchanged = $derived(target === '' || torrents.every((t) => normalizeFolder(t.save_path) === target));
   const noteId = $props.id();
   const turnsOffAuto = $derived(torrents.some((t) => t.auto_tmm));
 </script>
@@ -28,7 +31,7 @@
   confirmDisabled={unchanged}
   {close}
   onconfirm={() => {
-    onconfirm(location.trim());
+    onconfirm(target);
     close();
   }}
 >
