@@ -152,6 +152,18 @@ describe('Session', () => {
     session.stop();
   });
 
+  it('does not bring a forgotten torrent back from a sync that predates its removal', async () => {
+    const maindata = vi.fn<(rid: number) => Promise<MaindataResponse>>().mockResolvedValueOnce(full).mockResolvedValueOnce({ rid: 2, torrents: { aaa: { dlspeed: 5 } } }).mockResolvedValue({ rid: 3, torrents_removed: ['aaa'] });
+    const session = new Session(deps({ maindata }));
+    session.start();
+    await vi.advanceTimersByTimeAsync(0);
+    session.forget(['aaa']);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(session.torrents.has('aaa')).toBe(false);
+    expect(session.rid).toBe(2); // not treated as a desync
+    session.stop();
+  });
+
   it('resyncs from scratch on request', async () => {
     const maindata = vi.fn(async (_rid: number) => full);
     const session = new Session(deps({ maindata }));

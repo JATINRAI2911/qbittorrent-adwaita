@@ -19,6 +19,8 @@ export interface SyncState {
   tags: Set<string>;
   trackers: Map<string, string[]>;
   server: Partial<ServerState>;
+  /** Torrents dropped locally ahead of the server (just deleted): patches for them are ignored until it confirms. */
+  forgotten?: Set<string>;
 }
 
 export interface MergeSummary {
@@ -64,7 +66,10 @@ export function applyMaindata(
     for (const key of Object.keys(state.server)) delete (state.server as Record<string, unknown>)[key];
   }
 
+  if (full) state.forgotten?.clear(); // the full list is the truth
+  for (const hash of response.torrents_removed ?? []) state.forgotten?.delete(hash);
   for (const [hash, patch] of Object.entries(response.torrents ?? {})) {
+    if (state.forgotten?.has(hash)) continue;
     const existing = state.torrents.get(hash);
     if (existing) {
       Object.assign(existing, patch);

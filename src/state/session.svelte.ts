@@ -37,6 +37,8 @@ export class Session implements SyncState {
   readonly categories = new SvelteMap<string, Category>();
   readonly tags = new SvelteSet<string>();
   readonly trackers = new SvelteMap<string, string[]>();
+  /** See SyncState.forgotten. */
+  readonly forgotten = new Set<string>();
   /** The last minute of global speeds, one sample per sync. */
   readonly speeds = new SpeedHistory();
 
@@ -104,7 +106,10 @@ export class Session implements SyncState {
 
   /** Drop torrents locally (e.g. right after the server confirmed their deletion). */
   forget(hashes: readonly string[]): void {
-    for (const hash of hashes) this.torrents.delete(hash);
+    for (const hash of hashes) {
+      this.torrents.delete(hash);
+      this.forgotten.add(hash);
+    }
   }
 
   async login(username: string, password: string): Promise<LoginOutcome> {
