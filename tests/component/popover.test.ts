@@ -10,6 +10,25 @@ import PanelProbe from '../fixtures/PanelProbe.svelte';
 const body = createRawSnippet(() => ({ render: () => '<p>Popover body</p>' }));
 
 describe('Popover', () => {
+  it('follows the page when it scrolls: menus at a point close, anchored ones re-place', () => {
+    const list = document.body.appendChild(document.createElement('div'));
+    const anchor = list.appendChild(document.createElement('button'));
+    const rect = vi.spyOn(anchor, 'getBoundingClientRect');
+    const atPoint = vi.fn();
+    const anchored = vi.fn();
+    render(Popover, { props: { anchor: { x: 10, y: 10 }, onclose: atPoint, children: body } });
+    render(Popover, { props: { anchor: { element: anchor }, onclose: anchored, children: body } });
+    const before = rect.mock.calls.length;
+    list.dispatchEvent(new Event('scroll'));
+    expect(atPoint).toHaveBeenCalledTimes(1);
+    expect(anchored).not.toHaveBeenCalled();
+    expect(rect.mock.calls.length).toBeGreaterThan(before);
+    // Scrolling inside a popover (a long menu) changes nothing.
+    screen.getAllByText('Popover body')[0]!.closest('.popover')!.querySelector('.contents')!.dispatchEvent(new Event('scroll'));
+    expect(atPoint).toHaveBeenCalledTimes(1);
+    list.remove();
+  });
+
   it('draws anchored popovers as plain cards, without an arrow', () => {
     const anchor = document.createElement('button');
     document.body.appendChild(anchor);

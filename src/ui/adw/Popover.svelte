@@ -52,6 +52,18 @@
     document.addEventListener('pointerdown', onPointerDown, true);
     return () => document.removeEventListener('pointerdown', onPointerDown, true);
   });
+
+  // When something under it scrolls: a menu opened at a point (a context menu) closes, since what it
+  // was for has moved; one anchored to a control moves with it. Scrolling the popover itself is fine.
+  $effect(() => {
+    const onScroll = (event: Event) => {
+      if (event.target instanceof Node && element.contains(event.target)) return;
+      if ('element' in anchor) place();
+      else onclose();
+    };
+    document.addEventListener('scroll', onScroll, true);
+    return () => document.removeEventListener('scroll', onScroll, true);
+  });
 </script>
 
 <div
