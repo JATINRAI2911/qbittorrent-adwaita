@@ -43,11 +43,13 @@
   }
 </script>
 
-<div class="facet" role="menu" tabindex="-1" aria-label={title} {onkeydown}>
+<!-- The arrow keys work from the search entry too, so the handler sits on the whole popover. -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="facet" {onkeydown}>
   {#if searchable}
     <div class="facet-search"><SearchEntry label="Search {title}" placeholder="Search" bind:value={query} bind:input /></div>
   {/if}
-  <div class="facet-list" bind:this={list}>
+  <div class="facet-list" role="menu" aria-label={title} bind:this={list}>
     {#if !needle}
       <button type="button" class="menu-item" role="menuitemradio" aria-checked={selected === null} onclick={() => choose(null)}>
         <span class="menu-check">{#if selected === null}<Icon name="check" />{/if}</span><span class="menu-label">{allLabel}</span>

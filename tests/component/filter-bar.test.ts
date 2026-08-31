@@ -30,6 +30,9 @@ describe('FacetPopover', () => {
     const onselect = vi.fn();
     render(FacetPopover, { title: 'Category', allLabel: 'All Categories', items: items(12), selected: null, onselect, close: vi.fn() });
     const search = screen.getByRole('searchbox', { name: 'Search Category' });
+    // The search entry sits beside the menu, not inside it (menus hold only menu items).
+    expect(search.closest('[role="menu"]')).toBeNull();
+    expect(screen.getByRole('menu', { name: 'Category' })).toContainElement(screen.getAllByRole('menuitemradio')[0]!);
     await vi.waitFor(() => expect(search).toHaveFocus());
     await userEvent.type(search, '11');
     expect(screen.getAllByRole('menuitemradio').map((o) => o.textContent?.trim().split(/\s+/).slice(0, 2).join(' '))).toEqual(['Cat 11']);
