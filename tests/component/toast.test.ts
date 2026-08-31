@@ -43,6 +43,20 @@ describe('ToastStore', () => {
 });
 
 describe('ToastOverlay', () => {
+  it('keeps one live region mounted, so each new toast is announced as it is added', () => {
+    const store = new ToastStore();
+    render(ToastOverlay, { store });
+    const region = screen.getByRole('status');
+    expect(region).toBeEmptyDOMElement();
+    store.show({ title: 'Stopped “ubuntu.iso”' });
+    flushSync();
+    expect(screen.getByRole('status')).toBe(region);
+    expect(region).toHaveTextContent('Stopped “ubuntu.iso”');
+    store.show({ title: 'Started “ubuntu.iso”' });
+    flushSync();
+    expect(screen.getByRole('status')).toBe(region);
+  });
+
   it('behind a dialog, still announces the toast but keeps its buttons out of the Tab order', () => {
     const store = new ToastStore();
     render(ToastOverlay, { store, behindDialog: true });
@@ -64,11 +78,11 @@ describe('ToastOverlay', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Stopped “ubuntu.iso”');
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
     expect(undo).toHaveBeenCalled();
-    expect(screen.queryByRole('status')).toBeNull();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
 
     store.show({ title: 'Copied name' });
     flushSync();
     await userEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
-    expect(screen.queryByRole('status')).toBeNull();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 });
