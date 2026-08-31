@@ -128,6 +128,65 @@ describe('DetailsModel polling', () => {
     model.dispose();
   });
 
+  it('asks for all peers again (rid 0) after switching torrents', async () => {
+    const { api, model, advance } = setup();
+    api.peers.mockResolvedValue({ rid: 9, full_update: true, peers: {} });
+    model.open('a');
+    model.setTab('peers');
+    await advance(0);
+    await advance(2000);
+    expect(api.peers).toHaveBeenLastCalledWith('a', 9);
+    model.show('b');
+    await advance(500);
+    expect(api.peers).toHaveBeenLastCalledWith('b', 0);
+    model.dispose();
+  });
+
+  it('never lands a late response for the previous tab', async () => {
+    const { api, model, advance } = setup();
+    let resolveFiles!: (value: never) => void;
+    api.files.mockImplementationOnce(() => new Promise((r) => (resolveFiles = r)));
+    model.open('h');
+    model.setTab('files');
+    await advance(0);
+    model.setTab('trackers');
+    await advance(0);
+    resolveFiles([{ index: 0, name: 'late.bin' }] as never);
+    await advance(0);
+    expect(model.files).toBeNull();
+    model.dispose();
+  });
+
+  it('waits for arrow keys to settle before fetching another torrent', async () => {
+    const { api, model, advance } = setup();
+    model.open('a');
+    await advance(0);
+    expect(api.properties).toHaveBeenCalledTimes(1);
+    model.show('b');
+    model.show('c');
+    model.show('d');
+    expect(model.hash).toBe('d'); // the sheet follows at once…
+    await advance(100);
+    expect(api.properties).toHaveBeenCalledTimes(1); // …but nothing is fetched mid-run
+    await advance(200);
+    expect(api.properties).toHaveBeenCalledTimes(2);
+    expect(api.properties).toHaveBeenLastCalledWith('d');
+    model.dispose();
+  });
+
+  it('stops polling while hidden by selection mode', async () => {
+    const { api, model, advance } = setup();
+    model.open('h');
+    await advance(0);
+    model.setSuspended(true);
+    await advance(10_000);
+    expect(api.properties).toHaveBeenCalledTimes(1);
+    model.setSuspended(false);
+    await advance(0);
+    expect(api.properties).toHaveBeenCalledTimes(2);
+    model.dispose();
+  });
+
   it('never lands a late response for a previous torrent or tab', async () => {
     const { api, model, advance } = setup();
     let resolveOld!: (value: never) => void;

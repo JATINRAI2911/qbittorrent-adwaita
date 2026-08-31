@@ -32,6 +32,9 @@ function reactivePeer(peer: Peer): Peer {
 }
 
 /** The details sheet: which torrent, which state, which tab - and the visible tab's polled data. */
+/** How long keyboard focus must rest on a torrent before the sheet fetches it. */
+const SHOW_SETTLE_MS = 250;
+
 export class DetailsModel {
   hash = $state<string | null>(null);
   sheet = $state<SheetState>('closed');
@@ -53,6 +56,9 @@ export class DetailsModel {
   #filesEpoch = 0;
   #piecesAt = Number.NEGATIVE_INFINITY;
 
+  #suspended = false;
+  #settling: ReturnType<typeof setTimeout> | undefined;
+
   constructor(deps: DetailsDeps) {
     this.#deps = deps;
     this.#refresher = new Refresher((isCurrent) => this.#load(isCurrent), {
@@ -63,6 +69,7 @@ export class DetailsModel {
   }
 
   open(hash: string): void {
+    this.#settled();
     if (hash !== this.hash) this.#reset(hash);
     this.sheet = 'open';
     this.#sync();
@@ -72,6 +79,19 @@ export class DetailsModel {
   show(hash: string): void {
     if (this.sheet === 'closed' || hash === this.hash) return;
     this.#reset(hash);
+    // Arrowing through the list switches torrents quickly: fetch once the focus rests.
+    this.#settled();
+    this.#refresher.stop();
+    this.#settling = setTimeout(() => {
+      this.#settling = undefined;
+      this.#sync();
+    }, SHOW_SETTLE_MS);
+  }
+
+  /** While selection mode hides the sheet, nothing is polled; it resumes as it was afterwards. */
+  setSuspended(suspended: boolean): void {
+    if (suspended === this.#suspended) return;
+    this.#suspended = suspended;
     this.#sync();
   }
 
@@ -88,6 +108,7 @@ export class DetailsModel {
   }
 
   close(): void {
+    this.#settled();
     this.sheet = 'closed';
     this.hash = null;
     this.#sync();
@@ -111,6 +132,7 @@ export class DetailsModel {
   }
 
   dispose(): void {
+    this.#settled();
     this.#refresher.stop();
   }
 
@@ -129,8 +151,13 @@ export class DetailsModel {
   }
 
   #sync(): void {
-    if (this.sheet === 'open' && this.hash !== null) this.#refresher.start();
+    if (this.sheet === 'open' && this.hash !== null && !this.#suspended && this.#settling === undefined) this.#refresher.start();
     else this.#refresher.stop();
+  }
+
+  #settled(): void {
+    clearTimeout(this.#settling);
+    this.#settling = undefined;
   }
 
   async #load(isCurrent: () => boolean): Promise<void> {

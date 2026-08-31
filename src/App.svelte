@@ -42,6 +42,9 @@
   const app = setAppContext(untrack(() => createApp(session, api, clientdata, undefined, detailsClient, appClient, add)));
   const { selection, list, table, prefs, details, commands, openers, popovers, dialogs, toasts, global } = app;
 
+  // Selection mode hides the details sheet: stop its polling meanwhile.
+  $effect(() => details.setSuspended(selection.mode));
+
   // The login covers everything: a menu left open would float above it.
   $effect(() => {
     if (session.connection === 'login') untrack(() => popovers.close());
