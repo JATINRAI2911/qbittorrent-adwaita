@@ -38,11 +38,18 @@ describe('Refresher', () => {
     const { refresher } = setup(task);
     refresher.start();
     refresher.pokeNow();
+    refresher.pokeNow();
     expect(task).toHaveBeenCalledTimes(1);
+    // A poke during a run isn't dropped: one more run follows as soon as it ends (after an action
+    // changed the data, the refetch must not be the run that was already under way).
     finish();
     await vi.advanceTimersByTimeAsync(0);
-    refresher.pokeNow();
     expect(task).toHaveBeenCalledTimes(2);
+    finish();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(task).toHaveBeenCalledTimes(2);
+    refresher.pokeNow();
+    expect(task).toHaveBeenCalledTimes(3);
     refresher.stop();
   });
 

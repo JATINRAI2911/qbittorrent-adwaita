@@ -15,6 +15,7 @@ export class Refresher {
   #generation = 0;
   #running = false;
   #inFlight = false;
+  #poked = false;
   #unlisten: (() => void) | undefined;
 
   constructor(
@@ -36,6 +37,7 @@ export class Refresher {
 
   stop(): void {
     this.#running = false;
+    this.#poked = false;
     this.#generation++;
     this.#inFlight = false;
     clearTimeout(this.#timer);
@@ -44,7 +46,12 @@ export class Refresher {
   }
 
   pokeNow(): void {
-    if (!this.#running || this.#inFlight) return;
+    if (!this.#running) return;
+    if (this.#inFlight) {
+      // That run may have started before whatever prompted the poke; run once more after it.
+      this.#poked = true;
+      return;
+    }
     clearTimeout(this.#timer);
     void this.#tick(this.#generation);
   }
@@ -60,7 +67,12 @@ export class Refresher {
     } finally {
       if (generation === this.#generation) {
         this.#inFlight = false;
-        this.#timer = setTimeout(() => void this.#tick(generation), this.options.intervalMs);
+        if (this.#poked) {
+          this.#poked = false;
+          void this.#tick(generation);
+        } else {
+          this.#timer = setTimeout(() => void this.#tick(generation), this.options.intervalMs);
+        }
       }
     }
   }
