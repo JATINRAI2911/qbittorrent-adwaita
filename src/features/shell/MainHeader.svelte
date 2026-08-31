@@ -11,7 +11,7 @@
   import type { MenuModel } from '../../ui/adw/menu';
   import WindowTitle from '../../ui/adw/WindowTitle.svelte';
   import StatusPopover from '../global/StatusPopover.svelte';
-  import { COLUMN_IDS, COLUMNS } from '../table/columns';
+  import { columnMenuItems } from '../table/columns';
 
   interface Props {
     torrents: ReadonlyMap<string, Torrent>;
@@ -88,13 +88,7 @@
             label: 'Columns',
             submenu: () => ({
               title: 'Columns',
-              sections: [
-                COLUMN_IDS.filter((id) => id !== 'name').map((id) => ({
-                  label: COLUMNS[id].title,
-                  checked: app.prefs.columns.includes(id),
-                  action: () => app.prefs.toggleColumn(id),
-                })),
-              ],
+              sections: [columnMenuItems(app.prefs)],
             }),
           },
         ],

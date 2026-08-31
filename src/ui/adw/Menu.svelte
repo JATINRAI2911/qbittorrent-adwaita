@@ -28,6 +28,10 @@
       stack = [...stack, item.submenu()];
       return;
     }
+    if (item.keepOpen) {
+      item.action?.();
+      return;
+    }
     onclose();
     item.action?.();
   }

@@ -1,5 +1,6 @@
 import type { Torrent, TorrentState } from '../../api/types';
 import { formatCount } from '../../lib/format';
+import type { MenuItem } from '../../ui/adw/menu';
 
 export type ColumnId = 'name' | 'status' | 'progress' | 'size' | 'down' | 'up' | 'eta' | 'seeds' | 'peers' | 'ratio' | 'category' | 'tags' | 'added';
 
@@ -107,3 +108,18 @@ const ROW_PADDING = 12;
  */
 export const gridMinWidth = (ids: readonly ColumnId[]) =>
   ids.reduce((sum, id) => sum + Number(/(\d+(?:\.\d+)?)px/.exec(COLUMNS[id].width)?.[1] ?? 0), ROW_PADDING);
+
+/**
+ * The column chooser's items. They stay open while toggling (several columns in one go), and read
+ * their checked state live, so the open menu follows each toggle.
+ */
+export function columnMenuItems(prefs: { readonly columns: readonly ColumnId[]; toggleColumn(id: ColumnId): void }): MenuItem[] {
+  return COLUMN_IDS.filter((id) => id !== 'name').map((id) => ({
+    label: COLUMNS[id].title,
+    get checked() {
+      return prefs.columns.includes(id);
+    },
+    keepOpen: true,
+    action: () => prefs.toggleColumn(id),
+  }));
+}

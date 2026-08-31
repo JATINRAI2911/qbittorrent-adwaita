@@ -5,7 +5,7 @@
   import Icon from '../../ui/adw/Icon.svelte';
   import type { MenuModel } from '../../ui/adw/menu';
   import { torrentMenu } from '../actions/torrent-menu';
-  import { COLUMN_IDS, COLUMNS, gridMinWidth, gridTemplate, type ColumnId } from './columns';
+  import { COLUMNS, columnMenuItems, gridMinWidth, gridTemplate, type ColumnId } from './columns';
   import TableRow from './TableRow.svelte';
   import { scrollToReveal, virtualWindow } from './virtual';
 
@@ -64,7 +64,7 @@
   function columnsMenu(): MenuModel {
     return {
       title: 'Columns',
-      sections: [COLUMN_IDS.filter((id) => id !== 'name').map((id) => ({ label: COLUMNS[id].title, checked: columns.includes(id), action: () => app.prefs.toggleColumn(id) }))],
+      sections: [columnMenuItems(app.prefs)],
     };
   }
 

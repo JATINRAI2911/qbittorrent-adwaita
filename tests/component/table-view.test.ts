@@ -46,9 +46,13 @@ describe('TableView', () => {
     await userEvent.pointer({ keys: '[MouseRight]', target: screen.getByRole('button', { name: 'Ratio' }) });
     const items = app.popovers.current!.model.sections.flat();
     expect(items.map((i) => i.label)).not.toContain('Name');
-    items.find((i) => i.label === 'Ratio')!.action!();
+    const ratio = items.find((i) => i.label === 'Ratio')!;
+    expect(ratio.keepOpen).toBe(true); // several columns can be toggled in one go
+    expect(ratio.checked).toBe(true);
+    ratio.action!();
     flushSync();
     expect(app.prefs.columns).not.toContain('ratio');
+    expect(ratio.checked).toBe(false); // the open menu shows the new state
     expect(screen.queryByRole('button', { name: 'Ratio' })).toBeNull();
   });
 

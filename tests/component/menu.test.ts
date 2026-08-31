@@ -90,4 +90,14 @@ describe('Menu', () => {
     expect(screen.getByRole('menuitemradio', { name: 'Name' })).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('menuitemradio', { name: 'Size' })).toHaveAttribute('aria-checked', 'false');
   });
+
+  it('stays open after a keep-open item, so several can be toggled in a row', async () => {
+    const onclose = vi.fn();
+    const action = vi.fn();
+    render(Menu, { model: { sections: [[{ label: 'Size', checked: true, keepOpen: true, action }]] }, onclose });
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Size' }));
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(onclose).not.toHaveBeenCalled();
+  });
 });
+
