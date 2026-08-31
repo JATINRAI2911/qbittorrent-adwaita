@@ -35,11 +35,12 @@ describe('FilesTab', () => {
     expect(screen.getByText('Bonus.mkv')).toBeInTheDocument();
   });
 
-  it('downloads a mixed folder completely, and skips a fully wanted one', async () => {
+  it('downloads a mixed folder completely (keeping High/Max files as they are), and skips a fully wanted one', async () => {
     const files = season();
     const app = setup(files);
     await userEvent.click(screen.getByRole('checkbox', { name: 'Download Show' }));
-    expect(app.detailCommands.setPriority).toHaveBeenLastCalledWith('h', files, [0, 1, 2], 'normal');
+    // Only the skipped E02 changes: E01 (Normal) and Bonus (Maximum) keep their priorities.
+    expect(app.detailCommands.setPriority).toHaveBeenLastCalledWith('h', files, [1], 'normal');
     await userEvent.click(screen.getByRole('checkbox', { name: 'Download Extras' }));
     expect(app.detailCommands.setPriority).toHaveBeenLastCalledWith('h', files, [2], 'skip');
   });

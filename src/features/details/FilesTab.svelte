@@ -70,7 +70,13 @@
 
   function toggleCheck(node: FileNode) {
     if (!files) return;
-    void app.detailCommands.setPriority(hash, files, node.ids, node.check === true ? 'skip' : 'normal');
+    if (node.check === true) {
+      void app.detailCommands.setPriority(hash, files, node.ids, 'skip');
+      return;
+    }
+    // Checking turns on only the skipped files; ones already set to High or Maximum keep that.
+    const skipped = new Set(files.filter((file) => file.priority === 0).map((file) => file.index));
+    void app.detailCommands.setPriority(hash, files, node.ids.filter((id) => skipped.has(id)), 'normal');
   }
 
   function priorityMenu(node: FileNode, event: MouseEvent) {
