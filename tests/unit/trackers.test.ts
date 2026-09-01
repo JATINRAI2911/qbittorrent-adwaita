@@ -22,12 +22,14 @@ describe('tracker status', () => {
   });
 
   it('summarizes a working tracker with counts and the next announce', () => {
-    expect(trackerSummary(t({ next_announce: now + 24 * 60 }), now)).toBe('Working · 10 seeds, 2 leechers, 3 peers · next announce in 24 min');
+    expect(trackerSummary(t({ next_announce: now + 24 * 60 }), now)).toBe('Working · 10 seeds, 2 leechers, 3 peers · 50 downloads · next announce in 24 min');
   });
 
   it('hides unknown (−1) counts and garbage announce times', () => {
-    expect(trackerSummary(t({ num_seeds: -1, num_leeches: -1, num_peers: -1, next_announce: -361_371_617 }), now)).toBe('Working');
+    expect(trackerSummary(t({ num_seeds: -1, num_leeches: -1, num_peers: -1, num_downloaded: -1, next_announce: -361_371_617 }), now)).toBe('Working');
     expect(trackerSummary(t({ status: 1, next_announce: -5 }), now)).toBe('Not contacted yet');
+    // How often the tracker has seen the torrent completed ("Times Downloaded" in qBittorrent).
+    expect(trackerSummary(t({ num_downloaded: 3400 }), now)).toBe('Working · 10 seeds, 2 leechers, 3 peers · 3,400 downloads');
   });
 
   it('shows the tracker’s own message when it is failing', () => {

@@ -29,6 +29,8 @@ describe('PeersTab', () => {
     expect(rows[1]).toHaveTextContent('Transmission 4.0');
     expect(rows[1]).toHaveTextContent('50.0%');
     expect(rows[1]).toHaveTextContent('2.0 kB/s');
+    const headers = within(screen.getByRole('table', { name: 'Peers' })).getAllByRole('columnheader').map((h) => h.textContent?.trim());
+    expect(headers).toEqual(expect.arrayContaining(['Connection', 'Relevance']));
   });
 
   it('copies, bans (after confirming) and adds peers', async () => {
@@ -66,7 +68,12 @@ describe('SourcesTab', () => {
     (app.dialogs.stack.at(-1)!.props.onconfirm as (v: string) => void)('https://b.example/x');
     expect(app.detailCommands.editWebSeed).toHaveBeenCalledWith('h', 'https://a.example/x', 'https://b.example/x');
     await userEvent.click(screen.getByRole('button', { name: 'More for https://a.example/x' }));
-    { const item = app.popovers.current!.model.sections.flat().find((i) => i.label === 'Remove')!; app.popovers.close(); item.action!(); }
+    { const item = app.popovers.current!.model.sections.flat().find((i) => i.label === 'Remove…')!; app.popovers.close(); item.action!(); }
+    // Asks first, like removing a tracker.
+    expect(app.detailCommands.removeWebSeed).not.toHaveBeenCalled();
+    const confirm = app.dialogs.stack.at(-1)!;
+    expect(confirm.props.heading).toBe('Remove Web Seed?');
+    (confirm.props.onresponse as (id: string) => void)('remove');
     expect(app.detailCommands.removeWebSeed).toHaveBeenCalledWith('h', 'https://a.example/x');
   });
 });

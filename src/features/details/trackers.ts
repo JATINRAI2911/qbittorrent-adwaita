@@ -58,6 +58,9 @@ export function trackerSummary(t: Tracker, nowSeconds: number): string {
   if (t.status === 2) {
     const counts = [count(t.num_seeds, 'seed', 'seeds'), count(t.num_leeches, 'leecher', 'leechers'), count(t.num_peers, 'peer', 'peers')].filter(Boolean);
     if (counts.length) parts.push(counts.join(', '));
+    // How many times the tracker saw the torrent completed (qBittorrent's "Times Downloaded").
+    const downloads = count(t.num_downloaded, 'download', 'downloads');
+    if (downloads) parts.push(downloads);
     if (t.next_announce !== undefined && t.next_announce > nowSeconds) parts.push(`next announce ${formatIn(t.next_announce - nowSeconds)}`);
   } else if (msg && t.status !== 1) {
     parts.push(msg);

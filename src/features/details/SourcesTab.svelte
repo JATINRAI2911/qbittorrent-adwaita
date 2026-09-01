@@ -1,4 +1,5 @@
 <script lang="ts">
+  import AlertDialog from '../../ui/adw/AlertDialog.svelte';
   import type { WebSeed } from '../../api/details';
   import { getAppContext } from '../../app-context';
   import { formatCount } from '../../lib/format';
@@ -43,7 +44,22 @@
                 }),
             },
           ],
-          [{ label: 'Remove', destructive: true, action: () => void app.detailCommands.removeWebSeed(hash, seed.url) }],
+          [
+            {
+              label: 'Remove…',
+              destructive: true,
+              action: () =>
+                app.dialogs.open(AlertDialog, {
+                  heading: 'Remove Web Seed?',
+                  body: `${seed.url} will no longer be used as a download source.`,
+                  responses: [
+                    { id: 'cancel', label: 'Cancel' },
+                    { id: 'remove', label: 'Remove', variant: 'destructive' },
+                  ],
+                  onresponse: (id: string) => id === 'remove' && void app.detailCommands.removeWebSeed(hash, seed.url),
+                }),
+            },
+          ],
         ],
       },
       event.currentTarget as HTMLElement,

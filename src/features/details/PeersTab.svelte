@@ -70,8 +70,8 @@
     </div>
     <div class="boxed-list peer-table" role="table" aria-label="Peers">
       <div class="pt-h" role="row">
-        <span role="columnheader">Address</span><span role="columnheader">Client</span><span role="columnheader">Flags</span>
-        <span role="columnheader" class="end">Progress</span><span role="columnheader" class="end">Down</span><span role="columnheader" class="end">Up</span>
+        <span role="columnheader">Address</span><span role="columnheader">Client</span><span role="columnheader">Connection</span><span role="columnheader">Flags</span>
+        <span role="columnheader" class="end">Progress</span><span role="columnheader" class="end">Relevance</span><span role="columnheader" class="end">Down</span><span role="columnheader" class="end">Up</span>
         <span role="columnheader" class="end">Downloaded</span><span role="columnheader" class="end">Uploaded</span><span role="columnheader"><span class="visually-hidden">Actions</span></span>
       </div>
       {#each rows as id (id)}
@@ -79,8 +79,10 @@
         <div class="pt-r" role="row">
           <span role="cell" class="monospace ellipsis">{countryFlag(p.country_code)}{p.country_code ? ' ' : ''}{id}</span>
           <span role="cell" class="ellipsis dimmed">{p.client}</span>
+          <span role="cell" class="dimmed">{p.connection}</span>
           <span role="cell" class="monospace dimmed" title={p.flags_desc}>{p.flags}</span>
           <span role="cell" class="end numeric">{formatPercent(p.progress)}</span>
+          <span role="cell" class="end numeric dimmed">{formatPercent(p.relevance)}</span>
           <span role="cell" class="end numeric">{p.dl_speed > 0 ? formatSpeed(p.dl_speed) : '–'}</span>
           <span role="cell" class="end numeric">{p.up_speed > 0 ? formatSpeed(p.up_speed) : '–'}</span>
           <span role="cell" class="end numeric">{formatBytes(p.downloaded)}</span>
@@ -97,7 +99,7 @@
 <style>
   .peer-table { overflow-x: auto; }
   .pt-h, .pt-r {
-    display: grid; grid-template-columns: minmax(180px, 1.4fr) minmax(140px, 1.2fr) 70px 80px 90px 90px 100px 100px 40px;
+    display: grid; grid-template-columns: minmax(180px, 1.4fr) minmax(140px, 1.2fr) 90px 70px 80px 80px 90px 90px 100px 100px 40px;
     gap: 12px; padding: 0 14px; align-items: center; min-width: 980px;
   }
   .pt-h { min-height: 34px; font-weight: 700; font-size: 82%; color: color-mix(in srgb, currentColor var(--dim-opacity), transparent); }
