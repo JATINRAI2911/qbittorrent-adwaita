@@ -59,12 +59,12 @@
     selection.mode || details.sheet === 'closed' ? 0 : details.sheet === 'bar' ? 64 : Math.round(prefs.sheetHeight * viewportHeight),
   );
 
-  // Keep the open torrent's row visible above the sheet; scroll-padding-bottom makes
-  // scrollIntoView stop short of the sheet. Waits a tick so the new padding has been applied.
+  // Keep the open torrent's row visible above the sheet when it opens or switches
+  // torrents, not on every window resize. scroll-padding-bottom makes scrollIntoView stop short of
+  // the sheet; the tick lets the new padding apply first.
   $effect(() => {
     const hash = details.hash;
     const open = details.sheet === 'open';
-    void sheetInset;
     if (hash && open) void tick().then(() => untrack(() => reveal(hash)));
   });
 

@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import App from '../../src/App.svelte';
 import type { MaindataResponse } from '../../src/api/types';
 import { Session } from '../../src/state/session.svelte';
@@ -83,6 +83,25 @@ describe('App keyboard', () => {
     expect(first).toHaveFocus();
     await userEvent.click(within(await screen.findByRole('region', { name: /details/i })).getByRole('button', { name: 'Close' }));
     expect(first).toHaveFocus();
+    unmount();
+  });
+
+  it('reveals the open torrent above the sheet once, not again on every window resize', async () => {
+    const scroll = vi.fn();
+    Element.prototype.scrollIntoView = scroll;
+    onTestFinished(() => {
+      delete (Element.prototype as Partial<Element>).scrollIntoView;
+    });
+    const { unmount } = renderApp(async (rid) => (rid === 0 ? full : { rid: 2 }));
+    await screen.findByText('first.iso');
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await screen.findByRole('region', { name: /details/i });
+    await vi.waitFor(() => expect(scroll).toHaveBeenCalled());
+    const calls = scroll.mock.calls.length;
+    window.innerHeight = 500;
+    window.dispatchEvent(new Event('resize'));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(scroll.mock.calls.length).toBe(calls);
     unmount();
   });
 
