@@ -11,6 +11,12 @@ describe('infoHashOf', () => {
     expect(infoHashOf('magnet:?dn=nothing')).toBeNull();
   });
 
+  it('prefers the v1 id of a hybrid magnet, whichever xt comes first (qBittorrent shows the v1 hash)', () => {
+    const v2 = 'cd'.repeat(32);
+    expect(infoHashOf(`magnet:?xt=urn:btmh:1220${v2}&xt=urn:btih:${HEX}&dn=x`)).toBe(HEX);
+    expect(infoHashOf(`magnet:?xt=urn:btih:${HEX}&xt=urn:btmh:1220${v2}`)).toBe(HEX);
+  });
+
   it('treats a malformed percent-escape as no hash instead of throwing', () => {
     expect(infoHashOf('magnet:?xt=urn:btih:%zz')).toBeNull();
     expect(() => parseSources('magnet:?xt=urn%E0%A4%A:btih:abc&dn=x')).not.toThrow();
@@ -35,6 +41,18 @@ describe('parseSources', () => {
     ]);
     expect(sources[0]!.hash).toBe(HEX);
     expect(invalid).toEqual([]);
+  });
+
+  it('handles hybrid magnets, bare base32 hashes and repeated URLs', () => {
+    const v2 = 'cd'.repeat(32);
+    const base32 = 'AERUKZ4JVPG66AJDIVTYTK6N54ASGRKN';
+    const url = 'https://releases.example.org/debian.torrent';
+    const { sources } = parseSources(`magnet:?xt=urn:btmh:1220${v2}&xt=urn:btih:${HEX}&dn=Hybrid ${base32} ${url} ${url}`);
+    expect(sources.map((s) => [s.kind, s.hash])).toEqual([
+      ['magnet', HEX],
+      ['magnet', base32ToHex(base32)],
+      ['url', null],
+    ]);
   });
 
   it('turns a bare hash into a magnet and labels unnamed magnets by hash', () => {

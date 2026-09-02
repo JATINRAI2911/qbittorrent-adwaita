@@ -37,6 +37,8 @@ function safeDecode(text: string): string | null {
 /** The torrent's id as qBittorrent shows it: v1 hex, or the v2 hash truncated to 40 hex characters. */
 export function infoHashOf(magnet: string): string | null {
   const query = magnet.slice(magnet.indexOf('?') + 1);
+  let v2: string | null = null;
+  // A hybrid magnet lists both; the v1 hash wins wherever it appears, as in qBittorrent's list.
   for (const pair of query.split('&')) {
     const [key, raw = ''] = pair.split('=');
     if (!/^xt(\.\d+)?$/i.test(key ?? '')) continue;
@@ -44,10 +46,9 @@ export function infoHashOf(magnet: string): string | null {
     if (value === null) continue;
     const v1 = /^urn:btih:([0-9a-f]{40}|[a-z2-7]{32})$/i.exec(value)?.[1];
     if (v1) return v1.length === 40 ? v1.toLowerCase() : base32ToHex(v1);
-    const v2 = /^urn:btmh:1220([0-9a-f]{64})$/i.exec(value)?.[1];
-    if (v2) return v2.slice(0, 40).toLowerCase();
+    v2 ??= /^urn:btmh:1220([0-9a-f]{64})$/i.exec(value)?.[1]?.slice(0, 40).toLowerCase() ?? null;
   }
-  return null;
+  return v2;
 }
 
 function magnetName(magnet: string): string | null {
