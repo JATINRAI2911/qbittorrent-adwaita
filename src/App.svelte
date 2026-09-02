@@ -296,6 +296,7 @@
     const files = [...(event.dataTransfer?.files ?? [])].filter(isTorrentFile);
     const text = event.dataTransfer?.getData('text/uri-list') || event.dataTransfer?.getData('text/plain') || '';
     if (files.length || parseSources(text).sources.length) openers.add({ text, files });
+    else toasts.show({ title: 'Only .torrent files and magnet links can be added' });
   }
 </script>
 

@@ -100,6 +100,16 @@ describe('App add entry points', () => {
     unmount();
   });
 
+  it('explains a drop with nothing it can add, instead of doing nothing', async () => {
+    const { unmount } = await renderApp();
+    const data = { types: ['Files'], files: [new File(['x'], 'notes.txt')], getData: () => '' };
+    await fireEvent.dragEnter(window, { dataTransfer: data });
+    await fireEvent.drop(window, { dataTransfer: data });
+    expect(screen.queryByRole('dialog', { name: 'Add Torrents' })).toBeNull();
+    expect(await screen.findByRole('status')).toHaveTextContent('Only .torrent files and magnet links can be added');
+    unmount();
+  });
+
   it('offers Add Torrents on the empty list', async () => {
     const { unmount } = await renderApp({});
     expect(screen.getByText('Drop .torrent files here, or paste a magnet link.')).toBeInTheDocument();
