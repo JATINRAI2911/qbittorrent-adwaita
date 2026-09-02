@@ -7,7 +7,9 @@
 }
 .sheet.dragging { transition: none; }
 .sheet-bar { flex-direction: row; align-items: center; gap: 6px; height: 64px; padding: 0 12px 0 0; }
-.drag-handle-area { flex: none; height: 36px; display: grid; place-items: center; cursor: ns-resize; border-radius: 15px 15px 0 0; touch-action: none; }
+.drag-handle-area { position: relative; flex: none; height: 36px; display: grid; place-items: center; cursor: ns-resize; border-radius: 15px 15px 0 0; touch-action: none; }
+/* Shown while a drag would minimize the sheet on release. */
+.collapse-hint { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: smaller; font-weight: 700; opacity: var(--dim-opacity); pointer-events: none; }
 .drag-handle-area:hover { background: var(--view-hover-color); }
 .drag-handle-area:focus-visible { outline: 2px solid var(--focus-ring-color); outline-offset: -2px; }
 .drag-handle { width: 54px; height: 6px; border-radius: 99px; background: color-mix(in srgb, currentColor 25%, transparent); }

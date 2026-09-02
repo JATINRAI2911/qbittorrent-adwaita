@@ -1,7 +1,7 @@
 <script lang="ts">
   import { DURATION, rise } from './motion';
   import type { Snippet } from 'svelte';
-  import { dragFraction, settleSheet } from './sheet-drag';
+  import { dragFraction, settleSheet, SHEET_COLLAPSE } from './sheet-drag';
 
   interface Props {
     mode: 'open' | 'bar';
@@ -26,6 +26,7 @@
   }
 
   function onpointerdown(event: PointerEvent) {
+    if (event.button !== 0) return; // primary button (or touch/pen contact) only
     (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
     drag = { startY: event.clientY, start: height, fraction: height };
   }
@@ -36,9 +37,10 @@
 
   function onpointerup(event: PointerEvent) {
     if (!drag) return;
+    const moved = Math.abs(event.clientY - drag.startY) > 3; // a click on the handle isn't a resize
     const fraction = dragFraction(drag.start, drag.startY, event.clientY, window.innerHeight);
     drag = null;
-    release(fraction);
+    if (moved) release(fraction);
   }
 
   function onkeydown(event: KeyboardEvent) {
@@ -76,9 +78,11 @@
       {onpointermove}
       {onpointerup}
       onpointercancel={() => (drag = null)}
+      onlostpointercapture={() => (drag = null)}
       {onkeydown}
     >
       <div class="drag-handle"></div>
+      {#if drag && drag.fraction < SHEET_COLLAPSE}<div class="collapse-hint">Release to minimize</div>{/if}
     </div>
     {@render head()}
     <div class="sheet-body">{@render children()}</div>

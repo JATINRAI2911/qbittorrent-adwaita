@@ -52,6 +52,39 @@ describe('BottomSheet', () => {
   });
 });
 
+describe('BottomSheet drag handle', () => {
+  it('drags with the primary button only, and a plain click changes nothing', async () => {
+    const { onresize, oncollapse } = sheet('open', 0.5);
+    const handle = screen.getByRole('separator', { name: 'Resize details' });
+    await fireEvent.pointerDown(handle, { clientY: 400, pointerId: 1, button: 2 });
+    await fireEvent.pointerUp(handle, { clientY: 100, pointerId: 1, button: 2 });
+    await fireEvent.pointerDown(handle, { clientY: 400, pointerId: 1, button: 0 });
+    await fireEvent.pointerUp(handle, { clientY: 400, pointerId: 1, button: 0 });
+    expect(onresize).not.toHaveBeenCalled();
+    expect(oncollapse).not.toHaveBeenCalled();
+  });
+
+  it('drops a drag whose pointer capture is lost', async () => {
+    const { onresize } = sheet('open', 0.5);
+    const handle = screen.getByRole('separator', { name: 'Resize details' });
+    await fireEvent.pointerDown(handle, { clientY: 400, pointerId: 1 });
+    await fireEvent.pointerMove(handle, { clientY: 200, pointerId: 1 });
+    handle.dispatchEvent(new Event('lostpointercapture'));
+    await fireEvent.pointerUp(handle, { clientY: 200, pointerId: 1 });
+    expect(onresize).not.toHaveBeenCalled();
+    expect(screen.getByRole('region', { name: 'Details' }).getAttribute('style')).toContain('height: 50vh');
+  });
+
+  it('says it will minimize once dragged low enough', async () => {
+    sheet('open', 0.5);
+    const handle = screen.getByRole('separator', { name: 'Resize details' });
+    await fireEvent.pointerDown(handle, { clientY: 400, pointerId: 1 });
+    expect(screen.queryByText('Release to minimize')).toBeNull();
+    await fireEvent.pointerMove(handle, { clientY: 400 + window.innerHeight * 0.3, pointerId: 1 });
+    expect(screen.getByText('Release to minimize')).toBeInTheDocument();
+  });
+});
+
 describe('CheckButton', () => {
   it('is a tri-state checkbox', async () => {
     const onclick = vi.fn();
