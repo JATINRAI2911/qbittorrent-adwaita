@@ -16,6 +16,18 @@ function setup(existing: string[] = []) {
 }
 
 describe('AddModel items', () => {
+  it('rechecks for duplicates right before adding (the torrent may have been added meanwhile)', () => {
+    const existing: string[] = [];
+    const model = new AddModel({ api: fakeAddApi(), has: (hash) => existing.includes(hash), pollMs: 1000 });
+    model.addText(magnet());
+    const hash = model.items[0]!.hash!;
+    expect(model.items[0]!.status).not.toBe('duplicate');
+    existing.push(hash);
+    model.recheckDuplicates();
+    expect(model.items[0]!.status).toBe('duplicate');
+    model.dispose();
+  });
+
   it('adds pasted sources once and reports invalid text', () => {
     const { model } = setup();
     model.addText(`${magnet()} ${magnet()} magnet:?dn=broken`);
@@ -134,6 +146,16 @@ describe('defaults', () => {
       }),
     ).toEqual({ savePath: '/dl', useDownloadPath: true, downloadPath: '/dl/tmp', autoTMM: false, start: false, addToTop: false, contentLayout: 'Subfolder', stopCondition: 'MetadataReceived' });
     expect(defaultsFromPreferences({ torrent_content_layout: 'weird' })).toEqual({});
+  });
+
+  it('knows which options still have no server default, until the defaults arrive', () => {
+    const { model } = setup();
+    model.form.start = false;
+    model.markEdited('start');
+    expect([...model.unknownDefaults].sort()).toEqual(['addToTop', 'autoTMM', 'contentLayout', 'savePath', 'stopCondition']);
+    model.applyDefaults({ autoTMM: true });
+    expect([...model.unknownDefaults]).toEqual([]);
+    model.dispose();
   });
 
   it('applies defaults without overwriting what the user already changed', () => {

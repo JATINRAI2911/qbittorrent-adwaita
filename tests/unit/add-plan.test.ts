@@ -24,6 +24,22 @@ describe('buildAddPlan', () => {
     ]);
   });
 
+  it('leaves out options whose server default is unknown (preferences failed to load), so qBittorrent applies its own', () => {
+    const plan = buildAddPlan([item({})], form({ savePath: '' }), new Set(), new Set(['autoTMM', 'start', 'contentLayout', 'stopCondition', 'savePath'] as const));
+    expect(plan[0]!.options).not.toHaveProperty('autoTMM');
+    expect(plan[0]!.options).not.toHaveProperty('stopped');
+    expect(plan[0]!.options).not.toHaveProperty('contentLayout');
+    expect(plan[0]!.options).not.toHaveProperty('stopCondition');
+    expect(plan[0]!.options).not.toHaveProperty('savepath');
+  });
+
+  it('sends each torrent once, even when two items turned out to be the same', () => {
+    const file = new File(['1'], 'a.torrent');
+    const plan = buildAddPlan([item({ id: 1, hash: 'aa' }), item({ id: 2, kind: 'file', source: file, hash: 'aa' })], form(), new Set());
+    expect(plan).toHaveLength(1);
+    expect(plan[0]!.sources.urls).toEqual(['magnet:?xt=urn:btih:aa']);
+  });
+
   it('leaves out duplicates, and the save path under automatic management', () => {
     const plan = buildAddPlan([item({ status: 'duplicate' }), item({ id: 2, source: 'magnet:?xt=urn:btih:bb', hash: 'bb' })], form({ autoTMM: true }), new Set());
     expect(plan).toHaveLength(1);

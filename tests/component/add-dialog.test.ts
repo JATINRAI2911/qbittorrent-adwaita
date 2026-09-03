@@ -76,6 +76,17 @@ describe('AddDialog', () => {
     expect(screen.getByText('/data/linux')).toBeInTheDocument();
   });
 
+  it('resolves a category’s relative save path against the default save path', async () => {
+    setup({ text: MAGNET }, (a) => {
+      a.session.categories.set('TV', { name: 'TV', savePath: 'Shows/TV' });
+      a.adding.appApi.preferences.mockResolvedValue({ save_path: '/dl/' });
+    });
+    await userEvent.click(screen.getByRole('combobox', { name: 'Category' }));
+    await userEvent.click(screen.getByRole('option', { name: 'TV' }));
+    await userEvent.click(screen.getByRole('switch', { name: /Automatic management/ }));
+    expect(await screen.findByText('/dl/Shows/TV')).toBeInTheDocument();
+  });
+
   it('never shows a private download link in full', () => {
     setup({ text: 'https://t.example/download.php?id=1&passkey=0123456789abcdef0123456789abcdef' });
     expect(document.body.innerHTML).not.toContain('0123456789abcdef');

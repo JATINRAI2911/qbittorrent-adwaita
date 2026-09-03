@@ -36,6 +36,8 @@ export interface AddForm {
 }
 
 const URL_ATTEMPTS = 8;
+/** Form fields whose initial value is only a guess until app/preferences answers. */
+const SERVER_DEFAULTED: (keyof AddForm)[] = ['autoTMM', 'savePath', 'start', 'contentLayout', 'stopCondition', 'addToTop'];
 const LAYOUTS: ContentLayout[] = ['Original', 'Subfolder', 'NoSubfolder'];
 const CONDITIONS: StopCondition[] = ['None', 'MetadataReceived', 'FilesChecked'];
 
@@ -97,7 +99,14 @@ export class AddModel {
 
   /** Items that will be sent: everything but duplicates. Failed previews can still be added (qBittorrent retries). */
   get addable(): AddItem[] {
-    return this.items.filter((item) => item.status !== 'duplicate');
+    const hashes = new Set<string>();
+    return this.items.filter((item) => {
+      if (item.status === 'duplicate') return false;
+      if (!item.hash) return true;
+      if (hashes.has(item.hash)) return false; // the same torrent twice (a magnet and its file) is sent once
+      hashes.add(item.hash);
+      return true;
+    });
   }
 
   get single(): AddItem | null {
@@ -143,12 +152,27 @@ export class AddModel {
     }
   }
 
+  #defaultsLoaded = $state(false);
+
+  /** Mark items already in the list as duplicates (call right before adding: time has passed). */
+  recheckDuplicates(): void {
+    for (const item of this.items) if (item.hash && item.status !== 'duplicate' && this.#deps.has(item.hash)) this.#update(item.id, { status: 'duplicate' });
+  }
+
   markEdited(field: keyof AddForm): void {
     this.#edited.add(field);
   }
 
+  /** Until the server defaults arrive (they may never, if app/preferences fails): options to leave
+   *  out of the request, so qBittorrent applies its own rather than this dialog's guesses. */
+  get unknownDefaults(): ReadonlySet<keyof AddForm> {
+    if (this.#defaultsLoaded) return new Set();
+    return new Set(SERVER_DEFAULTED.filter((field) => !this.#edited.has(field)));
+  }
+
   /** Server defaults arrive after the dialog opens; never overwrite a field the user touched. */
   applyDefaults(defaults: Partial<AddForm>): void {
+    this.#defaultsLoaded = true;
     for (const [key, value] of Object.entries(defaults) as [keyof AddForm, never][]) {
       if (!this.#edited.has(key)) this.form[key] = value;
     }

@@ -50,8 +50,9 @@
   const categoryOptions = $derived([{ value: '', label: 'None' }, ...categories.map((c) => ({ value: c.name, label: c.name }))]);
   const autoPath = $derived.by(() => {
     const category = app.session.categories.get(model.form.category);
-    if (category?.savePath) return category.savePath;
     const base = defaultSavePath || model.form.savePath;
+    // A category path may be relative: qBittorrent resolves it against the default save path.
+    if (category?.savePath) return isAbsolute(category.savePath) ? category.savePath : `${base.replace(/[\\/]+$/, '')}/${category.savePath}`;
     return model.form.category ? `${base.replace(/\/+$/, '')}/${model.form.category}` : base;
   });
 
@@ -93,10 +94,15 @@
   }
 
   function add() {
-    const plan = buildAddPlan(model.items, model.form, model.skipped);
+    model.recheckDuplicates();
+    const plan = buildAddPlan(model.items, model.form, model.skipped, model.unknownDefaults);
     // Names only: a URL's label is a masked link, which never goes in a toast.
     void app.adding.commands.add(plan, model.addable.map((item) => (item.metadata || item.kind === 'magnet' ? item.label : null)));
     close();
+  }
+
+  function isAbsolute(path: string): boolean {
+    return path.startsWith('/') || path.startsWith('\\') || /^[A-Za-z]:[\\/]/.test(path);
   }
 </script>
 

@@ -8,14 +8,14 @@ export interface AddRequest {
   after?: { hash: string; skip: number[]; start: boolean };
 }
 
-function commonOptions(form: AddForm): AddOptions {
-  const options: AddOptions = {
-    autoTMM: form.autoTMM,
-    stopped: !form.start,
-    contentLayout: form.contentLayout,
-    stopCondition: form.stopCondition,
-  };
-  if (!form.autoTMM) {
+/** `unknown`: options whose server default never loaded and the user didn't set; left to qBittorrent. */
+function commonOptions(form: AddForm, unknown: ReadonlySet<keyof AddForm>): AddOptions {
+  const options: AddOptions = {};
+  if (!unknown.has('autoTMM')) options.autoTMM = form.autoTMM;
+  if (!unknown.has('start')) options.stopped = !form.start;
+  if (!unknown.has('contentLayout')) options.contentLayout = form.contentLayout;
+  if (!unknown.has('stopCondition')) options.stopCondition = form.stopCondition;
+  if (!form.autoTMM && !unknown.has('autoTMM') && !unknown.has('savePath')) {
     options.savepath = form.savePath.trim();
     if (form.useDownloadPath) {
       options.useDownloadPath = true;
@@ -38,10 +38,18 @@ function commonOptions(form: AddForm): AddOptions {
  * more than one source and for uploaded files, so a selection is only sent for a single link, and a
  * single uploaded file is added stopped and then has its skipped files set afterwards.
  */
-export function buildAddPlan(items: readonly AddItem[], form: AddForm, skipped: ReadonlySet<number>): AddRequest[] {
-  const addable = items.filter((item) => item.status !== 'duplicate');
+export function buildAddPlan(items: readonly AddItem[], form: AddForm, skipped: ReadonlySet<number>, unknown: ReadonlySet<keyof AddForm> = new Set()): AddRequest[] {
+  // Each torrent once: two items can resolve to the same hash (a magnet and its .torrent file).
+  const hashes = new Set<string>();
+  const addable = items.filter((item) => {
+    if (item.status === 'duplicate') return false;
+    if (!item.hash) return true;
+    if (hashes.has(item.hash)) return false;
+    hashes.add(item.hash);
+    return true;
+  });
   if (!addable.length) return [];
-  const options = commonOptions(form);
+  const options = commonOptions(form, unknown);
   const single = addable.length === 1 ? addable[0]! : null;
   if (single && form.rename.trim()) options.rename = form.rename.trim();
 
