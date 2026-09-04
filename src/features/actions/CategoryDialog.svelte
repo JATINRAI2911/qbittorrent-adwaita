@@ -32,7 +32,9 @@
     { value: 'yes', label: 'Yes' },
     { value: 'no', label: 'No' },
   ];
-  const invalid = $derived(name.trim() === '' || name.includes('\\'));
+  // qBittorrent refuses these subcategory paths (and backslashes): say so instead of a server error.
+  const badSlashes = $derived(/^\/|\/$|\/\//.test(name.trim()));
+  const invalid = $derived(name.trim() === '' || name.includes('\\') || badSlashes);
   const noteId = $props.id();
 </script>
 
@@ -53,5 +55,9 @@
     <ComboRow title="Use incomplete folder" subtitle="Keep unfinished downloads somewhere else" options={FOLDER_OPTIONS} bind:value={folder} />
     {#if folder === 'yes'}<PathEntry title="Incomplete folder" bind:value={downloadPath} {list} placeholder="Default incomplete folder" />{/if}
   </BoxedList>
-  <p class="dialog-note" id={noteId}>Use “/” in the name for a subcategory, like “Linux/ISOs”.</p>
+  {#if badSlashes}
+    <p class="dialog-note error" id={noteId}>A category name can’t start or end with “/”, or contain “//”.</p>
+  {:else}
+    <p class="dialog-note" id={noteId}>Use “/” in the name for a subcategory, like “Linux/ISOs”.</p>
+  {/if}
 </Dialog>

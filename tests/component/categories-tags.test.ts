@@ -10,6 +10,20 @@ import { makeTorrent } from '../fixtures/torrents';
 describe('CategoryDialog', () => {
   const folderSetting = () => screen.getByRole('combobox', { name: 'Use incomplete folder' });
 
+  it('explains a name qBittorrent would refuse because of its slashes, before sending it', async () => {
+    render(CategoryDialog, { onconfirm: vi.fn(), close: vi.fn() });
+    const name = screen.getByLabelText('Name');
+    for (const bad of ['/TV', 'TV/', 'TV//Shows']) {
+      await userEvent.clear(name);
+      await userEvent.type(name, bad);
+      expect(screen.getByRole('button', { name: 'Create' }), bad).toBeDisabled();
+      expect(name).toHaveAccessibleDescription('A category name can’t start or end with “/”, or contain “//”.');
+    }
+    await userEvent.clear(name);
+    await userEvent.type(name, 'TV/Shows');
+    expect(screen.getByRole('button', { name: 'Create' })).toBeEnabled();
+  });
+
   it('creates a category with its own incomplete folder', async () => {
     const onconfirm = vi.fn();
     render(CategoryDialog, { onconfirm, close: vi.fn() });
