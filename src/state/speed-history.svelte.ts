@@ -13,7 +13,8 @@ export class SpeedHistory {
 
   push(sample: SpeedSample): void {
     const cutoff = sample.t - HISTORY_MS;
-    this.samples = [...this.samples.filter((s) => s.t >= cutoff), sample];
+    // `<= sample.t` too: after the clock jumps back, older "future" samples would bend the graph.
+    this.samples = [...this.samples.filter((s) => s.t >= cutoff && s.t <= sample.t), sample];
   }
 
   clear(): void {

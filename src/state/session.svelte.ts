@@ -43,6 +43,8 @@ export class Session implements SyncState {
   readonly speeds = new SpeedHistory();
 
   #deps: SessionDeps;
+  #altHolds = 0;
+  #altHeld = false;
   #poller: Poller;
   #countdown: ReturnType<typeof setInterval> | undefined;
   #unlisten: (() => void) | undefined;
@@ -62,6 +64,7 @@ export class Session implements SyncState {
           throw error;
         }
         this.syncError = null;
+        if (this.#altHolds > 0) this.server.use_alt_speed_limits = this.#altHeld;
         if (summary.desync) this.rid = 0;
         this.loaded = true;
         this.speeds.push({ t: Date.now(), dl: this.server.dl_info_speed ?? 0, ul: this.server.up_info_speed ?? 0 });
@@ -73,10 +76,12 @@ export class Session implements SyncState {
       },
       onAuthLost: () => {
         this.connection = 'login';
+        this.speeds.clear();
         this.#stopCountdown();
       },
       onOffline: (seconds) => {
         this.connection = 'offline';
+        this.speeds.clear(); // a gap, not a flat line, and no stale graph in the status popover
         this.#startCountdown(seconds);
       },
     });
@@ -105,6 +110,21 @@ export class Session implements SyncState {
   }
 
   /** Drop torrents locally (e.g. right after the server confirmed their deletion). */
+  /**
+   * While a speed-limits switch is in flight, syncs answered before it reached qBittorrent would flip
+   * the turtle back for a moment; hold the requested mode until the returned release is called.
+   */
+  holdAltMode(on: boolean): () => void {
+    this.#altHolds++;
+    this.#altHeld = on;
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this.#altHolds--;
+    };
+  }
+
   forget(hashes: readonly string[]): void {
     for (const hash of hashes) {
       this.torrents.delete(hash);

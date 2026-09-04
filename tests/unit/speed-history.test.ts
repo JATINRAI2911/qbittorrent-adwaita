@@ -11,4 +11,11 @@ describe('SpeedHistory', () => {
     history.clear();
     expect(history.samples).toEqual([]);
   });
+
+  it('drops samples from the future after the clock jumps back', () => {
+    const history = new SpeedHistory();
+    history.push({ t: 100_000, dl: 1, ul: 1 });
+    history.push({ t: 50_000, dl: 2, ul: 2 }); // the clock went back 50 s
+    expect(history.samples.map((s) => s.dl)).toEqual([2]);
+  });
 });

@@ -131,6 +131,33 @@ describe('Session', () => {
     session.stop();
   });
 
+  it('clears the speed graph when the connection is lost', async () => {
+    const maindata = vi.fn<(rid: number) => Promise<MaindataResponse>>().mockResolvedValueOnce(full).mockRejectedValue(new ApiError('network', 0, 'down'));
+    const session = new Session(deps({ maindata }));
+    session.start();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(session.speeds.samples).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(session.connection).toBe('offline');
+    expect(session.speeds.samples).toEqual([]);
+    session.stop();
+  });
+
+  it('keeps a pending alternative-limits switch through syncs that predate it', async () => {
+    const maindata = vi.fn(async () => ({ ...full, server_state: { use_alt_speed_limits: false } }));
+    const session = new Session(deps({ maindata }));
+    session.start();
+    await vi.advanceTimersByTimeAsync(0);
+    const release = session.holdAltMode(true);
+    session.server.use_alt_speed_limits = true;
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(session.server.use_alt_speed_limits).toBe(true);
+    release();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(session.server.use_alt_speed_limits).toBe(false);
+    session.stop();
+  });
+
   it('polls immediately when the tab becomes visible again', async () => {
     let visible!: () => void;
     const maindata = vi.fn(async () => full);
