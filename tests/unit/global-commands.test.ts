@@ -9,7 +9,10 @@ function setup() {
   const app = { setPreferences: vi.fn(async (_changes: Record<string, unknown>) => {}) };
   const toasts: ToastInput[] = [];
   const refresh = vi.fn();
+  const release = vi.fn();
+  const holdAltMode = vi.fn((_on: boolean) => release);
   const commands = createGlobalCommands({
+    holdAltMode,
     transfer,
     app,
     toast: { show: (t) => toasts.push(t) },
@@ -17,10 +20,19 @@ function setup() {
     setAltMode: (on) => (alt = on),
     refresh,
   });
-  return { transfer, app, toasts, refresh, commands, alt: () => alt };
+  return { transfer, app, toasts, refresh, commands, alt: () => alt, holdAltMode, release };
 }
 
 describe('setAltSpeed', () => {
+  it('holds the new mode against older syncs until the request settles', async () => {
+    const { commands, holdAltMode, release } = setup();
+    const pending = commands.setAltSpeed(true);
+    expect(holdAltMode).toHaveBeenCalledWith(true);
+    expect(release).not.toHaveBeenCalled();
+    await pending;
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
   it('switches at once, asks for the exact mode, and offers Undo', async () => {
     const { transfer, toasts, refresh, commands, alt } = setup();
     const pending = commands.setAltSpeed(true);

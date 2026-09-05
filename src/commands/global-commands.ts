@@ -9,6 +9,8 @@ export interface GlobalCommandDeps {
   /** The mode the UI shows; setAltMode overrides it until the next sync confirms the server's. */
   altMode(): boolean;
   setAltMode(on: boolean): void;
+  /** Keep the shown mode against syncs that predate the request; returns the release. */
+  holdAltMode?(on: boolean): () => void;
   /** Poke the main sync so server_state catches up now. */
   refresh(): void;
 }
@@ -17,15 +19,18 @@ export function createGlobalCommands(deps: GlobalCommandDeps) {
   async function setAltSpeed(on: boolean): Promise<boolean> {
     const before = deps.altMode();
     deps.setAltMode(on);
+    const release = deps.holdAltMode?.(on);
     try {
       await deps.transfer.setSpeedLimitsMode(on);
     } catch (error) {
+      release?.();
       // Only undo this click if nothing newer has changed the mode since.
       if (deps.altMode() === on) deps.setAltMode(before);
       deps.toast.show({ title: `Couldn’t switch speed limits: ${errorText(error)}` });
       deps.refresh();
       return false;
     }
+    release?.();
     deps.toast.show({ title: on ? 'Alternative speed limits on' : 'Alternative speed limits off', undo: () => void setAltSpeed(!on) });
     deps.refresh();
     return true;

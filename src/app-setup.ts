@@ -109,6 +109,7 @@ export function createApp(
         toast: toasts,
         altMode: () => session.server.use_alt_speed_limits ?? false,
         setAltMode: (on) => (session.server.use_alt_speed_limits = on),
+        holdAltMode: (on) => session.holdAltMode(on),
         refresh: () => session.retryNow(),
       }),
     },
