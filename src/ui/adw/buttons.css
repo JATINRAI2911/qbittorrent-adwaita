@@ -26,7 +26,8 @@
 .btn.flat:disabled { filter: opacity(30%); }
 
 .btn.suggested-action { color: var(--accent-fg-color); background-color: var(--accent-text-bg-color); }
-.btn.suggested-action:hover { background-image: linear-gradient(color-mix(in srgb, currentColor 10%, transparent) 0 0); }
+/* Hover darkens rather than lightens (libadwaita lightens): white on a lighter blue drops below AA. */
+.btn.suggested-action:hover { background-image: linear-gradient(rgb(0 0 6 / 10%) 0 0); }
 .btn.suggested-action:active { background-image: linear-gradient(rgb(0 0 6 / 20%) 0 0); }
 .btn.suggested-action:focus-visible { outline-offset: 1px; }
 
