@@ -41,14 +41,20 @@
     void load();
   });
 
+  // Closes only once saved: a failure (explained in a toast) keeps the edits to retry.
+  let saving = $state(false);
   async function save() {
-    const sent = changes;
+    if (saving) return;
+    saving = true;
+    const saved = await app.global.commands.savePreferences(changes, 'Saved speed limits');
+    saving = false;
+    if (!saved) return;
     close();
-    if (await app.global.commands.savePreferences(sent, 'Saved speed limits')) void app.global.prefs.refresh();
+    void app.global.prefs.refresh();
   }
 </script>
 
-<Dialog title="Speed Limits" confirmLabel="Save" confirmDisabled={Object.keys(changes).length === 0} width={480} {close} onconfirm={save}>
+<Dialog title="Speed Limits" confirmLabel="Save" confirmDisabled={saving || Object.keys(changes).length === 0} width={480} {close} onconfirm={save}>
   {#if form}
     <section class="pref-group" aria-label="Global limits">
       <h4 class="heading">Global Limits</h4>

@@ -11,6 +11,10 @@ describe('speed limits form', () => {
     expect(formFromPreferences(prefs)).toEqual({ dl: 40_000, up: 0, altDl: 10, altUp: 10, scheduled: false, from: '22:05', to: '07:00', days: 1 });
   });
 
+  it('never rounds a small limit down to 0, which would read as unlimited', () => {
+    expect(formFromPreferences({ ...prefs, dl_limit: 300 }).dl).toBe(1);
+  });
+
   it('rounds limits that are not whole KiB, and never rewrites them unless changed', () => {
     const form = formFromPreferences({ ...prefs, dl_limit: 1_500 });
     expect(form.dl).toBe(1);

@@ -15,7 +15,11 @@ export const SCHEDULE_DAYS = ['Every day', 'Weekdays', 'Weekends', 'Monday', 'Tu
 );
 
 const num = (value: unknown, fallback: number) => (typeof value === 'number' && Number.isFinite(value) ? value : fallback);
-const kib = (bytes: unknown) => Math.max(0, Math.round(num(bytes, 0) / 1024));
+// A limit under 512 B/s still shows as 1 KiB/s: 0 would read (and save) as unlimited.
+const kib = (bytes: unknown) => {
+  const value = num(bytes, 0);
+  return value > 0 ? Math.max(1, Math.round(value / 1024)) : 0;
+};
 const hhmm = (hour: unknown, minute: unknown, fallback: number) =>
   `${String(num(hour, fallback)).padStart(2, '0')}:${String(num(minute, 0)).padStart(2, '0')}`;
 

@@ -39,6 +39,18 @@ describe('SpeedLimitsDialog', () => {
     expect(app.global.commands.savePreferences).toHaveBeenCalledWith({ up_limit: 2_000_000 * 1024 }, 'Saved speed limits');
   });
 
+  it('stays open with the edits when saving fails', async () => {
+    const { app, close } = setup();
+    app.global.commands.savePreferences.mockResolvedValueOnce(false);
+    const download = await screen.findByRole('textbox', { name: 'Download' });
+    await userEvent.clear(download);
+    await userEvent.type(download, '2048{Enter}');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(app.global.commands.savePreferences).toHaveBeenCalled();
+    expect(close).not.toHaveBeenCalled();
+    expect(download).toHaveValue('2048');
+  });
+
   it('reveals the schedule when it is switched on', async () => {
     const { app } = setup();
     await userEvent.click(await screen.findByRole('switch', { name: /Use alternative limits on a schedule/ }));
