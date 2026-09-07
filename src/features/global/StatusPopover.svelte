@@ -26,6 +26,10 @@
   const free = $derived(typeof s.free_space_on_disk === 'number' && s.free_space_on_disk >= 0 ? formatBytes(s.free_space_on_disk) : 'Unknown');
   const ICON = { ok: 'network', warning: 'warning', error: 'exclamation' } as const;
 
+  // Limits stay live while frozen: flipping the turtle here changes them.
+  // Another client may have changed the preferences: fetch them again on open (read-only).
+  void app.global.prefs.refresh();
+
   const limit = (bytes: number | undefined) => (bytes ? `Limit ${formatSpeed(bytes)}` : 'No limit');
 
   function freeze() {
@@ -51,12 +55,12 @@
     <div class="speed">
       <span class="caption dimmed">Download</span>
       <span class="title-3 numeric">↓ {formatSpeed(s.dl_info_speed ?? 0)}</span>
-      <span class="caption dimmed">{limit(s.dl_rate_limit)}</span>
+      <span class="caption dimmed">{limit(app.session.server.dl_rate_limit)}</span>
     </div>
     <div class="speed">
       <span class="caption dimmed">Upload</span>
       <span class="title-3 numeric">↑ {formatSpeed(s.up_info_speed ?? 0)}</span>
-      <span class="caption dimmed">{limit(s.up_rate_limit)}</span>
+      <span class="caption dimmed">{limit(app.session.server.up_rate_limit)}</span>
     </div>
   </div>
 

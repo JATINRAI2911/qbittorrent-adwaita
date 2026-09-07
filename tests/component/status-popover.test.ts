@@ -14,6 +14,7 @@ function setup() {
   });
   app.session.speeds.push({ t: 0, dl: 1, ul: 1 });
   const close = vi.fn();
+  vi.spyOn(app.global.prefs, 'refresh');
   render(StatusPopover, { props: { health: () => HEALTHY, close }, context: withApp(app) });
   return { app, close };
 }
@@ -39,6 +40,19 @@ describe('StatusPopover', () => {
     expect(screen.getByText('↓ 2.0 MB/s')).toBeInTheDocument();
     await fireEvent.pointerLeave(popover);
     expect(screen.getByText('↓ 5.0 MB/s')).toBeInTheDocument();
+  });
+
+  it('shows the live limits even while frozen (they change when the switch is flipped)', async () => {
+    const { app } = setup();
+    await fireEvent.pointerEnter(screen.getByText('Connected').closest('.status-popover')!);
+    app.session.server.dl_rate_limit = 1_024_000;
+    flushSync();
+    expect(screen.getByText('Limit 1.0 MB/s')).toBeInTheDocument();
+  });
+
+  it('refreshes the server preferences when it opens (another client may have changed them)', () => {
+    const { app } = setup();
+    expect(app.global.prefs.refresh).toHaveBeenCalled();
   });
 
   it('switches alternative limits live even while frozen, and opens the dialogs', async () => {
