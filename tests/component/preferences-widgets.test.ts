@@ -46,6 +46,18 @@ describe('API key', () => {
   });
 });
 
+describe('API key copy', () => {
+  it('copies the stored key too, not only a freshly created one', async () => {
+    const writeText = vi.fn(async () => {});
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const app = makeAppContext();
+    const { model } = await modelFor(app, { web_ui_api_key: 'qbt_0123456789abcdefghij' });
+    render(ApiKeyDialog, { props: { model, close: vi.fn() }, context: withApp(app) });
+    await userEvent.click(screen.getByRole('button', { name: 'Copy the API key' }));
+    expect(writeText).toHaveBeenCalledWith('qbt_0123456789abcdefghij');
+  });
+});
+
 describe('Watched folders', () => {
   it('edits scan_dirs as folders with where their torrents are saved', async () => {
     const app = makeAppContext();

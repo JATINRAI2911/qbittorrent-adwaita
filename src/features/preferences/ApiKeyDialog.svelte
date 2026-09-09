@@ -54,8 +54,9 @@
     confirm('Delete the API Key?', 'Scripts and apps using it stop working.', 'Delete', () => act(() => app.adding.appApi.deleteAPIKey(), 'Couldn’t delete the key'));
 
   async function copy() {
-    if (!fresh) return;
-    await copyText(fresh);
+    const text = fresh ?? key;
+    if (!text) return;
+    await copyText(text);
     app.toasts.show({ title: 'Copied the API key' });
   }
 </script>
@@ -67,7 +68,7 @@
         <span class="subtitle">Key</span>
         <span class="title monospace api-key">{fresh ?? (key ? maskApiKey(key) : 'No API key')}</span>
       </span>
-      {#if fresh}<Button icon="copy" title="Copy the API key" onclick={copy} />{/if}
+      {#if fresh || key}<Button icon="copy" title="Copy the API key" onclick={copy} />{/if}
     </div>
   </div>
   {#if fresh}<p class="dialog-note">Copy it now; afterwards it’s shown masked.</p>{/if}
