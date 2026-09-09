@@ -28,6 +28,8 @@ h1, h2, h3, h4, p { margin: 0; font-size: inherit; font-weight: inherit; }
 .success { color: var(--success-color); }
 .warning { color: var(--warning-color); }
 .error { color: var(--error-color); }
+/* For screen readers only (labels and live regions with no visible counterpart). */
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 
 svg.i { width: 16px; height: 16px; flex: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 

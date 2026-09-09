@@ -105,5 +105,4 @@
   .pt-h { min-height: 34px; font-weight: 700; font-size: 82%; color: color-mix(in srgb, currentColor var(--dim-opacity), transparent); }
   .pt-r { min-height: 44px; border-top: 1px solid var(--card-shade-color); }
   .end { text-align: right; }
-  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>

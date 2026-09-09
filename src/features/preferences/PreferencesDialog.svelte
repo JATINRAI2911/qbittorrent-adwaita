@@ -245,7 +245,11 @@
     </header>
     <div class="pd-content" bind:this={content}>
       {#if searching}
-        <div class="pd-search"><SearchEntry label="Search preferences" placeholder="Search preferences" bind:value={query} bind:input={searchInput} /></div>
+        <div class="pd-search">
+          <SearchEntry label="Search preferences" placeholder="Search preferences" bind:value={query} bind:input={searchInput} />
+          <!-- Mounted with the search, so each new count is announced. -->
+          <p class="visually-hidden" role="status">{query.trim() ? `${results.length} ${results.length === 1 ? 'result' : 'results'}` : ''}</p>
+        </div>
       {/if}
       {#if status === 'loading'}
         <div class="pd-center"><Spinner size={32} label="Loading preferences" /></div>
@@ -265,8 +269,11 @@
               <div class="boxed-list">
                 {#each group.items as result (result.def.key)}
                   <div class="pref-slot" class:dimmed-row={result.dimmed}>
-                    <PrefRow def={result.def} {model} onsubpage={openSubpage} oncustom={openCustom} />
-                    {#if result.dimmed && result.def.needs}<p class="row-note">Needs “{result.def.needs}”</p>{/if}
+                    <!-- Hidden by another setting on its page: shown for reference, edited there once it applies. -->
+                    <div class="pref-row-wrap" inert={result.dimmed}>
+                      <PrefRow def={result.def} {model} onsubpage={openSubpage} oncustom={openCustom} />
+                    </div>
+                    {#if result.dimmed && result.def.needs}<p class="row-note">Turn on “{result.def.needs}” to use this.</p>{/if}
                   </div>
                 {/each}
               </div>
@@ -308,6 +315,8 @@
   /* Only the title dims: subtitles are already dim, and dimming twice drops below AA. */
   .dimmed-row > :global(:first-child) :global(.title) { opacity: var(--dim-opacity); }
   .pref-slot :global(.row-note) { margin: -6px 0 0; padding: 0 14px 10px; font-size: smaller; opacity: var(--dim-opacity); }
+  .pref-slot :global(.row-note.error) { color: var(--error-color); opacity: 1; }
+  .pref-row-wrap { display: contents; }
   @media (max-width: 720px) {
     .prefs-dialog { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
     .pd-side { border-right: 0; border-bottom: 1px solid var(--border-color); }

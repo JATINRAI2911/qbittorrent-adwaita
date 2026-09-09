@@ -41,7 +41,11 @@ describe('PreferencesDialog', () => {
     expect(screen.getAllByRole('region').map((r) => r.getAttribute('aria-label'))).toEqual(['Connection › Listening Port', 'Web UI › Server', 'Advanced › qBittorrent']);
     await userEvent.clear(search);
     await userEvent.type(search, 'incomplete torrents folder');
-    expect(screen.getByText('Needs “Keep incomplete torrents elsewhere”')).toBeInTheDocument();
+    // A row hidden by another setting is shown for reference: it says what to turn on, and can't be edited here.
+    expect(screen.getByText('Turn on “Keep incomplete torrents elsewhere” to use this.')).toBeInTheDocument();
+    expect(document.querySelector<HTMLElement>('.dimmed-row .pref-row-wrap')?.inert).toBe(true);
+    // The result count is announced.
+    expect(screen.getByRole('status')).toHaveTextContent(/^\d+ results?$/);
     await userEvent.clear(search);
     await userEvent.type(search, 'zzzz');
     expect(screen.getByText('No Results')).toBeInTheDocument();
