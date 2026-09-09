@@ -25,6 +25,13 @@ describe('dangerMessage', () => {
     });
   });
 
+  it('doesn’t promise an exact new address when the page is reached through a reverse proxy', () => {
+    const proxied = { protocol: 'https:', hostname: 'home.example', port: '', pathname: '/qbittorrent/' };
+    const message = dangerMessage(def('web_ui_port'), { web_ui_address: '*', web_ui_port: 8080, use_https: false }, proxied);
+    expect(message.body).toBe('qBittorrent will listen on port 8080. This page reaches it through another address (a reverse proxy?), so it may stop working until that is updated too.');
+    expect(message.url).toBeUndefined();
+  });
+
   it('warns about logging in again for credentials and localhost bypass', () => {
     expect(dangerMessage(def('web_ui_username'), {}, here)).toMatchObject({ heading: 'Change the Username?', confirmLabel: 'Change' });
     expect(dangerMessage(def('web_ui_password'), {}, here).body).toContain('new password');

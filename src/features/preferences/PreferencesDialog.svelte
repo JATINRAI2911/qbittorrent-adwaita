@@ -27,7 +27,7 @@
     toast: app.toasts,
     confirm: confirmChange,
     onapplied: (def) => {
-      if (def.dangerous === 'url') app.toasts.show({ title: `Web UI moved to ${webUiUrl(model.values, location)}` });
+      if (def.dangerous === 'url') app.toasts.show({ title: location.pathname === '/' ? `Web UI moved to ${webUiUrl(model.values, location)}` : 'Web UI moved' });
     },
   });
   const pages = PAGES.filter((p) => !HIDDEN_PAGES.includes(p.id));

@@ -8,7 +8,10 @@ export interface DangerMessage {
   url?: string;
 }
 
-type Here = Pick<Location, 'protocol' | 'hostname' | 'port'>;
+type Here = Pick<Location, 'protocol' | 'hostname' | 'port'> & { pathname?: string };
+
+/** A page served under a path (qBittorrent itself serves at "/") is behind a reverse proxy. */
+const behindProxy = (here: Here) => (here.pathname ?? '/') !== '/';
 const ANY_ADDRESS = new Set(['', '*', '0.0.0.0', '::']);
 
 /** The Web UI's address once `prefs` apply: listening on any address keeps this page's host. */
@@ -23,6 +26,14 @@ export function webUiUrl(prefs: Prefs, here: Here): string {
 export function dangerMessage(def: PrefDef, prefs: Prefs, here: Here): DangerMessage {
   switch (def.dangerous) {
     case 'url': {
+      if (behindProxy(here)) {
+        const port = String(prefs.web_ui_port ?? here.port);
+        return {
+          heading: 'Move the Web UI?',
+          body: `qBittorrent will listen on port ${port}. This page reaches it through another address (a reverse proxy?), so it may stop working until that is updated too.`,
+          confirmLabel: 'Move',
+        };
+      }
       const url = webUiUrl(prefs, here);
       return { heading: 'Move the Web UI?', body: `qBittorrent will answer at ${url}. This page will stop working; open the new address to continue.`, confirmLabel: 'Move', url };
     }
