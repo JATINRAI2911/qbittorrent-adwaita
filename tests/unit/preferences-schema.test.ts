@@ -47,4 +47,20 @@ describe('preferences schema', () => {
       expect(def.label.endsWith(':'), def.key).toBe(false);
     }
   });
+
+  it('bounds numbers like qBittorrent does', () => {
+    const spin = (key: string) => PREFERENCES.find((d) => d.key === key) as Extract<PrefDef, { kind: 'spin' }>;
+    expect(spin('checking_memory_use').max).toBe(1024);
+    expect(spin('peer_turnover_interval').max).toBe(3600);
+    for (const key of ['slow_torrent_dl_rate_threshold', 'slow_torrent_ul_rate_threshold', 'slow_torrent_inactive_timer']) expect(spin(key).min, key).toBe(1);
+  });
+
+  it('offers proxy credentials only for proxy types that use them', () => {
+    const shown = (key: string, p: Record<string, unknown>) => PREFERENCES.find((d) => d.key === key)!.visibleWhen!(p);
+    // A SOCKS4 proxy has no authentication, even if proxy_auth_enabled was left on from an earlier type.
+    expect(shown('proxy_username', { proxy_type: 'SOCKS4', proxy_auth_enabled: true })).toBe(false);
+    expect(shown('proxy_password', { proxy_type: 'SOCKS4', proxy_auth_enabled: true })).toBe(false);
+    expect(shown('proxy_username', { proxy_type: 'SOCKS5', proxy_auth_enabled: true })).toBe(true);
+  });
 });
+

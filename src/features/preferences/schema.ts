@@ -108,6 +108,9 @@ const MANUAL_TMM: [OptionValue, string][] = [
 const PARAMETERS =
   '%N name · %L category · %G tags · %F content path · %R root path · %D save path · %C number of files · %Z size · %T tracker · %I info hash v1 · %J info hash v2 · %K torrent ID';
 
+/** Proxy types with authentication (qBittorrent offers it for SOCKS5 and HTTP only). */
+const PROXY_AUTH = (p: Prefs) => p.proxy_type === 'SOCKS5' || p.proxy_type === 'HTTP';
+
 export const PREFERENCES: PrefDef[] = [
   // ─── Behavior ───
   ...group('behavior', 'Language', [
@@ -212,9 +215,9 @@ export const PREFERENCES: PrefDef[] = [
     combo('proxy_type', 'Type', [['None', 'None'], ['SOCKS4', 'SOCKS4'], ['SOCKS5', 'SOCKS5'], ['HTTP', 'HTTP']]),
     entry('proxy_ip', 'Host', { visibleWhen: (p) => p.proxy_type !== 'None', needs: 'a proxy type' }),
     spin('proxy_port', 'Port', { ...PORT, visibleWhen: (p) => p.proxy_type !== 'None', needs: 'a proxy type' }),
-    sw('proxy_auth_enabled', 'Authentication', { visibleWhen: (p) => p.proxy_type === 'SOCKS5' || p.proxy_type === 'HTTP', needs: 'a SOCKS5 or HTTP proxy' }),
-    entry('proxy_username', 'Username', { visibleWhen: (p) => p.proxy_type !== 'None' && p.proxy_auth_enabled === true, needs: 'Authentication' }),
-    entry('proxy_password', 'Password', { password: true, visibleWhen: (p) => p.proxy_type !== 'None' && p.proxy_auth_enabled === true, needs: 'Authentication' }),
+    sw('proxy_auth_enabled', 'Authentication', { visibleWhen: PROXY_AUTH, needs: 'a SOCKS5 or HTTP proxy' }),
+    entry('proxy_username', 'Username', { visibleWhen: (p) => PROXY_AUTH(p) && p.proxy_auth_enabled === true, needs: 'Authentication' }),
+    entry('proxy_password', 'Password', { password: true, visibleWhen: (p) => PROXY_AUTH(p) && p.proxy_auth_enabled === true, needs: 'Authentication' }),
     sw('proxy_hostname_lookup', 'Look up host names through the proxy', { visibleWhen: (p) => p.proxy_type !== 'None', needs: 'a proxy type' }),
     sw('proxy_bittorrent', 'Use for BitTorrent', { visibleWhen: (p) => p.proxy_type !== 'None', needs: 'a proxy type' }),
     sw('proxy_peer_connections', 'Use for peer connections', { visibleWhen: (p) => p.proxy_type !== 'None' && p.proxy_bittorrent === true, needs: 'Use for BitTorrent' }),
@@ -269,9 +272,9 @@ export const PREFERENCES: PrefDef[] = [
     spin('max_active_uploads', 'Active uploads', { min: -1, subtitle: '−1 means unlimited', ...on('queueing_enabled', 'Queue torrents') }),
     spin('max_active_torrents', 'Active torrents', { min: -1, subtitle: '−1 means unlimited', ...on('queueing_enabled', 'Queue torrents') }),
     sw('dont_count_slow_torrents', 'Don’t count slow torrents', on('queueing_enabled', 'Queue torrents')),
-    spin('slow_torrent_dl_rate_threshold', 'Slow below this download speed', { unit: 'KiB/s', ...all(['queueing_enabled', 'dont_count_slow_torrents'], 'Don’t count slow torrents') }),
-    spin('slow_torrent_ul_rate_threshold', 'Slow below this upload speed', { unit: 'KiB/s', ...all(['queueing_enabled', 'dont_count_slow_torrents'], 'Don’t count slow torrents') }),
-    spin('slow_torrent_inactive_timer', 'Inactivity timer', { unit: 's', ...all(['queueing_enabled', 'dont_count_slow_torrents'], 'Don’t count slow torrents') }),
+    spin('slow_torrent_dl_rate_threshold', 'Slow below this download speed', { unit: 'KiB/s', min: 1, ...all(['queueing_enabled', 'dont_count_slow_torrents'], 'Don’t count slow torrents') }),
+    spin('slow_torrent_ul_rate_threshold', 'Slow below this upload speed', { unit: 'KiB/s', min: 1, ...all(['queueing_enabled', 'dont_count_slow_torrents'], 'Don’t count slow torrents') }),
+    spin('slow_torrent_inactive_timer', 'Inactivity timer', { unit: 's', min: 1, ...all(['queueing_enabled', 'dont_count_slow_torrents'], 'Don’t count slow torrents') }),
   ]),
   ...group('bittorrent', 'Seeding Limits', [
     limit('max_ratio', 'Stop at ratio', 1, { enabledKey: 'max_ratio_enabled', min: 0, max: 9998, digits: 2 }),
@@ -390,7 +393,7 @@ export const PREFERENCES: PrefDef[] = [
     spin('async_io_threads', 'Asynchronous I/O threads', { min: 1, max: 1024 }),
     spin('hashing_threads', 'Hashing threads', { min: 1, max: 1024 }),
     spin('file_pool_size', 'File pool size', { min: 1 }),
-    spin('checking_memory_use', 'Memory for checking torrents', { unit: 'MiB', min: 1 }),
+    spin('checking_memory_use', 'Memory for checking torrents', { unit: 'MiB', min: 1, max: 1024 }),
     spin('disk_cache', 'Disk cache', { unit: 'MiB', min: -1, subtitle: '−1 means automatic' }),
     spin('disk_cache_ttl', 'Disk cache expiry', { unit: 's', min: 1 }),
     spin('disk_queue_size', 'Disk queue size', { unit: 'KiB', scale: 1024, min: 1 }),
@@ -428,7 +431,7 @@ export const PREFERENCES: PrefDef[] = [
     spin('stop_tracker_timeout', 'Stop tracker timeout', { unit: 's', min: 0, subtitle: '0 disables' }),
     spin('peer_turnover', 'Peer turnover disconnect', { unit: '%', min: 0, max: 100 }),
     spin('peer_turnover_cutoff', 'Peer turnover threshold', { unit: '%', min: 0, max: 100 }),
-    spin('peer_turnover_interval', 'Peer turnover interval', { unit: 's', min: 30 }),
+    spin('peer_turnover_interval', 'Peer turnover interval', { unit: 's', min: 30, max: 3600 }),
     spin('request_queue_size', 'Outstanding requests per peer', { min: 1 }),
     entry('dht_bootstrap_nodes', 'DHT bootstrap nodes', { subtitle: 'host:port, separated by commas' }),
     spin('i2p_inbound_quantity', 'I2P inbound tunnels', { min: 1, max: 16 }),
