@@ -23,16 +23,3 @@ export function searchPreferences(query: string, defs: readonly PrefDef[], prefs
     .sort((a, b) => order.get(a.def.page)! - order.get(b.def.page)! || a.index - b.index)
     .map(({ def, dimmed }) => ({ def, dimmed }));
 }
-
-const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-/** `text` split into runs that do and don't match a query word, for <mark>ing search hits. */
-export function highlight(text: string, query: string): { text: string; match: boolean }[] {
-  const needles = words(query).sort((a, b) => b.length - a.length);
-  if (!needles.length) return [{ text, match: false }];
-  const pattern = new RegExp(`(${needles.map(escape).join('|')})`, 'gi');
-  return text
-    .split(pattern)
-    .filter((part) => part !== '')
-    .map((part) => ({ text: part, match: needles.includes(part.toLocaleLowerCase()) }));
-}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PREFERENCES } from '../../src/features/preferences/schema';
-import { highlight, searchPreferences } from '../../src/features/preferences/search';
+import { searchPreferences } from '../../src/features/preferences/search';
 import fixture from '../fixtures/preferences-5.2.json';
 
 const prefs = fixture as Record<string, unknown>;
@@ -33,17 +33,5 @@ describe('searchPreferences', () => {
   it('finds nothing for blank or unknown queries', () => {
     expect(searchPreferences('   ', PREFERENCES, prefs)).toEqual([]);
     expect(searchPreferences('zzzz', PREFERENCES, prefs)).toEqual([]);
-  });
-});
-
-describe('highlight', () => {
-  it('marks every occurrence of each query word, case-insensitively', () => {
-    expect(highlight('Port for incoming connections', 'port INCOM')).toEqual([
-      { text: 'Port', match: true },
-      { text: ' for ', match: false },
-      { text: 'incom', match: true },
-      { text: 'ing connections', match: false },
-    ]);
-    expect(highlight('Download', '')).toEqual([{ text: 'Download', match: false }]);
   });
 });
