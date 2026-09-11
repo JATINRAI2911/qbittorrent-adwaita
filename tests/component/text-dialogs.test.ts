@@ -53,4 +53,12 @@ describe('TextListDialog', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(onconfirm).toHaveBeenLastCalledWith('');
   });
+
+  it('shows a list read-only, with only a way to close it', () => {
+    render(TextListDialog, { title: 'Fetched trackers', label: 'Tracker URLs', value: 'udp://a.example:1337', readonly: true, confirmLabel: 'Save', onconfirm: vi.fn(), close: vi.fn() });
+    expect(screen.getByLabelText('Tracker URLs')).toHaveAttribute('readonly');
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+  });
 });
+

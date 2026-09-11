@@ -12,10 +12,12 @@
     value?: string;
     /** Allow confirming an empty text (clearing a comment). */
     allowEmpty?: boolean;
+    /** Only to look at (e.g. trackers qBittorrent fetched): no editing, and Close instead of Save. */
+    readonly?: boolean;
     onconfirm: (text: string) => void;
     close: () => void;
   }
-  let { title, label, placeholder, description, confirmLabel, value: initial = '', allowEmpty = false, onconfirm, close }: Props = $props();
+  let { title, label, placeholder, description, confirmLabel, value: initial = '', allowEmpty = false, readonly = false, onconfirm, close }: Props = $props();
   const id = $props.id();
   // Seeded once; later syncs must not overwrite what the user types.
   let text = $state(untrack(() => initial));
@@ -27,14 +29,16 @@
   {confirmLabel}
   confirmDisabled={disabled}
   {close}
-  onconfirm={() => {
-    onconfirm(text.trim());
-    close();
-  }}
+  onconfirm={readonly
+    ? undefined
+    : () => {
+        onconfirm(text.trim());
+        close();
+      }}
 >
   <div class="text-list">
     <label class="heading" for={id}>{label}</label>
-    <textarea {id} rows="6" spellcheck="false" {placeholder} bind:value={text}></textarea>
+    <textarea {id} rows="6" spellcheck="false" {placeholder} {readonly} bind:value={text}></textarea>
     {#if description}<p class="dialog-note">{description}</p>{/if}
   </div>
 </Dialog>

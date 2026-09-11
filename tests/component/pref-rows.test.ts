@@ -63,6 +63,15 @@ describe('preference rows', () => {
     expect(screen.getByLabelText('Command')).toHaveAccessibleDescription(/%N name · %L category/);
   });
 
+  it('shows a read-only list (fetched trackers) without offering to save it', async () => {
+    const { app } = await setup(['add_trackers_url_list'], { add_trackers_from_url_enabled: true, add_trackers_url_list: 'udp://a.example:1337\nudp://b.example:1337' });
+    const row = screen.getByRole('button', { name: /Fetched trackers/ });
+    expect(row).toBeEnabled();
+    await userEvent.click(row);
+    const dialog = app.dialogs.stack.at(-1)!;
+    expect(dialog.props).toMatchObject({ readonly: true, value: 'udp://a.example:1337\nudp://b.example:1337' });
+  });
+
   it('edits lists in a dialog, one item per line, joined with the key’s separator', async () => {
     const { api, app } = await setup(['banned_IPs'], { banned_IPs: '1.2.3.4\n5.6.7.8' });
     const row = screen.getByRole('button', { name: /Banned IP addresses/ });
