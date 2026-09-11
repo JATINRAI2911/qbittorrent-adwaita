@@ -96,6 +96,21 @@ describe('Network interface', () => {
   });
 });
 
+describe('Network interface name and addresses', () => {
+  it('lists every address for Any interface, and refreshes the interface name qBittorrent derives', async () => {
+    const app = makeAppContext();
+    app.adding.appApi.networkInterfaces.mockResolvedValue([{ name: 'Wi-Fi', value: 'en0' }]);
+    app.adding.appApi.interfaceAddresses.mockResolvedValue(['192.168.1.2', 'fe80::1']);
+    const { model } = await modelFor(app, { current_network_interface: '', current_interface_name: '', current_interface_address: '' });
+    render(NetworkInterfaceDialog, { props: { model, close: vi.fn() }, context: withApp(app) });
+    await vi.waitFor(() => expect(app.adding.appApi.interfaceAddresses).toHaveBeenCalledWith(''));
+    const loads = app.adding.appApi.preferences.mock.calls.length;
+    await userEvent.click(await screen.findByRole('combobox', { name: 'Interface' }));
+    await userEvent.click(screen.getByRole('option', { name: 'Wi-Fi' }));
+    await vi.waitFor(() => expect(app.adding.appApi.preferences.mock.calls.length).toBeGreaterThan(loads));
+  });
+});
+
 describe('Test email', () => {
   it('sends pending mail settings first, then a test email', async () => {
     const app = makeAppContext();

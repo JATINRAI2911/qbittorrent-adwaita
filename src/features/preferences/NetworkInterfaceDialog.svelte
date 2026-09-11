@@ -34,11 +34,19 @@
     void app.adding.appApi.networkInterfaces().then((list) => (interfaces = list)).catch(() => {});
   });
 
+  // An empty iface asks for every address of every interface, which is what "Any interface" offers.
   $effect(() => {
     const iface = current;
     addresses = [];
-    if (iface) void app.adding.appApi.interfaceAddresses(iface).then((list) => (addresses = list)).catch(() => {});
+    void app.adding.appApi.interfaceAddresses(iface).then((list) => (addresses = list)).catch(() => {});
   });
+
+  // qBittorrent derives the interface's display name itself; read it back once the change applied.
+  async function chooseInterface(value: string) {
+    model.editChanges(def, { current_network_interface: value, current_interface_address: '' });
+    await model.flush();
+    await model.load();
+  }
 </script>
 
 <Dialog title="Network Interface" width={480} {close}>
@@ -46,7 +54,7 @@
     <ComboRow
       title="Interface"
       options={interfaceOptions}
-      bind:value={() => current, (value) => model.editChanges(def, { current_network_interface: value, current_interface_address: '' })}
+      bind:value={() => current, (value) => void chooseInterface(value)}
     />
     <ComboRow title="Address" options={addressOptions} bind:value={() => address, (value) => model.editChanges(def, { current_interface_address: value })} />
   </BoxedList>
