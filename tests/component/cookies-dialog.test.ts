@@ -23,6 +23,15 @@ function setup() {
 const cards = () => screen.getAllByRole('group', { name: /Cookie/ });
 
 describe('DateRow', () => {
+  it('steps from what was typed, not from the old value', async () => {
+    render(DateRow, { title: 'Expires on', value: '2031-01-31' });
+    const year = screen.getByRole('spinbutton', { name: 'Expires on year' });
+    await userEvent.clear(year);
+    await userEvent.type(year, '2040');
+    await userEvent.keyboard('{ArrowUp}');
+    expect(year).toHaveValue('2041');
+  });
+
   it('wraps the day within the month', async () => {
     render(DateRow, { title: 'Expires on', value: '2031-02-28' });
     const day = screen.getByRole('spinbutton', { name: 'Expires on day' });

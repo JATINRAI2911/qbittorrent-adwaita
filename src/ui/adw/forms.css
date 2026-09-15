@@ -13,6 +13,7 @@
 
 .spin { display: flex; align-items: center; gap: 6px; }
 .spin input { width: 72px; border: 0; background: none; text-align: right; outline: none; font-variant-numeric: tabular-nums; }
+.spin input:focus-visible { outline: 2px solid var(--focus-ring-color); outline-offset: 2px; border-radius: 6px; }
 .spin .btn { width: 30px; min-width: 30px; height: 30px; min-height: 30px; padding: 0; border-radius: 9999px; }
 .spin-unit { opacity: var(--dim-opacity); font-size: smaller; }
 

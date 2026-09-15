@@ -57,6 +57,7 @@
         onkeydown={(event) => {
           if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
             event.preventDefault();
+            commit(part, event.currentTarget); // step from what was typed
             step(part, event.key === 'ArrowUp' ? 1 : -1);
           } else if (event.key === 'Enter') {
             event.preventDefault();

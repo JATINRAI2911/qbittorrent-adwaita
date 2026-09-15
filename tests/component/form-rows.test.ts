@@ -99,6 +99,15 @@ describe('TimeRow', () => {
     void component;
   });
 
+  it('steps from what was typed, not from the old value', async () => {
+    render(TimeRow, { title: 'From', value: '08:05' });
+    const hour = screen.getByRole('spinbutton', { name: 'From hour' });
+    await userEvent.clear(hour);
+    await userEvent.type(hour, '14');
+    await userEvent.keyboard('{ArrowUp}');
+    expect((hour as HTMLInputElement).value).toBe('15');
+  });
+
   it('wraps around midnight and the hour, and rejects impossible values', async () => {
     render(TimeRow, { title: 'To', value: '00:59' });
     const hour = screen.getByRole('spinbutton', { name: 'To hour' });
@@ -129,6 +138,13 @@ describe('row groups and hints', () => {
     render(TimeRow, { title: 'From', value: '08:05' });
     const group = screen.getByRole('group', { name: 'From' });
     expect(group).toContainElement(screen.getByRole('spinbutton', { name: 'From hour' }));
+  });
+
+  it('spellchecks prose but not monospace (URL) fields', () => {
+    render(TextAreaRow, { title: 'Comment' });
+    render(TextAreaRow, { title: 'Trackers', monospace: true });
+    expect(screen.getByLabelText('Comment')).toHaveAttribute('spellcheck', 'true');
+    expect(screen.getByLabelText('Trackers')).toHaveAttribute('spellcheck', 'false');
   });
 
   it('shows a TextAreaRow hint under the field even once it has text, and describes the field with it', () => {

@@ -32,6 +32,7 @@
   function onkeydown(part: Part, event: KeyboardEvent) {
     if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
       event.preventDefault();
+      commit(part, event.currentTarget as HTMLInputElement); // step from what was typed
       step(part, event.key === 'ArrowUp' ? 1 : -1);
     } else if (event.key === 'Enter') {
       event.preventDefault();
