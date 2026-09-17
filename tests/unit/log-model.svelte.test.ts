@@ -125,6 +125,7 @@ describe('LogModel after qBittorrent restarts', () => {
     s.setDown(false);
     await vi.advanceTimersByTimeAsync(2000);
     expect(s.model.entries.map((m) => m.message)).toEqual(['qBittorrent v5.2.0 started', 'Web UI: Now listening']);
+    expect(s.model.resets).toBe(1); // the dialog clears its selection on this
     s.restart([msg(0, 2, 'qBittorrent v5.2.0 started'), msg(1, 2, 'Web UI: Now listening'), msg(2, 2, 'later')]);
     await vi.advanceTimersByTimeAsync(2000);
     expect(s.model.entries.map((m) => m.id)).toEqual([0, 1, 2]);

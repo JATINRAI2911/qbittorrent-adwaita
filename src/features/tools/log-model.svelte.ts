@@ -19,6 +19,8 @@ export class LogModel<T extends { id: number }> {
   entries = $state.raw<T[]>([]);
   error = $state<string | null>(null);
   loading = $state(true);
+  /** Bumped each time the log started over (qBittorrent restarted): ids now mean other entries. */
+  resets = $state(0);
 
   readonly #deps: LogModelDeps<T>;
   #lastId = -1;
@@ -66,6 +68,7 @@ export class LogModel<T extends { id: number }> {
           // qBittorrent restarted: its log began again at id 0. Start over.
           this.#lastId = -1;
           this.entries = [];
+          this.resets++;
           page = await this.#deps.fetch(-1);
           if (!this.#running) return;
         }

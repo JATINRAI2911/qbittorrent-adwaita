@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import type { LogMessage, PeerLogEntry } from '../../api/log';
   import { getAppContext } from '../../app-context';
   import { copyText } from '../../lib/clipboard';
@@ -11,6 +11,7 @@
   import Spinner from '../../ui/adw/Spinner.svelte';
   import ToggleGroup from '../../ui/adw/ToggleGroup.svelte';
   import { maskSecrets } from '../details/trackers';
+  import { isTypingTarget } from '../shell/keyboard';
   import { virtualWindow } from '../table/virtual';
   import { filterMessages, LogModel, words, type LogLevel } from './log-model.svelte';
 
@@ -42,6 +43,12 @@
   });
   const shown = $derived<(LogMessage | PeerLogEntry)[]>(tab === 'main' ? filterMessages(messages.entries, level, query) : shownPeers);
   const current = $derived(shown.find((entry) => entry.id === selected) ?? null);
+  // After a restart the same ids belong to new entries: drop the selection then.
+  $effect(() => {
+    void messages.resets;
+    void peers.resets;
+    selected = null;
+  });
 
   // Chronological, virtualized; new lines keep the view at the bottom only if it was already there.
   const ROW = 34;
@@ -62,13 +69,54 @@
     return () => observer?.disconnect();
   });
 
+  // Before each change (new lines, a filter, a tab switch): pinned to the bottom, or which entry is at
+  // the top of the view. At the cap the oldest lines drop off, so the view is re-anchored to that entry
+  // rather than drifting. Each tab keeps its own position.
+  const saved: Record<'main' | 'peers', { pinned: boolean; top: number }> = { main: { pinned: true, top: 0 }, peers: { pinned: true, top: 0 } };
+  let previous: (LogMessage | PeerLogEntry)[] = [];
+  let previousTab = untrack(() => tab);
+  let anchor: { id: number; offset: number } | null = null;
+  let restore: number | null = null;
   $effect.pre(() => {
-    void shown.length;
-    if (scroller) pinned = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - ROW;
+    void shown;
+    untrack(() => {
+      if (!scroller) return;
+      const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - ROW;
+      anchor = null;
+      restore = null;
+      if (tab !== previousTab) {
+        saved[previousTab] = { pinned: atBottom, top: scroller.scrollTop };
+        previousTab = tab;
+        pinned = saved[tab].pinned;
+        if (!pinned) restore = saved[tab].top;
+        return;
+      }
+      pinned = atBottom;
+      if (!pinned) {
+        const index = Math.floor(scroller.scrollTop / ROW);
+        const entry = previous[index];
+        if (entry) anchor = { id: entry.id, offset: scroller.scrollTop - index * ROW };
+      }
+    });
   });
   $effect(() => {
-    void shown.length;
-    if (pinned && scroller) void tick().then(() => scroller && (scroller.scrollTop = scroller.scrollHeight));
+    const list = shown;
+    untrack(() => {
+      previous = list;
+      if (!scroller) return;
+      const target = anchor;
+      const top = restore;
+      void tick().then(() => {
+        if (!scroller) return;
+        if (pinned) scroller.scrollTop = scroller.scrollHeight;
+        else if (top !== null) scroller.scrollTop = top;
+        else if (target) {
+          const index = list.findIndex((entry) => entry.id === target.id);
+          if (index >= 0) scroller.scrollTop = index * ROW + target.offset;
+        }
+        scrollTop = scroller.scrollTop;
+      });
+    });
   });
 
   const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -103,6 +151,8 @@
   }
 
   function onkeydown(event: KeyboardEvent) {
+    // In the search field, Ctrl+C copies the field's own selection.
+    if (isTypingTarget(event.target)) return;
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'c' && current && !window.getSelection()?.toString()) {
       event.preventDefault();
       void copy();
@@ -139,6 +189,7 @@
       />
     {/if}
     <span class="spacer"></span>
+    {#if model.error && model.entries.length}<span class="error log-stale" role="status">Couldn’t refresh the log: {model.error}</span>{/if}
     <span class="dimmed numeric log-count">{formatCount(shown.length)} of {formatCount(model.entries.length)}</span>
     <div class="log-search"><SearchEntry label="Search the log" placeholder="Search" bind:value={query} /></div>
   </div>
@@ -182,6 +233,7 @@
 </div>
 
 <style>
+  .log-stale { font-size: smaller; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .log-dialog { width: min(760px, 100%); height: min(560px, calc(100vh - 48px)); display: flex; flex-direction: column; overflow: hidden; }
   .log-toolbar { display: flex; align-items: center; gap: 12px; padding: 0 12px 8px; }
   .spacer { flex: 1; }
