@@ -40,4 +40,12 @@
   }
   :is(.torrent-row.selected, .cv-row.selected, .log-row.selected) * { color: HighlightText !important; }
   :focus-visible { outline-color: Highlight; }
+  /* On Highlight: rings and checked boxes in HighlightText, or they vanish. */
+  :is(.torrent-row, .cv-row).selected :focus-visible, :is(.torrent-row, .cv-row).selected.kfocus { outline-color: HighlightText; }
+  :is(.torrent-row, .cv-row).selected .check.checked { border-color: HighlightText; }
+  /* In a combo list the chosen option is Highlight; the focused one gets an outline instead. */
+  .combo-popover .menu-item[role='option']:focus-visible:not([aria-selected='true']) {
+    background: Canvas !important; color: CanvasText !important; outline: 2px solid CanvasText; outline-offset: -2px;
+  }
+  .combo-popover .menu-item[role='option'][aria-selected='true']:focus-visible { outline: 2px solid HighlightText; outline-offset: -4px; }
 }
