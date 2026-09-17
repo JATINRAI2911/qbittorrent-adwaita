@@ -11,6 +11,19 @@ It covers what the stock Web UI does, built for big libraries:
 
 Tracker passkeys are masked wherever they are shown. The only thing the UI stores is its own view settings: in qBittorrent (through `clientdata`), cached in the browser's local storage.
 
+## Screenshots
+
+![The torrent list, grouped by state, in the dark theme](docs/screenshots/list-dark.png)
+
+| | |
+|---|---|
+| ![The torrent list in the light theme](docs/screenshots/list-light.png) | ![The table view with sortable columns](docs/screenshots/table-light.png) |
+| ![The details sheet: overview with the piece map](docs/screenshots/details-dark.png) | ![The details sheet: files with priorities](docs/screenshots/details-files-dark.png) |
+| ![The torrent list in the dark theme](docs/screenshots/list-dark.png) | ![Selection mode with the action bar](docs/screenshots/selection-dark.png) |
+| ![The status popover with the speed graph](docs/screenshots/status-dark.png) | ![Preferences, Speed page](docs/screenshots/preferences-light.png) |
+
+The torrents in these pictures are made up (`npm run mock` serves them; `npm run screenshots` retakes the pictures).
+
 ## Install
 
 You need qBittorrent 5.2 or newer with its Web UI enabled, and Node.js 22+ to build.
@@ -61,6 +74,13 @@ QBT_URL=http://127.0.0.1:9000 npm run dev   # Vite dev server; proxies /api to q
 ```
 
 Then open the printed local address. The UI is Svelte 5 + TypeScript, with a small libadwaita-style kit in `src/ui/adw`.
+
+To try the UI without a qBittorrent, run a pretend one with made-up torrents:
+
+```bash
+npm run mock                                 # a fake qBittorrent API on 127.0.0.1:9100 (any login works)
+QBT_URL=http://127.0.0.1:9100 npm run dev
+```
 
 To test against a snapshot of your own library (never committed):
 
