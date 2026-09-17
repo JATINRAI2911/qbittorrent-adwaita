@@ -89,6 +89,27 @@ describe('App search', () => {
     unmount();
   });
 
+  it('leaves selection mode when a filter hides everything that was selected', async () => {
+    const { unmount } = await renderApp();
+    await userEvent.keyboard('{Control>}a{/Control}');
+    expect(screen.getByRole('button', { name: /2 Selected/ })).toBeInTheDocument();
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.keyboard('zzzz');
+    expect(screen.queryByRole('button', { name: /Selected/ })).toBeNull();
+    unmount();
+  });
+
+  it('acts only on the torrents still shown after filtering a selection', async () => {
+    const { unmount } = await renderApp();
+    await userEvent.keyboard('{Control>}a{/Control}');
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.keyboard('first');
+    screen.getByText('first.iso').closest<HTMLElement>('[data-hash]')!.focus();
+    await userEvent.keyboard('{Delete}');
+    expect(await screen.findByRole('alertdialog', { name: 'Delete Torrent?' })).toHaveTextContent('first.iso');
+    unmount();
+  });
+
   it('drops torrents hidden by a filter from the selection', async () => {
     const { unmount } = await renderApp();
     await userEvent.keyboard('{Control>}a{/Control}');
