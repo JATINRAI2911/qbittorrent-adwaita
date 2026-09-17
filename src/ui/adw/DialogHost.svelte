@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { untrack } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import type { DialogStore } from './dialogs.svelte';
   import { DURATION, fade } from './motion';
 
@@ -43,6 +43,21 @@
     event.preventDefault();
     target?.focus();
   }
+
+  // When the login that covered the dialogs goes away, focus returns to the top one.
+  let wasSuspended = untrack(() => suspended);
+  $effect(() => {
+    const now = suspended;
+    untrack(() => {
+      if (wasSuspended && !now && store.isOpen) {
+        void tick().then(() => {
+          const host = topHost();
+          if (host && !host.contains(document.activeElement)) (tabbables(host)[0] ?? host.querySelector<HTMLElement>('[role="dialog"], [role="alertdialog"]'))?.focus();
+        });
+      }
+      wasSuspended = now;
+    });
+  });
 
   // Dialogs whose subject went away close by themselves.
   $effect(() => {

@@ -130,6 +130,8 @@ describe('App', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Log In' }));
     await vi.waitFor(() => expect(screen.queryByLabelText('Username')).not.toBeInTheDocument());
     expect(host.inert).toBe(false);
+    // Focus goes back into the dialog the login covered.
+    await vi.waitFor(() => expect(host.contains(document.activeElement)).toBe(true));
     unmount();
   });
 
