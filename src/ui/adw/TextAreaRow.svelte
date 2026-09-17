@@ -7,15 +7,17 @@
     monospace?: boolean;
     /** Shown under the field at all times (a placeholder disappears once there is text). */
     hint?: string;
+    /** On for prose, off by default for monospace fields (URLs, code). */
+    spellcheck?: boolean;
   }
-  let { title, value = $bindable(''), placeholder, rows = 3, monospace = false, hint }: Props = $props();
+  let { title, value = $bindable(''), placeholder, rows = 3, monospace = false, hint, spellcheck = !monospace }: Props = $props();
   const id = $props.id();
 </script>
 
 <!-- A multi-line entry in a boxed list, like a GtkTextView in a libadwaita card. -->
 <div class="row textarea-row">
   <label class="er-title" for={id}>{title}</label>
-  <textarea {id} {rows} {placeholder} class:monospace spellcheck="false" aria-describedby={hint ? `${id}-hint` : undefined} bind:value></textarea>
+  <textarea {id} {rows} {placeholder} class:monospace spellcheck={spellcheck ? 'true' : 'false'} aria-describedby={hint ? `${id}-hint` : undefined} bind:value></textarea>
   {#if hint}<p class="ta-hint" id="{id}-hint">{hint}</p>{/if}
 </div>
 
