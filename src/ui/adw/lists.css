@@ -38,3 +38,8 @@
 /* Preferences search hits (CSS Custom Highlight API). */
 ::highlight(pref-search) { background-color: color-mix(in srgb, var(--accent-bg-color) 35%, transparent); color: inherit; }
 .entry-row input.masked { -webkit-text-security: disc; text-security: disc; }
+
+/* Status text in selected torrent rows (list and table) keeps AA contrast on the selection blue. */
+:is(.torrent-row, .cv-row).selected .error { color: var(--selected-error-color); }
+:is(.torrent-row, .cv-row).selected .warning { color: var(--selected-warning-color); }
+

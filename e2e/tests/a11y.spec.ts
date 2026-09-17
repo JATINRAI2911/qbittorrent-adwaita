@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import { api, resetLibrary } from '../api';
-import { login, seed } from '../fixtures';
+import { broken, login, seed } from '../fixtures';
 
 let client: APIRequestContext;
 
@@ -10,6 +10,7 @@ test.beforeAll(async () => {
   await resetLibrary(client);
   await seed(client, 'india');
   await seed(client, 'juliet');
+  await broken(client, 'kilo-missing');
 });
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
@@ -38,6 +39,12 @@ for (const scheme of ['light', 'dark'] as const) {
 
     test('list, details sheet and table', async ({ page }) => {
       await scan(page, 'list');
+      // Error text on a selected row (the one whose details are open) must stay readable.
+      await page.getByRole('listitem').filter({ hasText: 'kilo-missing' }).first().click();
+      await page.keyboard.press('Escape');
+      await page.getByRole('listitem').filter({ hasText: 'kilo-missing' }).first().click({ modifiers: ['ControlOrMeta'] });
+      await scan(page, 'list with a selected error row');
+      await page.keyboard.press('Escape');
       await page.getByRole('listitem').filter({ hasText: 'india' }).first().click();
       const sheet = page.getByRole('region', { name: /details/i });
       for (const tab of ['Overview', 'Files', 'Trackers', 'Peers', 'HTTP Sources']) {

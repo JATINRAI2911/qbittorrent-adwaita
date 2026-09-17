@@ -75,3 +75,16 @@ export async function serverState(client: APIRequestContext, name: string): Prom
 }
 
 export { until };
+
+/** A torrent whose files aren't where qBittorrent looks: rechecked, it ends up in an error state. */
+export async function broken(client: APIRequestContext, name: string): Promise<ServerTorrent> {
+  const file = await createTorrentFile(client, makeSource(name));
+  await client.post('/api/v2/torrents/add', {
+    multipart: { torrents: { name: `${name}.torrent`, mimeType: 'application/x-bittorrent', buffer: file }, savepath: '/downloads/nowhere', skip_checking: 'true' },
+  });
+  const added = (await until(() => torrents(client), (all) => all.some((t) => t.name === name), `${name} to be added`)).find((t) => t.name === name)!;
+  await client.post('/api/v2/torrents/recheck', { form: { hashes: added.hash } });
+  const list = await until(() => torrents(client), (all) => ['missingFiles', 'error'].includes(all.find((t) => t.name === name)?.state ?? ''), `${name} to fail`);
+  return list.find((t) => t.name === name)!;
+}
+

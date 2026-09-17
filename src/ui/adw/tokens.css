@@ -20,6 +20,9 @@
   --error-bg-color: #e01b24;
   --error-fg-color: #ffffff;
   --error-color: oklab(from var(--error-bg-color) var(--standalone-color-oklab));
+  /* Error and warning text on a selected row's blue: the standalone tones fall just under AA there. */
+  --selected-error-color: #a51d2d;
+  --selected-warning-color: #7a4900;
 
   --window-bg-color: #fafafb;
   --window-fg-color: rgb(0 0 6 / 80%);
@@ -69,6 +72,8 @@
   --success-bg-color: #26a269;
   --warning-bg-color: #cd9309;
   --error-bg-color: #c01c28;
+  --selected-error-color: #ffb3ad;
+  --selected-warning-color: #f8e45c;
   --window-bg-color: #222226;
   --window-fg-color: #ffffff;
   --view-bg-color: #1d1d20;
