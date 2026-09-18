@@ -70,6 +70,8 @@ export class UiPrefs {
   #timer: ReturnType<typeof setTimeout> | undefined;
   #loading: Promise<void> | undefined;
   #dirty = false;
+  /** Fields changed here since start: they win over the server copy, field by field. */
+  readonly #changedFields = new Set<keyof UiPrefsData>();
   /** The local copy has changes the server hasn't confirmed (debounce pending, or a write failed). */
   #pending = false;
 
@@ -96,9 +98,14 @@ export class UiPrefs {
           return;
         }
         const result = await this.#deps.api.load([PREFS_KEY]);
-        if (!this.#dirty && result[PREFS_KEY] !== undefined) {
-          this.#apply(sanitizePrefs(result[PREFS_KEY]));
-          this.#extra = unknownKeys(result[PREFS_KEY]);
+        const raw = result[PREFS_KEY];
+        // Only an object is a stored copy (null or junk would otherwise reset everything).
+        if (raw !== null && typeof raw === 'object' && !Array.isArray(raw)) {
+          const merged: UiPrefsData = sanitizePrefs(raw);
+          const local = this.data;
+          for (const field of this.#changedFields) (merged as unknown as Record<string, unknown>)[field] = local[field];
+          this.#apply(merged);
+          this.#extra = unknownKeys(raw);
           this.#writeLocal();
         }
       } catch {
@@ -110,27 +117,27 @@ export class UiPrefs {
 
   setView(view: ViewMode): void {
     this.view = view;
-    this.#changed();
+    this.#changed('view');
   }
 
   setListSort(sort: ListSort): void {
     this.listSort = sort;
-    this.#changed();
+    this.#changed('listSort');
   }
 
   setTableSort(sort: TableSort): void {
     this.tableSort = { ...sort };
-    this.#changed();
+    this.#changed('tableSort');
   }
 
   setColumns(columns: readonly ColumnId[]): void {
     this.columns = withName(COLUMN_IDS.filter((id) => columns.includes(id)));
-    this.#changed();
+    this.#changed('columns');
   }
 
   setSheetHeight(fraction: number): void {
     this.sheetHeight = clampSheet(fraction);
-    this.#changed();
+    this.#changed('sheetHeight');
   }
 
   toggleColumn(id: ColumnId): void {
@@ -155,7 +162,8 @@ export class UiPrefs {
     return this.#pending ? this.flush() : Promise.resolve();
   }
 
-  #changed(): void {
+  #changed(field: keyof UiPrefsData): void {
+    this.#changedFields.add(field);
     this.#dirty = true;
     this.#pending = true;
     this.#writeLocal();

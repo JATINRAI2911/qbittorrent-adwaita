@@ -69,6 +69,27 @@ describe('UiPrefs', () => {
     expect(prefs.view).toBe('table');
   });
 
+  it('merges a slow server load field by field: only what was changed meanwhile stays local', async () => {
+    let resolve!: (value: Record<string, unknown>) => void;
+    const api = fakeClientData();
+    api.load.mockImplementationOnce(() => new Promise((r) => (resolve = r)));
+    const prefs = new UiPrefs({ api });
+    const loading = prefs.load();
+    prefs.setView('table');
+    resolve({ [PREFS_KEY]: { view: 'list', listSort: 'ratio', columns: ['name', 'size'], sheetHeight: 0.7, futureKey: 1 } });
+    await loading;
+    expect([prefs.view, prefs.listSort, prefs.columns, prefs.sheetHeight]).toEqual(['table', 'ratio', ['name', 'size'], 0.7]);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(api.store).toHaveBeenLastCalledWith({ [PREFS_KEY]: expect.objectContaining({ view: 'table', listSort: 'ratio', sheetHeight: 0.7, futureKey: 1 }) });
+  });
+
+  it('ignores a stored value that isn’t an object instead of resetting everything', async () => {
+    const storage = memoryStorage({ 'adw-ui.prefs': JSON.stringify({ view: 'table', listSort: 'ratio' }) });
+    const prefs = new UiPrefs({ api: fakeClientData({ [PREFS_KEY]: null }), storage });
+    await prefs.load();
+    expect([prefs.view, prefs.listSort]).toEqual(['table', 'ratio']);
+  });
+
   it('writes local storage at once and the server after a 1 s pause', async () => {
     const storage = memoryStorage();
     const api = fakeClientData();
