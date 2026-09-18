@@ -33,6 +33,11 @@ describe('buildAddPlan', () => {
     expect(plan[0]!.options).not.toHaveProperty('savepath');
   });
 
+  it('still sends a save path the user typed when the defaults failed to load (manual management then)', () => {
+    const plan = buildAddPlan([item({})], form({ savePath: '/mnt/isos' }), new Set(), new Set(['autoTMM', 'start', 'contentLayout', 'stopCondition'] as const));
+    expect(plan[0]!.options).toMatchObject({ autoTMM: false, savepath: '/mnt/isos' });
+  });
+
   it('sends each torrent once, even when two items turned out to be the same', () => {
     const file = new File(['1'], 'a.torrent');
     const plan = buildAddPlan([item({ id: 1, hash: 'aa' }), item({ id: 2, kind: 'file', source: file, hash: 'aa' })], form(), new Set());

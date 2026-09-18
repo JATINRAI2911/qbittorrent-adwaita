@@ -15,7 +15,10 @@ function commonOptions(form: AddForm, unknown: ReadonlySet<keyof AddForm>): AddO
   if (!unknown.has('start')) options.stopped = !form.start;
   if (!unknown.has('contentLayout')) options.contentLayout = form.contentLayout;
   if (!unknown.has('stopCondition')) options.stopCondition = form.stopCondition;
-  if (!form.autoTMM && !unknown.has('autoTMM') && !unknown.has('savePath')) {
+  // A save path counts once management is known to be manual, or the user typed one (which only
+  // means anything under manual management, so that is then sent too).
+  if (!form.autoTMM && (!unknown.has('autoTMM') || !unknown.has('savePath'))) {
+    if (unknown.has('autoTMM')) options.autoTMM = false;
     options.savepath = form.savePath.trim();
     if (form.useDownloadPath) {
       options.useDownloadPath = true;
