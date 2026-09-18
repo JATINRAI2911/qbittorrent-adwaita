@@ -11,12 +11,14 @@
   const tabindex = $derived(behindDialog ? -1 : undefined);
 </script>
 
-<!-- The live region stays mounted: a toast inserted into it is announced; one inserted together with it often isn't. -->
-<div class="toast-overlay" role="status" style:bottom="{bottom}px">
+<!-- The live region stays mounted and holds only the current title, so each toast is announced once,
+     without its button labels or the previous toast still fading out. -->
+<span class="visually-hidden" role="status">{store.current?.title ?? ''}</span>
+<div class="toast-overlay" style:bottom="{bottom}px">
   {#if store.current}
     {#key store.current.id}
       <div class="toast" in:rise|global={{ duration: DURATION.slow, y: 16 }} out:fade|global={{ duration: DURATION.fast }}>
-        <span class="toast-title">{store.current.title}</span>
+        <span class="toast-title" aria-hidden="true">{store.current.title}</span>
         {#if store.current.undo}<Button label="Undo" {tabindex} onclick={() => store.undo()} />{/if}
         <Button icon="close" circular variant="flat" title="Dismiss" {tabindex} onclick={() => store.dismiss()} />
       </div>

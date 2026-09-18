@@ -47,14 +47,16 @@ describe('ToastOverlay', () => {
     const store = new ToastStore();
     render(ToastOverlay, { store });
     const region = screen.getByRole('status');
-    expect(region).toBeEmptyDOMElement();
+    expect(region.textContent).toBe('');
     store.show({ title: 'Stopped “ubuntu.iso”' });
     flushSync();
     expect(screen.getByRole('status')).toBe(region);
     expect(region).toHaveTextContent('Stopped “ubuntu.iso”');
-    store.show({ title: 'Started “ubuntu.iso”' });
+    store.show({ title: 'Started “ubuntu.iso”', undo: () => {} });
     flushSync();
     expect(screen.getByRole('status')).toBe(region);
+    // Only the new title is announced: not the button labels, nor a toast still fading out.
+    expect(region.textContent).toBe('Started “ubuntu.iso”');
   });
 
   it('behind a dialog, still announces the toast but keeps its buttons out of the Tab order', () => {
@@ -78,11 +80,11 @@ describe('ToastOverlay', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Stopped “ubuntu.iso”');
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
     expect(undo).toHaveBeenCalled();
-    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    expect(screen.getByRole('status').textContent).toBe('');
 
     store.show({ title: 'Copied name' });
     flushSync();
     await userEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
-    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    expect(screen.getByRole('status').textContent).toBe('');
   });
 });
