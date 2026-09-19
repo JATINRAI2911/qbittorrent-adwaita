@@ -53,16 +53,25 @@
     return () => document.removeEventListener('pointerdown', onPointerDown, true);
   });
 
-  // When something under it scrolls: a menu opened at a point (a context menu) closes, since what it
-  // was for has moved; one anchored to a control moves with it. Scrolling the popover itself is fine.
+  // A popover anchored to a control follows it through any scroll. A menu opened at a point (a context
+  // menu) closes when the user scrolls the page away from it (wheel or touch), but not when the browser
+  // adjusts the scroll itself (scroll anchoring while rows above change). Inside the popover is fine.
   $effect(() => {
+    const inside = (event: Event) => event.target instanceof Node && element.contains(event.target);
     const onScroll = (event: Event) => {
-      if (event.target instanceof Node && element.contains(event.target)) return;
-      if ('element' in anchor) place();
-      else onclose();
+      if (!inside(event) && 'element' in anchor) place();
+    };
+    const onUserScroll = (event: Event) => {
+      if (!inside(event) && !('element' in anchor)) onclose();
     };
     document.addEventListener('scroll', onScroll, true);
-    return () => document.removeEventListener('scroll', onScroll, true);
+    document.addEventListener('wheel', onUserScroll, { capture: true, passive: true });
+    document.addEventListener('touchmove', onUserScroll, { capture: true, passive: true });
+    return () => {
+      document.removeEventListener('scroll', onScroll, true);
+      document.removeEventListener('wheel', onUserScroll, true);
+      document.removeEventListener('touchmove', onUserScroll, true);
+    };
   });
 </script>
 

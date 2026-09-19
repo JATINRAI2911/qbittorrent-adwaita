@@ -19,12 +19,16 @@ describe('Popover', () => {
     render(Popover, { props: { anchor: { x: 10, y: 10 }, onclose: atPoint, children: body } });
     render(Popover, { props: { anchor: { element: anchor }, onclose: anchored, children: body } });
     const before = rect.mock.calls.length;
+    // A scroll the browser makes by itself (scroll anchoring as rows above change) keeps a context menu open…
     list.dispatchEvent(new Event('scroll'));
+    expect(atPoint).not.toHaveBeenCalled();
+    expect(rect.mock.calls.length).toBeGreaterThan(before); // …while an anchored popover follows its anchor
+    // …but the user scrolling the page closes it.
+    list.dispatchEvent(new WheelEvent('wheel', { bubbles: true, deltaY: 40 }));
     expect(atPoint).toHaveBeenCalledTimes(1);
     expect(anchored).not.toHaveBeenCalled();
-    expect(rect.mock.calls.length).toBeGreaterThan(before);
     // Scrolling inside a popover (a long menu) changes nothing.
-    screen.getAllByText('Popover body')[0]!.closest('.popover')!.querySelector('.contents')!.dispatchEvent(new Event('scroll'));
+    screen.getAllByText('Popover body')[0]!.closest('.popover')!.dispatchEvent(new WheelEvent('wheel', { bubbles: true, deltaY: 40 }));
     expect(atPoint).toHaveBeenCalledTimes(1);
     list.remove();
   });
