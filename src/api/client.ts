@@ -48,7 +48,9 @@ function encode(params: Params | undefined): string {
 async function call<T>(path: string, options: RequestOptions, read: (response: Response) => Promise<T>): Promise<T> {
   const method = options.method ?? 'GET';
   const query = encode(options.params);
-  const url = `${config.baseUrl}/api/v2/${path}${method === 'GET' && query ? `?${query}` : ''}`;
+  // Without a base URL, relative to the page: /api/v2 when served at the root, and the right place
+  // behind a reverse proxy that serves qBittorrent under a sub-path.
+  const url = `${config.baseUrl ? `${config.baseUrl}/` : ''}api/v2/${path}${method === 'GET' && query ? `?${query}` : ''}`;
 
   const controller = new AbortController();
   let timedOut = false;

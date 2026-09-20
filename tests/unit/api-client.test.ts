@@ -17,7 +17,8 @@ describe('request', () => {
     const fetch = mockFetch(async () => new Response('{"rid":5}'));
     await expect(getJson('sync/maindata', { rid: 5 })).resolves.toEqual({ rid: 5 });
     const [url, init] = fetch.mock.calls[0]!;
-    expect(url).toBe('/api/v2/sync/maindata?rid=5');
+    // Relative to the page: the same as /api/v2 at the root, and right under a reverse-proxy sub-path.
+    expect(url).toBe('api/v2/sync/maindata?rid=5');
     expect(init.method).toBe('GET');
     expect(init.body).toBeUndefined();
   });
@@ -26,7 +27,7 @@ describe('request', () => {
     const fetch = mockFetch(async () => new Response(''));
     await post('torrents/stop', { hashes: 'a|b', deleteFiles: false, skipped: undefined });
     const [url, init] = fetch.mock.calls[0]!;
-    expect(url).toBe('/api/v2/torrents/stop');
+    expect(url).toBe('api/v2/torrents/stop');
     expect(init.method).toBe('POST');
     expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/x-www-form-urlencoded');
     expect(init.body).toBe('hashes=a%7Cb&deleteFiles=false');

@@ -11,7 +11,7 @@ describe('appApi', () => {
     await expect(appApi.directoryContent('/data')).resolves.toEqual(['/data/a', '/data/b']);
     await expect(appApi.defaultSavePath()).resolves.toBe('/data');
     await expect(appApi.preferences()).resolves.toEqual({ save_path: '/data' });
-    expect(fetch.mock.calls[0]![0]).toBe('/api/v2/app/getDirectoryContent?dirPath=%2Fdata&mode=dirs');
+    expect(fetch.mock.calls[0]![0]).toBe('api/v2/app/getDirectoryContent?dirPath=%2Fdata&mode=dirs');
   });
 
   it('lists network interfaces and their addresses, manages the API key, and sends a test email', async () => {
@@ -30,11 +30,11 @@ describe('appApi', () => {
     await appApi.deleteAPIKey();
     await appApi.sendTestEmail();
     expect(calls).toEqual([
-      'GET /api/v2/app/networkInterfaceList',
-      'GET /api/v2/app/networkInterfaceAddressList?iface=en0',
-      'POST /api/v2/app/rotateAPIKey',
-      'POST /api/v2/app/deleteAPIKey',
-      'POST /api/v2/app/sendTestEmail',
+      'GET api/v2/app/networkInterfaceList',
+      'GET api/v2/app/networkInterfaceAddressList?iface=en0',
+      'POST api/v2/app/rotateAPIKey',
+      'POST api/v2/app/deleteAPIKey',
+      'POST api/v2/app/sendTestEmail',
     ]);
   });
 });

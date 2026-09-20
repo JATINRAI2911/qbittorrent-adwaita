@@ -16,12 +16,12 @@ describe('global endpoints', () => {
     const calls = capture();
     await transferApi.setSpeedLimitsMode(true);
     await transferApi.setSpeedLimitsMode(false);
-    expect(calls()).toEqual(['POST /api/v2/transfer/setSpeedLimitsMode mode=1', 'POST /api/v2/transfer/setSpeedLimitsMode mode=0']);
+    expect(calls()).toEqual(['POST api/v2/transfer/setSpeedLimitsMode mode=1', 'POST api/v2/transfer/setSpeedLimitsMode mode=0']);
   });
 
   it('writes only the given preferences as one JSON field', async () => {
     const calls = capture();
     await appApi.setPreferences({ dl_limit: 1024, scheduler_enabled: true });
-    expect(calls()).toEqual(['POST /api/v2/app/setPreferences json=%7B%22dl_limit%22%3A1024%2C%22scheduler_enabled%22%3Atrue%7D']);
+    expect(calls()).toEqual(['POST api/v2/app/setPreferences json=%7B%22dl_limit%22%3A1024%2C%22scheduler_enabled%22%3Atrue%7D']);
   });
 });

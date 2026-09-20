@@ -22,7 +22,7 @@ describe('log endpoints', () => {
     const calls = capture(() => '[{"id":5,"message":"m","timestamp":1,"type":2}]');
     await expect(logApi.main(4)).resolves.toEqual([{ id: 5, message: 'm', timestamp: 1, type: 2 }]);
     await logApi.peers(-1);
-    expect(calls).toEqual(['GET /api/v2/log/main?last_known_id=4', 'GET /api/v2/log/peers?last_known_id=-1']);
+    expect(calls).toEqual(['GET api/v2/log/main?last_known_id=4', 'GET api/v2/log/peers?last_known_id=-1']);
   });
 });
 
@@ -35,11 +35,11 @@ describe('torrent creator endpoints', () => {
     await expect(creatorApi.torrentFile('abc').then((blob) => blob.text())).resolves.toBe('d4:infoe');
     await creatorApi.deleteTask('abc');
     expect(calls).toEqual([
-      'POST /api/v2/torrentcreator/addTask sourcePath=%2Fdata%2Fshare&pieceSize=0&private=true&startSeeding=false&trackers=a%7Cb',
-      'GET /api/v2/torrentcreator/status',
-      'GET /api/v2/torrentcreator/status?taskID=abc',
-      'GET /api/v2/torrentcreator/torrentFile?taskID=abc',
-      'POST /api/v2/torrentcreator/deleteTask taskID=abc',
+      'POST api/v2/torrentcreator/addTask sourcePath=%2Fdata%2Fshare&pieceSize=0&private=true&startSeeding=false&trackers=a%7Cb',
+      'GET api/v2/torrentcreator/status',
+      'GET api/v2/torrentcreator/status?taskID=abc',
+      'GET api/v2/torrentcreator/torrentFile?taskID=abc',
+      'POST api/v2/torrentcreator/deleteTask taskID=abc',
     ]);
   });
 });
@@ -60,8 +60,8 @@ describe('app tool endpoints', () => {
     await appApi.setCookies([{ name: 'uid', domain: 't.example', path: '/', value: 'v', expirationDate: 0 }]);
     await appApi.shutdown();
     expect(calls.slice(4)).toEqual([
-      'POST /api/v2/app/setCookies cookies=%5B%7B%22name%22%3A%22uid%22%2C%22domain%22%3A%22t.example%22%2C%22path%22%3A%22%2F%22%2C%22value%22%3A%22v%22%2C%22expirationDate%22%3A0%7D%5D',
-      'POST /api/v2/app/shutdown',
+      'POST api/v2/app/setCookies cookies=%5B%7B%22name%22%3A%22uid%22%2C%22domain%22%3A%22t.example%22%2C%22path%22%3A%22%2F%22%2C%22value%22%3A%22v%22%2C%22expirationDate%22%3A0%7D%5D',
+      'POST api/v2/app/shutdown',
     ]);
   });
 });

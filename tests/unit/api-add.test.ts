@@ -22,7 +22,7 @@ describe('addApi.add', () => {
     );
     expect(result).toEqual({ success_count: 2, failure_count: 0, pending_count: 1, added_torrent_ids: ['a'] });
     const [url, init] = fetch.mock.calls[0]!;
-    expect(url).toBe('/api/v2/torrents/add');
+    expect(url).toBe('api/v2/torrents/add');
     expect(init!.method).toBe('POST');
     expect(init!.headers).toBeUndefined();
     expect(entries(init)).toEqual([

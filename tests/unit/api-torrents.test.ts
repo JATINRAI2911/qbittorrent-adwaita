@@ -16,8 +16,8 @@ describe('torrentsApi', () => {
     await torrentsApi.start(['a', 'b']);
     await torrentsApi.stop(['c']);
     expect(calls()).toEqual([
-      { url: '/api/v2/torrents/start', method: 'POST', body: 'hashes=a%7Cb' },
-      { url: '/api/v2/torrents/stop', method: 'POST', body: 'hashes=c' },
+      { url: 'api/v2/torrents/start', method: 'POST', body: 'hashes=a%7Cb' },
+      { url: 'api/v2/torrents/stop', method: 'POST', body: 'hashes=c' },
     ]);
   });
 
@@ -28,10 +28,10 @@ describe('torrentsApi', () => {
     await torrentsApi.setAutoManagement(['a'], true);
     await torrentsApi.setSuperSeeding(['a'], false);
     expect(calls().map((c) => [c.url, c.body])).toEqual([
-      ['/api/v2/torrents/setForceStart', 'hashes=a&value=true'],
-      ['/api/v2/torrents/delete', 'hashes=a&deleteFiles=false'],
-      ['/api/v2/torrents/setAutoManagement', 'hashes=a&enable=true'],
-      ['/api/v2/torrents/setSuperSeeding', 'hashes=a&value=false'],
+      ['api/v2/torrents/setForceStart', 'hashes=a&value=true'],
+      ['api/v2/torrents/delete', 'hashes=a&deleteFiles=false'],
+      ['api/v2/torrents/setAutoManagement', 'hashes=a&enable=true'],
+      ['api/v2/torrents/setSuperSeeding', 'hashes=a&value=false'],
     ]);
   });
 
@@ -59,7 +59,7 @@ describe('torrentsApi', () => {
     const calls = capture();
     for (const where of ['top', 'up', 'down', 'bottom'] as const) await torrentsApi.moveInQueue(['a'], where);
     expect(calls().map((c) => c.url)).toEqual([
-      '/api/v2/torrents/topPrio', '/api/v2/torrents/increasePrio', '/api/v2/torrents/decreasePrio', '/api/v2/torrents/bottomPrio',
+      'api/v2/torrents/topPrio', 'api/v2/torrents/increasePrio', 'api/v2/torrents/decreasePrio', 'api/v2/torrents/bottomPrio',
     ]);
   });
 
@@ -67,7 +67,7 @@ describe('torrentsApi', () => {
     const calls = capture('d8:announce0:e');
     const blob = await torrentsApi.exportTorrent('abc');
     expect(await blob.text()).toBe('d8:announce0:e');
-    expect(calls()[0]).toMatchObject({ url: '/api/v2/torrents/export?hash=abc', method: 'GET' });
+    expect(calls()[0]).toMatchObject({ url: 'api/v2/torrents/export?hash=abc', method: 'GET' });
   });
 
   it('manages categories and tags with 5.2 parameters', async () => {
@@ -77,10 +77,10 @@ describe('torrentsApi', () => {
     await torrentsApi.removeCategories(['TV', 'Films']);
     await torrentsApi.deleteTags(['keep', 'hd']);
     expect(calls().map((c) => `${c.url} ${c.body}`)).toEqual([
-      '/api/v2/torrents/createCategory category=TV&savePath=%2Ftv&downloadPathEnabled=true&downloadPath=%2Ftv%2Fincoming',
-      '/api/v2/torrents/editCategory category=TV&savePath=&downloadPathEnabled=false&downloadPath=',
-      '/api/v2/torrents/removeCategories categories=TV%0AFilms',
-      '/api/v2/torrents/deleteTags tags=keep%2Chd',
+      'api/v2/torrents/createCategory category=TV&savePath=%2Ftv&downloadPathEnabled=true&downloadPath=%2Ftv%2Fincoming',
+      'api/v2/torrents/editCategory category=TV&savePath=&downloadPathEnabled=false&downloadPath=',
+      'api/v2/torrents/removeCategories categories=TV%0AFilms',
+      'api/v2/torrents/deleteTags tags=keep%2Chd',
     ]);
   });
 });

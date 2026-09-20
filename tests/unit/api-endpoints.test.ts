@@ -16,7 +16,7 @@ describe('login', () => {
     const fetch = respond('');
     await expect(login('admin', 'p&ss word')).resolves.toBe('ok');
     const [url, init] = fetch.mock.calls[0]!;
-    expect(url).toBe('/api/v2/auth/login');
+    expect(url).toBe('api/v2/auth/login');
     expect(init?.body).toBe('username=admin&password=p%26ss+word');
   });
 
@@ -49,7 +49,7 @@ describe('logout', () => {
   it('posts to auth/logout', async () => {
     const fetch = respond('');
     await logout();
-    expect(fetch.mock.calls[0]![0]).toBe('/api/v2/auth/logout');
+    expect(fetch.mock.calls[0]![0]).toBe('api/v2/auth/logout');
   });
 });
 
@@ -57,6 +57,6 @@ describe('maindata', () => {
   it('requests the given rid and returns parsed JSON', async () => {
     const fetch = respond('{"rid":7,"full_update":true}');
     await expect(maindata(6)).resolves.toEqual({ rid: 7, full_update: true });
-    expect(fetch.mock.calls[0]![0]).toBe('/api/v2/sync/maindata?rid=6');
+    expect(fetch.mock.calls[0]![0]).toBe('api/v2/sync/maindata?rid=6');
   });
 });
