@@ -83,8 +83,21 @@ export async function broken(client: APIRequestContext, name: string): Promise<S
     multipart: { torrents: { name: `${name}.torrent`, mimeType: 'application/x-bittorrent', buffer: file }, savepath: '/downloads/nowhere', skip_checking: 'true' },
   });
   const added = (await until(() => torrents(client), (all) => all.some((t) => t.name === name), `${name} to be added`)).find((t) => t.name === name)!;
-  await client.post('/api/v2/torrents/recheck', { form: { hashes: added.hash } });
-  const list = await until(() => torrents(client), (all) => ['missingFiles', 'error'].includes(all.find((t) => t.name === name)?.state ?? ''), `${name} to fail`);
+  // A recheck sent while qBittorrent is still settling the new torrent can be ignored: re-send it
+  // every few seconds until the missing files are noticed.
+  let asked = 0;
+  const list = await until(
+    async () => {
+      if (Date.now() - asked > 4000) {
+        asked = Date.now();
+        await client.post('/api/v2/torrents/recheck', { form: { hashes: added.hash } });
+      }
+      return torrents(client);
+    },
+    (all) => ['missingFiles', 'error'].includes(all.find((t) => t.name === name)?.state ?? ''),
+    `${name} to fail`,
+    40_000,
+  );
   return list.find((t) => t.name === name)!;
 }
 
