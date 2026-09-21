@@ -1,7 +1,9 @@
 {
   "name": "qbittorrent-adwaita",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "A GNOME-style (GTK4/libadwaita) Web UI for qBittorrent 5.2+",
+  "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +14,8 @@
     "test:watch": "vitest",
     "e2e": "vite build && playwright test -c e2e/playwright.config.ts",
     "mock": "node scripts/mock-qbt.mjs",
-    "screenshots": "node scripts/screenshots.mjs"
+    "screenshots": "node scripts/screenshots.mjs",
+    "package": "vite build && node scripts/package.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
