@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest something the Web UI should do.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The task or problem, not the solution. "I manage 800 torrents and can't …"
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+      description: How you imagine it working. Mockups and links to GNOME apps doing something similar are welcome.
+  - type: textarea
+    id: stock
+    attributes:
+      label: How the stock qBittorrent Web UI or desktop app handles it
+      description: If it does.

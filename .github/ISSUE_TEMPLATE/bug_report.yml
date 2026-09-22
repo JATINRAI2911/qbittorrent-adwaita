@@ -1,0 +1,60 @@
+name: Bug report
+description: Something doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Please **remove passkeys, tracker URLs and personal paths** from anything you paste.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Click …
+        3. See …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Web UI version
+      description: Main menu → About qBittorrent → Web UI.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: qbittorrent
+    attributes:
+      label: qBittorrent version
+      description: Shown in the same About dialog, e.g. "5.2.0 (Web API 2.15.1, libtorrent 2.0.11)".
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and operating system
+      placeholder: Firefox 143 on Fedora 43
+    validations:
+      required: true
+  - type: dropdown
+    id: setup
+    attributes:
+      label: How do you reach the Web UI?
+      options:
+        - Directly (http://host:port)
+        - Through a reverse proxy
+        - Not sure
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or console output
+      description: The browser console (F12) often explains a blank page or a failed request.
