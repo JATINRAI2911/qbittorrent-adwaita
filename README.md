@@ -1,19 +1,46 @@
-# qBittorrent Adwaita WebUI
+<div align="center">
 
-An alternative Web UI for qBittorrent 5.2+ that looks and behaves like a GNOME (GTK4/libadwaita) app, in light and dark.
+# qBittorrent Adwaita
 
-It covers what the stock Web UI does, built for big libraries:
-- a grouped list (or a sortable, virtualized table) with filters, search and selection mode;
-- a details sheet with overview, files, trackers, peers and HTTP sources;
-- adding by file, magnet, URL, paste or drop, with a preview and per-file choices;
-- all of qBittorrent's preferences, applied as you change them, with confirmations for the ones that could lock you out;
-- speed limits, statistics, the execution log, a torrent creator, cookies, and keyboard shortcuts for everything common.
+**A Web UI for qBittorrent that looks and works like a GNOME app.**
 
-Tracker passkeys are masked wherever they are shown. The only thing the UI stores is its own view settings: in qBittorrent (through `clientdata`), cached in the browser's local storage.
-
-## Screenshots
+[![CI](https://github.com/jatinrai2911/qbittorrent-adwaita/actions/workflows/ci.yml/badge.svg)](https://github.com/jatinrai2911/qbittorrent-adwaita/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/jatinrai2911/qbittorrent-adwaita?color=3584e4)](https://github.com/jatinrai2911/qbittorrent-adwaita/releases/latest)
+[![qBittorrent 5.2+](https://img.shields.io/badge/qBittorrent-5.2%2B-3584e4)](https://www.qbittorrent.org)
+[![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 
 ![The torrent list, grouped by state, in the dark theme](docs/screenshots/list-dark.png)
+
+</div>
+
+qBittorrent Adwaita replaces qBittorrent's built-in Web UI with one designed the way GNOME designs
+its apps: calm, uncluttered, and fast to use with a mouse or a keyboard. It's built for people who
+run qBittorrent on a server or NAS and manage hundreds of torrents, private trackers included, from
+a browser.
+
+It's a drop-in *alternative Web UI*: a folder you point qBittorrent at. Nothing to run, nothing on
+the server to change, and you can switch back at any time.
+
+## Highlights
+
+- **Your library at a glance.** Torrents grouped by what needs you: problems first, then
+  downloading, seeding, queued and stopped. Or switch to a dense, sortable table.
+- **Find anything instantly.** Filter by status, category, tag and tracker, or just start typing.
+- **Act on many at once.** Selection mode, an action bar and every action qBittorrent offers, with
+  Undo where it makes sense.
+- **Everything about a torrent, one click away:** a resizable sheet with a piece map, files and
+  priorities, trackers, peers and web seeds.
+- **Add the way you like:** paste a magnet anywhere, drop `.torrent` files on the window, preview the
+  files and pick what to download.
+- **Every setting, and none of the fear.** qBittorrent's preferences (all but RSS), searchable and
+  applied as you change them. Changes that could lock you out ask first.
+- **Keyboard-first:** arrows, Space, Delete, F2, Enter and type-to-search, like a native app.
+- **Accessible by design:** WCAG AA contrast in light and dark, screen-reader support, high
+  contrast, forced colours and reduced motion.
+- **Private by default.** Tracker passkeys never show on screen, and the UI talks to nothing but
+  your qBittorrent.
+
+## Screenshots
 
 | | |
 |---|---|
@@ -22,86 +49,80 @@ Tracker passkeys are masked wherever they are shown. The only thing the UI store
 | ![The torrent list in the dark theme](docs/screenshots/list-dark.png) | ![Selection mode with the action bar](docs/screenshots/selection-dark.png) |
 | ![The status popover with the speed graph](docs/screenshots/status-dark.png) | ![Preferences, Speed page](docs/screenshots/preferences-light.png) |
 
-The torrents in these pictures are made up (`npm run mock` serves them; `npm run screenshots` retakes the pictures).
+<sub>The torrents shown are made up, served by the project's mock qBittorrent.</sub>
 
 ## Install
 
-You need qBittorrent 5.2 or newer with its Web UI enabled, and Node.js 22+ to build.
+**You need** qBittorrent 5.2 or newer with its Web UI turned on (*Tools → Options → Web UI*).
 
-1. Build it:
-
-   ```bash
-   git clone https://github.com/jatinrai2911/qbittorrent-adwaita.git
-   cd qbittorrent-adwaita
-   npm ci
-   npm run build
-   ```
-
-   This produces a `dist` folder:
+1. **Download** `qbittorrent-adwaita-<version>.zip` from the
+   [latest release](https://github.com/jatinrai2911/qbittorrent-adwaita/releases/latest) and unzip it somewhere
+   qBittorrent can read. You get this layout:
 
    ```
-   dist/
-   └── public/
-       ├── index.html
-       └── assets/…
+   qbittorrent-adwaita/
+   ├── public/          ← the Web UI
+   ├── LICENSE
+   └── README.md
    ```
 
-2. Point qBittorrent at it: **Tools → Options → Web UI**, tick **Use alternative WebUI**, and set **Files location** to the **`dist`** folder, the one that *contains* `public/`, not `public/` itself. qBittorrent serves `public/` from there. Symlinks inside it are refused, so copy the folder if you move it.
+2. **Point qBittorrent at it.** In *Tools → Options → Web UI*, tick **Use alternative WebUI** and set
+   **Files location** to the `qbittorrent-adwaita` folder: the one that *contains* `public/`, not
+   `public/` itself.
 
-   On a headless `qbittorrent-nox`, stop it and set these in `qBittorrent.conf`, under `[Preferences]`:
+3. **Open your Web UI address** (for example `http://localhost:8080`) and log in as usual.
 
-   ```ini
-   WebUI\AlternativeUIEnabled=true
-   WebUI\RootFolder=/path/to/qbittorrent-adwaita/dist
-   ```
+### Headless (`qbittorrent-nox`)
 
-3. Open the Web UI address (for example `http://127.0.0.1:8080`) and log in with your Web UI credentials.
+Stop qBittorrent, then add these to `qBittorrent.conf` under `[Preferences]`:
 
-To update, pull and run `npm run build` again, then reload the page.
+```ini
+WebUI\AlternativeUIEnabled=true
+WebUI\RootFolder=/path/to/qbittorrent-adwaita
+```
+
+### Docker
+
+Mount the unzipped folder into the container and use the path inside it:
+
+```yaml
+services:
+  qbittorrent:
+    image: qbittorrentofficial/qbittorrent-nox:latest
+    volumes:
+      - ./config:/config
+      - ./downloads:/downloads
+      - ./qbittorrent-adwaita:/webui:ro   # the unzipped release
+```
+
+Then set *Files location* to `/webui` in the Web UI options, or `WebUI\RootFolder=/webui` in the config.
+
+### Updating
+
+Replace the folder with the new release and reload the page. Your view settings are kept: they live
+in qBittorrent.
 
 ### Switching back
 
-- **From this UI:** Preferences → Web UI → turn off *Use an alternative Web UI*.
-- **From qBittorrent's window:** Tools → Options → Web UI → untick *Use alternative WebUI*.
-- **Headless:** stop qBittorrent and set `WebUI\AlternativeUIEnabled=false` in `qBittorrent.conf`.
-- **If nothing else works:** rename or delete `dist/public/index.html`. When the alternative UI's `index.html` is missing, qBittorrent turns it off by itself and serves the stock UI.
+Any of these brings back qBittorrent's built-in Web UI:
 
-## Develop
+- In this UI: **Preferences → Web UI →** turn off *Use an alternative Web UI*.
+- In qBittorrent's window: *Tools → Options → Web UI →* untick *Use alternative WebUI*.
+- Headless: set `WebUI\AlternativeUIEnabled=false` in `qBittorrent.conf`.
+- If you're locked out: rename `public/index.html` in the folder. qBittorrent then falls back to its
+  own UI.
 
-```bash
-npm install
-QBT_URL=http://127.0.0.1:9000 npm run dev   # Vite dev server; proxies /api to qBittorrent, rewriting Origin/Referer for its CSRF check
-```
-
-Then open the printed local address. The UI is Svelte 5 + TypeScript, with a small libadwaita-style kit in `src/ui/adw`.
-
-To try the UI without a qBittorrent, run a pretend one with made-up torrents:
+## Build from source
 
 ```bash
-npm run mock                                 # a fake qBittorrent API on 127.0.0.1:9100 (any login works)
-QBT_URL=http://127.0.0.1:9100 npm run dev
+git clone https://github.com/jatinrai2911/qbittorrent-adwaita.git
+cd qbittorrent-adwaita
+npm ci
+npm run build      # → dist/, which contains public/; point qBittorrent at dist
+npm run package    # or: the same zip as a release, in release/
 ```
 
-To test against a snapshot of your own library (never committed):
-
-```bash
-QBT_USER=… QBT_PASS=… node scripts/record-maindata.mjs
-npm test   # tests/unit/maindata-real.test.ts now runs against it
-```
-
-## Tests
-
-```bash
-npm test          # unit and component tests (Vitest + jsdom + Testing Library)
-npm run check     # svelte-check: TypeScript and Svelte warnings fail the build
-npm run e2e       # builds, then end-to-end tests in Chromium against qBittorrent in Docker
-```
-
-`npm run e2e` needs Docker. The first time, also run `npx playwright install chromium`. It works like this:
-- It starts a throwaway `qbittorrentofficial/qbittorrent-nox:5.2.0-1` container on `127.0.0.1:18080`, with its own config and generated test credentials, serving this build as the alternative UI.
-- It runs the flows (adding, start/stop, bulk category, delete, details, preferences, the creator, offline, modality), axe accessibility scans in light and dark, high-contrast and forced-colours checks, and a large Files tab.
-- It removes the container afterwards. `E2E_KEEP=1` keeps it running for debugging.
-- It never touches your own qBittorrent.
+Node.js 22 or newer. For development, tests and the mock server, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Keyboard
 
@@ -122,18 +143,93 @@ npm run e2e       # builds, then end-to-end tests in Chromium against qBittorren
 | Enter | Open details |
 | Esc | Close menu or dialog → clear search → close search → leave selection mode → close details |
 
-Ctrl/Cmd + 1 / 2 usually switch browser tabs before the page sees them, hence Alt + 1 / 2.
+Browsers usually keep Ctrl/Cmd + 1 / 2 for switching tabs, hence Alt + 1 / 2. The full list is also
+in the app: *Main menu → Keyboard Shortcuts*.
 
-## Accessibility
+## Design and accessibility
 
-- Every screen is checked with axe (WCAG 2.1 AA) in light and dark, including dimmed text.
-- Dialogs are modal: Tab stays inside, and focus returns to what opened them. Menus and popovers follow the WAI-ARIA patterns.
-- **High contrast** (`prefers-contrast: more`): outlines on controls, cards and popups, and stronger dimmed text.
-- **Forced colours** (Windows High Contrast): selection, switches, checks, progress and focus are drawn in system colours.
-- **Reduced motion**: every animation is turned off.
+The interface follows GNOME's [Human Interface Guidelines](https://developer.gnome.org/hig/) and
+libadwaita's look: its colours, spacing, typography (Adwaita Sans and Mono, bundled) and motion. It
+follows your system's light or dark preference.
 
-## Design
+Accessibility is part of the definition of done:
+- **Contrast:** every screen is checked with axe against WCAG 2.1 AA, in both themes.
+- **Dialogs** are modal: focus stays inside and returns to what opened them.
+- **Keyboard focus** is real DOM focus, so screen readers follow it; roles, names and live
+  announcements are throughout.
+- **High contrast and forced colours** (Windows High Contrast) are supported, and **reduced motion**
+  turns every animation off.
 
-- libadwaita values: `docs/reference/adwaita-1.10-web-reference.md`
+## Compatibility
 
-Fonts: Adwaita Sans and Adwaita Mono (SIL Open Font License, see `static/fonts-LICENSE.txt`).
+| | Supported |
+|---|---|
+| qBittorrent | 5.2 or newer (Web API 2.15+), libtorrent 1.2 or 2.0 |
+| Browsers | Firefox 128+, Chrome / Edge 119+, Safari 18+ (it relies on modern CSS such as relative colours and `:has()`) |
+| Screens | Desktop and laptop. It's usable on a tablet, but phones aren't a target. |
+
+The end-to-end suite runs against qBittorrent 5.2 in Chromium.
+
+## FAQ
+
+<details>
+<summary><b>I see a blank page, or qBittorrent's own UI</b></summary>
+
+Check that *Files location* points at the folder that **contains** `public/`, and that
+`public/index.html` exists. qBittorrent turns the alternative UI off by itself when that file is
+missing. It also refuses symbolic links inside the folder, so copy the files rather than linking
+them.
+</details>
+
+<details>
+<summary><b>Does it work behind a reverse proxy?</b></summary>
+
+Yes, at the root or under a sub-path such as `https://example.com/qbittorrent/`. Every request is
+relative to the page. Use a path that ends in `/`; most proxies redirect to one for you. Changing
+the Web UI address or port from Preferences warns you that the proxy may need updating too.
+</details>
+
+<details>
+<summary><b>What about RSS and search plugins?</b></summary>
+
+They aren't in 1.0. The list, details, adding, every other preference and the tools are. RSS and
+search are planned. Until then, use qBittorrent's built-in UI or desktop app for them.
+</details>
+
+<details>
+<summary><b>Will it mess with my torrents or settings?</b></summary>
+
+No more than any Web UI: it only does what you ask it to. Destructive actions (delete, delete with
+files, quit) and settings that could lock you out ask first. It stores nothing but its own view
+settings.
+</details>
+
+## Privacy
+
+The Web UI talks only to the qBittorrent that serves it: no analytics, no CDNs, no remote fonts.
+Tracker passkeys are masked wherever they're shown. The only thing it stores is its own view
+settings, in qBittorrent. See [SECURITY.md](SECURITY.md) for details and for how to report a
+vulnerability.
+
+## Contributing
+
+Bug reports, fixes and ideas are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, the
+mock server, tests (unit, component and end-to-end in Docker), and the design rules changes are
+held to. Release notes are in [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+qBittorrent Adwaita is free software under the
+[GNU General Public License v3.0 or later](LICENSE). The bundled Adwaita Sans and Adwaita Mono fonts
+are under the SIL Open Font License (`static/fonts-LICENSE.txt`).
+
+This is an independent project. It isn't affiliated with or endorsed by the qBittorrent project or
+GNOME; "qBittorrent" and "GNOME" are names of their respective projects.
+
+## Acknowledgements
+
+- [qBittorrent](https://www.qbittorrent.org), whose Web API makes this possible.
+- [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) and the GNOME design team, for the
+  design language this follows.
+- [Svelte](https://svelte.dev), [Vite](https://vite.dev), [Vitest](https://vitest.dev),
+  [Playwright](https://playwright.dev) and [axe-core](https://github.com/dequelabs/axe-core).
