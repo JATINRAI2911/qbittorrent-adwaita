@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import ActionBar from '../../src/features/shell/ActionBar.svelte';
 import MainHeader from '../../src/features/shell/MainHeader.svelte';
 import { makeAppContext, withApp } from '../fixtures/app-context';
+import { stubMedia } from '../fixtures/media';
 import { makeTorrent } from '../fixtures/torrents';
 
 function header(torrents = [makeTorrent({ state: 'downloading' }), makeTorrent({ state: 'stoppedDL' })]) {
@@ -49,6 +50,30 @@ describe('MainHeader', () => {
     expect(app.selection.size).toBe(2);
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(app.selection.mode).toBe(false);
+  });
+
+  it('on a phone, moves the turtle and the view buttons out of the header and the views into the main menu', async () => {
+    const media = stubMedia(true);
+    const { app } = header();
+    expect(screen.queryByRole('button', { name: 'Alternative Speed Limits' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Table View' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'View Options' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Main Menu' }));
+    const [view, options] = app.popovers.current!.model.sections[0]!;
+    expect([view!.label, options!.label]).toEqual(['Table View', 'View Options']);
+    expect(options!.submenu!().sections[0]!.map((i) => i.label)).toContain('Name');
+    view!.action!();
+    expect(app.prefs.view).toBe('table');
+    media.set(false);
+    flushSync();
+    expect(screen.getByRole('button', { name: 'Alternative Speed Limits' })).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it('keeps the views out of the main menu on wider screens', async () => {
+    const { app } = header();
+    await userEvent.click(screen.getByRole('button', { name: 'Main Menu' }));
+    expect(app.popovers.current!.model.sections.flat().map((i) => i.label)).not.toContain('Table View');
   });
 
   it('switches between list and table from the split button', async () => {

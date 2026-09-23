@@ -8,6 +8,7 @@
   import Button from '../../ui/adw/Button.svelte';
   import HeaderBar from '../../ui/adw/HeaderBar.svelte';
   import Icon from '../../ui/adw/Icon.svelte';
+  import { NARROW, watchMedia } from '../../ui/adw/media';
   import type { MenuModel } from '../../ui/adw/menu';
   import WindowTitle from '../../ui/adw/WindowTitle.svelte';
   import StatusPopover from '../global/StatusPopover.svelte';
@@ -27,10 +28,23 @@
   const alt = $derived(server.use_alt_speed_limits ?? false);
   const STATUS_ICON = { ok: 'network', warning: 'warning', error: 'exclamation' } as const;
 
+  // On a phone the header keeps only what fits beside the title; the views move into the main menu,
+  // and the turtle stays in the status popover.
+  let narrow = $state(false);
+  $effect(() => watchMedia(NARROW, (matches) => (narrow = matches)));
+
   function openMainMenu(event: MouseEvent) {
     app.popovers.toggleMenu(
       {
         sections: [
+          ...(narrow
+            ? [
+                [
+                  { label: table ? 'List View' : 'Table View', action: () => app.prefs.setView(table ? 'list' : 'table') },
+                  { label: 'View Options', submenu: () => ({ title: 'View Options', ...viewMenu() }) },
+                ],
+              ]
+            : []),
           [
             { label: 'Preferences…', accel: 'Ctrl+,', action: () => app.openers.preferences() },
             { label: 'Speed Limits…', action: () => app.openers.speedLimits() },
@@ -120,16 +134,18 @@
   <HeaderBar>
     {#snippet start()}
       <Button icon="list-add" title="Add Torrents" onclick={() => app.openers.add()} />
-      <button
-        type="button"
-        class="btn image-button"
-        class:checked={alt}
-        aria-pressed={alt}
-        aria-label="Alternative Speed Limits"
-        title="Alternative Speed Limits"
-        disabled={offline}
-        onclick={() => void app.global.commands.setAltSpeed(!alt)}
-      ><Icon name="turtle" /></button>
+      {#if !narrow}
+        <button
+          type="button"
+          class="btn image-button"
+          class:checked={alt}
+          aria-pressed={alt}
+          aria-label="Alternative Speed Limits"
+          title="Alternative Speed Limits"
+          disabled={offline}
+          onclick={() => void app.global.commands.setAltSpeed(!alt)}
+        ><Icon name="turtle" /></button>
+      {/if}
       <button
         type="button"
         class="btn image-button status-button tone-{health.level}"
@@ -142,12 +158,14 @@
     {#snippet title()}<WindowTitle title="qBittorrent" {subtitle} />{/snippet}
     {#snippet end()}
       <Button icon="open-menu" title="Main Menu" haspopup="menu" onclick={openMainMenu} />
-      <div class="split-button">
-        <Button icon={table ? 'view-list' : 'view-columns'} title={table ? 'List View' : 'Table View'} onclick={() => app.prefs.setView(table ? 'list' : 'table')} />
-        <button type="button" class="btn image-button arrow" aria-label="View Options" aria-haspopup="menu" onclick={(event) => app.popovers.toggleMenu(viewMenu(), event.currentTarget, 'end')}>
-          <Icon name="pan-down" />
-        </button>
-      </div>
+      {#if !narrow}
+        <div class="split-button">
+          <Button icon={table ? 'view-list' : 'view-columns'} title={table ? 'List View' : 'Table View'} onclick={() => app.prefs.setView(table ? 'list' : 'table')} />
+          <button type="button" class="btn image-button arrow" aria-label="View Options" aria-haspopup="menu" onclick={(event) => app.popovers.toggleMenu(viewMenu(), event.currentTarget, 'end')}>
+            <Icon name="pan-down" />
+          </button>
+        </div>
+      {/if}
       <button type="button" class="btn image-button" class:checked={app.list.searchOpen} aria-label="Search" title="Search" aria-pressed={app.list.searchOpen} onclick={toggleSearch}>
         <Icon name="search" />
       </button>

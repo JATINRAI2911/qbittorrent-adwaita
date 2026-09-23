@@ -82,6 +82,12 @@ describe('FilterBar', () => {
     expect(inner).not.toHaveClass('clamped');
   });
 
+  it('keeps "All" in its own span, so phones can drop it and show just "Categories"', () => {
+    setup();
+    const button = screen.getByRole('button', { name: 'All Categories' });
+    expect(button.querySelector('.fb-all')?.textContent).toBe('All');
+  });
+
   it('sets the status from the toggle group', async () => {
     const { app } = setup();
     await userEvent.click(screen.getByRole('radio', { name: 'Seeding' }));

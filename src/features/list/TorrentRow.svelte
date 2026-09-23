@@ -50,7 +50,7 @@
     <div class="t-sub">
       <span class="subtitle numeric">
         {#each segments as segment, i (i)}
-          {#if i > 0}<span class="sep">·</span>{/if}<span class={segment.tone ?? ''}>{segment.text}</span>
+          <span class="seg">{#if i > 0}<span class="sep">·</span>{/if}<span class={segment.tone ?? ''}>{segment.text}</span></span>
         {/each}
       </span>
       {#if eta}<span class="subtitle numeric eta">{eta}</span>{/if}
@@ -88,7 +88,7 @@
   .t-sub .subtitle { font-size: smaller; opacity: var(--dim-opacity); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .t-sub .subtitle:first-child { flex: 1; min-width: 0; }
   .t-sub .subtitle:has(:global(.warning), :global(.error)) { opacity: 1; }
-  .t-sub .subtitle:has(:global(.warning), :global(.error)) > :not(:global(.warning), :global(.error)) { opacity: var(--dim-opacity); }
+  .t-sub .subtitle:has(:global(.warning), :global(.error)) .seg > :not(:global(.warning), :global(.error)) { opacity: var(--dim-opacity); }
   .eta { flex: none; }
   .sep { margin: 0 6px; opacity: 0.7; }
   .inactive .t-name { color: color-mix(in srgb, var(--window-fg-color) var(--dim-opacity), transparent); }
@@ -98,4 +98,22 @@
   .torrent-row.selected:hover { background-color: color-mix(in srgb, var(--accent-bg-color) 32%, transparent); }
   .torrent-row.menu-target:not(.selected) { background-color: var(--view-hover-color); }
   .torrent-row.kfocus { outline: 2px solid var(--focus-ring-color); outline-offset: -2px; }
+
+  /* Phones: the name gets the whole line; category, tags and the ETA move under the progress text. */
+  @media (max-width: 600px) {
+    .t-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 3px; }
+    .t-line, .t-sub { display: contents; }
+    .t-name { grid-area: 1 / 1 / 2 / -1; }
+    /* Wraps between segments, never inside one. Each separator rides with the segment after it; the
+       line is shifted left by one separator and clipped there, so a wrapped line never starts with one. */
+    .t-sub .subtitle:first-child { grid-area: 2 / 1 / 3 / -1; display: flex; flex-wrap: wrap; margin-left: -1em; clip-path: inset(0 0 0 1em); }
+    .seg { display: flex; min-width: 0; }
+    .seg:first-child { padding-left: 1em; }
+    .seg > :not(.sep) { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .sep { flex: none; width: 1em; margin: 0; text-align: center; }
+    .t-meta { grid-area: 3 / 1; max-width: none; }
+    .t-m:first-child:not(:last-child) { flex-shrink: 0; max-width: 100%; } /* the tags give way first */
+    .eta { grid-area: 3 / 2; font-size: smaller; }
+    .torrent-row :global(.progressbar) { grid-area: 4 / 1 / 5 / -1; }
+  }
 </style>
