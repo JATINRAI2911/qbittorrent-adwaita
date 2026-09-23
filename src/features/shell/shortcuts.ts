@@ -1,10 +1,10 @@
-/** Every keyboard shortcut: shown in the Keyboard Shortcuts dialog and the README table. */
+/** Every keyboard shortcut: shown in the Keyboard Shortcuts dialog and the table in docs/guide.md. */
 export interface Shortcut {
   group: 'Torrents' | 'General';
   label: string;
   /** Alternatives, each a key combination; "Mod" is Ctrl, or ⌘ on macOS, and "Alt" is ⌥ there. */
   keys: string[][];
-  /** The README's Keys column and, when it differs from the label, its Action column. */
+  /** The user guide's Keys column and, when it differs from the label, its Action column. */
   readme: string;
   readmeAction?: string;
 }

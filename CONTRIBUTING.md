@@ -77,7 +77,7 @@ Reviews hold changes to these:
   `test: …`, `docs: …`. Keep commits small; each one should build and pass the tests.
 - Fill in the pull request checklist. Mention anything you couldn't test, and include before/after
   screenshots for visual changes, in both light and dark.
-- If you change a shortcut, update `src/features/shell/shortcuts.ts` and the README table together.
+- If you change a shortcut, update `src/features/shell/shortcuts.ts` and the table in `docs/guide.md` together.
   A test checks that they match.
 
 ## Screenshots

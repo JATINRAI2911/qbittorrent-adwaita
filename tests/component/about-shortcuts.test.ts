@@ -7,8 +7,8 @@ import { SHORTCUTS } from '../../src/features/shell/shortcuts';
 import { makeAppContext, withApp } from '../fixtures/app-context';
 
 describe('shortcuts', () => {
-  it('match the README table, row for row', () => {
-    const readme = readFileSync('README.md', 'utf8');
+  it('match the user guide’s table, row for row', () => {
+    const readme = readFileSync('docs/guide.md', 'utf8');
     const table = readme.slice(readme.indexOf('## Keyboard'), readme.indexOf('## Design'));
     const rows = table.split('\n').filter((line) => /^\| (?!Keys|---)/.test(line));
     expect(rows).toEqual(SHORTCUTS.map((s) => `| ${s.readme} | ${s.readmeAction ?? s.label} |`));

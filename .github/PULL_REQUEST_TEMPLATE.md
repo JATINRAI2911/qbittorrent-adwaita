@@ -9,5 +9,5 @@
 - [ ] Looks right in light **and** dark, and in high contrast
 - [ ] Works with the keyboard alone; screen-reader labels and roles make sense
 - [ ] No passkeys, tracker URLs or magnet links end up in toasts, titles or logs
-- [ ] README and keyboard shortcuts updated, if behaviour or shortcuts changed
+- [ ] README, user guide and keyboard shortcuts updated, if behaviour or shortcuts changed
 - [ ] Commits follow [Conventional Commits](https://www.conventionalcommits.org)
