@@ -50,7 +50,7 @@
     <div class="t-sub">
       <span class="subtitle numeric">
         {#each segments as segment, i (i)}
-          {#if i > 0}<span class="sep">-</span>{/if}<span class={segment.tone ?? ''}>{segment.text}</span>
+          {#if i > 0}<span class="sep">·</span>{/if}<span class={segment.tone ?? ''}>{segment.text}</span>
         {/each}
       </span>
       {#if eta}<span class="subtitle numeric eta">{eta}</span>{/if}

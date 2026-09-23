@@ -19,7 +19,7 @@
   const app = getAppContext();
   const details = app.details;
   const t = $derived(details.hash ? app.session.torrents.get(details.hash) : undefined);
-  const status = $derived(t ? [...describeRow(t).map((s) => s.text), etaText(t)].filter(Boolean).join(' - ') : '');
+  const status = $derived(t ? [...describeRow(t).map((s) => s.text), etaText(t)].filter(Boolean).join(' · ') : '');
   const stopped = $derived(t ? needsStart(t) : false);
   const tabs = $derived(DETAIL_TABS.map((tab) => (tab.value === 'trackers' && t?.has_tracker_error ? { ...tab, badge: 'has errors' } : tab)));
 

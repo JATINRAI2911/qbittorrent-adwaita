@@ -3,16 +3,16 @@ import type { TorrentState } from '../../src/api/types';
 import { bubbleKind, describeRow, etaText, isInactive, parseTags, progressTone, showProgress } from '../../src/features/list/describe';
 import { makeTorrent } from '../fixtures/torrents';
 
-const text = (segments: { text: string }[]) => segments.map((s) => s.text).join(' - ');
+const text = (segments: { text: string }[]) => segments.map((s) => s.text).join(' · ');
 
 describe('describeRow', () => {
   it('downloading shows amount, percent and live speeds', () => {
     const t = makeTorrent({ state: 'downloading', size: 5_900_000_000, completed: 4_800_000_000, progress: 0.8136, dlspeed: 8_200_000, upspeed: 310_000 });
-    expect(text(describeRow(t))).toBe('4.8 GB of 5.9 GB (81.3%) - ↓ 8.2 MB/s  ↑ 310.0 kB/s');
+    expect(text(describeRow(t))).toBe('4.8 GB of 5.9 GB (81.3%) · ↓ 8.2 MB/s  ↑ 310.0 kB/s');
   });
 
   it('downloading with no traffic says it is connecting', () => {
-    expect(text(describeRow(makeTorrent({ state: 'downloading', size: 1000, completed: 0 })))).toBe('0 bytes of 1.0 kB (0%) - Connecting to peers…');
+    expect(text(describeRow(makeTorrent({ state: 'downloading', size: 1000, completed: 0 })))).toBe('0 bytes of 1.0 kB (0%) · Connecting to peers…');
   });
 
   it('stalled downloads get a warning-toned segment', () => {
@@ -28,8 +28,8 @@ describe('describeRow', () => {
   });
 
   it('seeding shows size and ratio; idle seeding says Idle', () => {
-    expect(text(describeRow(makeTorrent({ state: 'stalledUP', size: 2_000_000_000, ratio: 2.144, progress: 1 })))).toBe('2.0 GB · Ratio 2.14 - Idle');
-    expect(text(describeRow(makeTorrent({ state: 'uploading', size: 2_000_000_000, ratio: 1, upspeed: 1_000_000, progress: 1 })))).toBe('2.0 GB · Ratio 1.00 - ↑ 1.0 MB/s');
+    expect(text(describeRow(makeTorrent({ state: 'stalledUP', size: 2_000_000_000, ratio: 2.144, progress: 1 })))).toBe('2.0 GB · Ratio 2.14 · Idle');
+    expect(text(describeRow(makeTorrent({ state: 'uploading', size: 2_000_000_000, ratio: 1, upspeed: 1_000_000, progress: 1 })))).toBe('2.0 GB · Ratio 1.00 · ↑ 1.0 MB/s');
   });
 
   it('never leaks NaN, Infinity or undefined for metadata-less or sentinel values', () => {

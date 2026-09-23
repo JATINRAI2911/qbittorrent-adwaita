@@ -9,7 +9,7 @@
 
   const MESSAGES: Record<Exclude<LoginOutcome, 'ok'>, string> = {
     invalid: 'Incorrect username or password.',
-    banned: 'Too many failed attempts. Your IP address is temporarily banned - try again later.',
+    banned: 'Too many failed attempts. Your IP address is temporarily banned. Try again later.',
     network: 'Can’t reach qBittorrent. Check that it’s running and the Web UI is enabled.',
   };
 

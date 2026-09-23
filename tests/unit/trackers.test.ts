@@ -49,7 +49,7 @@ describe('maskTrackerUrl', () => {
   });
 });
 
-describe('maskTrackerUrl - other passkey forms', () => {
+describe('maskTrackerUrl: other passkey forms', () => {
   it.each([
     ['https://t.example/announce.php?authkey=0123456789abcdef0123', 'https://t.example/announce.php?authkey=••••'],
     ['https://t.example/announce.php?uk=abcdefghij0123456789', 'https://t.example/announce.php?uk=••••'],
