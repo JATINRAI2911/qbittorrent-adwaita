@@ -15,7 +15,7 @@
 
 <div class="banner tone-{tone}" transition:slide>
   <div class="banner-inner">
-    <span class="banner-title"><span role="alert">{title}</span>{#if detail} <span class="banner-detail">{detail}</span>{/if}</span>
+    <span class="banner-title"><span role="alert">{title}</span>{#if detail}{' '}<span class="banner-detail">{detail}</span>{/if}</span>
     {#if actionLabel}
       <Button label={actionLabel} variant={tone === 'error' ? 'suggested' : 'default'} onclick={onaction} />
     {/if}

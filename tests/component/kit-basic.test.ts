@@ -69,4 +69,9 @@ describe('Banner', () => {
     expect(screen.getByText('Retrying in 4 s…')).toBeVisible();
     expect(screen.getByRole('alert')).toHaveTextContent(/^Can’t reach qBittorrent\.$/);
   });
+
+  it('keeps a space between the title and the detail', () => {
+    render(Banner, { title: 'Can’t reach qBittorrent.', detail: 'Retrying in 4 s…', tone: 'error' });
+    expect(screen.getByRole('alert').parentElement?.textContent).toBe('Can’t reach qBittorrent. Retrying in 4 s…');
+  });
 });

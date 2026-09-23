@@ -352,6 +352,8 @@
   .window { position: fixed; inset: 0; display: flex; flex-direction: column; }
   .top-bar { flex: none; position: relative; z-index: 2; transition: box-shadow 200ms var(--ease-out-quad); }
   .top-bar.raised { box-shadow: 0 1px color-mix(in srgb, var(--shade-color) 75%, transparent); }
+  /* Under the header the filter bar sits in the header's bottom padding; under a banner it needs its own. */
+  .top-bar :global(.banner + .filterbar) { padding-top: 6px; }
   .content { flex: 1; min-height: 0; overflow: auto; }
   .content.table { overflow: hidden; }
   .content.offline { filter: saturate(0.3); opacity: 0.6; pointer-events: none; transition: opacity 300ms var(--ease-out-quad); }
