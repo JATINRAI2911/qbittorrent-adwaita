@@ -47,7 +47,7 @@ src/
 tests/          unit and component tests, fixtures
 e2e/            the Docker harness and Playwright specs
 scripts/        mock server, screenshots, release packaging
-docs/           libadwaita reference, screenshots
+docs/           user guide, libadwaita reference, screenshots
 ```
 
 ## Design rules

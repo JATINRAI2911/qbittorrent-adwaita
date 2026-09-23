@@ -29,10 +29,6 @@ A resizable sheet with the piece map, files and priorities, trackers, peers and 
 
 ![The details sheet open on the Files tab, with episodes and priorities](docs/screenshots/details-files-dark.png)
 
-## Add anything
-
-Paste a magnet anywhere or drop `.torrent` files on the window. Preview the files, pick what you want.
-
 ## Built for big libraries
 
 <table>
@@ -55,6 +51,7 @@ Paste a magnet anywhere or drop `.torrent` files on the window. Preview the file
 **Keyboard-first:** arrows, Space, Delete, F2, Enter, type-to-search ·
 **Accessible:** WCAG AA in both themes, screen readers, high contrast, reduced motion ·
 **Private:** passkeys masked, no third-party requests ·
+**Add anything:** paste a magnet anywhere or drop `.torrent` files, with a file preview ·
 **Complete:** filters, categories, tags, trackers, speed limits and scheduler, statistics, execution log,
 torrent creator, cookies
 
