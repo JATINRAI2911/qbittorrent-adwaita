@@ -29,6 +29,12 @@ A resizable sheet with the piece map, files and priorities, trackers, peers and 
 
 ![The details sheet open on the Files tab, with episodes and priorities](docs/screenshots/details-files-dark.png)
 
+## Light and dark
+
+It follows your system's theme, and the list fits a phone screen.
+
+<p align="center"><img src="docs/screenshots/phone-light-dark.png" alt="A tilted phone showing the torrent list, its screen split diagonally between the light theme and the dark theme" width="360"></p>
+
 ## Built for big libraries
 
 <table>
@@ -41,7 +47,7 @@ A resizable sheet with the piece map, files and priorities, trackers, peers and 
 <td width="50%"><img src="docs/screenshots/preferences-light.png" alt="Preferences, Speed page"><br><sub><b>Every setting</b>, searchable, applied as you change it.</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/screenshots/list-light.png" alt="The torrent list in the light theme"><br><sub><b>Light and dark</b>, following your system.</sub></td>
+<td width="50%"><img src="docs/screenshots/list-light.png" alt="The torrent list in the light theme"><br><sub><b>The light theme</b> on a wide screen.</sub></td>
 <td width="50%"><img src="docs/screenshots/details-dark.png" alt="The details sheet: overview with the piece map"><br><sub><b>Overview</b> with the piece map, transfer and options.</sub></td>
 </tr>
 </table>

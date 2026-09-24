@@ -16,6 +16,7 @@ GNOME's libadwaita.
 - Filters for status, category, tag and tracker (with counts), plus instant search; type anywhere
   to start searching.
 - Selection mode with an action bar. Click, Shift-click and Ctrl-click select like a file manager.
+- A phone layout for the list: a compact header, full-width filters, and rows that stack their details.
 - Every torrent action:
   - start, stop, force start, recheck, reannounce, queue order;
   - move, rename;
