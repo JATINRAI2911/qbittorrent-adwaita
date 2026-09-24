@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // README screenshots from the mock qBittorrent (made-up torrents only):
 //   node scripts/screenshots.mjs        → docs/screenshots/*.png and demo.gif
-//   node scripts/screenshots.mjs phone  → just docs/screenshots/phone-light-dark.png
+//   node scripts/screenshots.mjs split  → just the light/dark split pictures (phone and desktop)
 // Starts scripts/mock-qbt.mjs and a Vite dev server pointed at it, then drives Chromium.
 import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync, statSync } from 'node:fs';
@@ -61,14 +61,14 @@ const shot = async (page, name) => {
 };
 const row = (page, name) => page.locator('[data-hash]').filter({ hasText: name }).first();
 
-// The phone picture: one tilted phone whose screen is split diagonally, light above and dark below.
-// Both halves come from one page with its data frozen (every poll answers "no changes"), so the
-// rows line up across the split.
-{
-  const context = await browser.newContext({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, colorScheme: 'light' });
+// Light and dark at the same moment, for the split pictures: the data is frozen first (every poll
+// answers "no changes"), so the two halves line up.
+async function bothThemes(options) {
+  const context = await browser.newContext({ ...options, colorScheme: 'light' });
   const page = await context.newPage();
   await page.goto(BASE);
   await page.locator('[data-hash]').first().waitFor();
+  await page.mouse.move(options.viewport.width / 2, 26);
   await settle(page, 1500); // speeds settle into the subtitle and rows
   await page.route('**/api/v2/sync/maindata*', (route) => route.fulfill({ json: { rid: Number(new URL(route.request().url()).searchParams.get('rid')) } }));
   await settle(page, 1200);
@@ -77,44 +77,70 @@ const row = (page, name) => page.locator('[data-hash]').filter({ hasText: name }
   await settle(page);
   const dark = await page.screenshot();
   await context.close();
-
   const uri = (png) => `data:image/png;base64,${png.toString('base64')}`;
-  const composer = await browser.newPage({ viewport: { width: 760, height: 1040 }, deviceScaleFactor: 2 });
-  await composer.setContent(`<!doctype html><style>
-    html, body { margin: 0; background: transparent; }
+  return { light: uri(light), dark: uri(dark) };
+}
+
+// Renders `html` on a transparent stage and saves the area around `.frame`, with room for its shadow.
+async function compose(name, stage, html, room) {
+  const page = await browser.newPage({ viewport: stage, deviceScaleFactor: 2 });
+  await page.setContent(`<!doctype html><style>html, body { margin: 0; background: transparent; }</style>${html}`);
+  await page.waitForTimeout(300);
+  const box = await page.locator('.frame').boundingBox(); // after any transform
+  const clip = { x: Math.max(0, box.x - room.side), y: Math.max(0, box.y - room.top), width: box.width + 2 * room.side, height: box.height + room.top + room.bottom };
+  await page.screenshot({ path: `${OUT}/${name}.png`, omitBackground: true, clip });
+  await page.close();
+  console.log(`${OUT}/${name}.png`);
+}
+
+// One tilted phone, its screen split diagonally: light above, dark below.
+{
+  const { light, dark } = await bothThemes({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+  await compose('phone-light-dark', { width: 760, height: 1040 }, `<style>
     .stage { width: 760px; height: 1040px; display: grid; place-items: center; perspective: 2400px; }
-    .phone {
+    .frame {
       position: relative; width: 393px; height: 852px; padding: 11px; border-radius: 60px;
       background: linear-gradient(150deg, #48484d, #18181a 40%, #0e0e10 70%, #3a3a3e);
       box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 18%), inset 0 0 0 5px #09090a,
         0 70px 80px -40px rgb(0 0 0 / 50%), 0 24px 36px -18px rgb(0 0 0 / 35%);
       transform: rotateX(12deg) rotateY(-16deg) rotateZ(8deg);
     }
-    .phone::before, .phone::after { content: ''; position: absolute; right: -3px; width: 3px; border-radius: 0 3px 3px 0; background: #3a3a3e; }
-    .phone::before { top: 180px; height: 84px; }
-    .phone::after { top: 290px; height: 52px; }
+    .frame::before, .frame::after { content: ''; position: absolute; right: -3px; width: 3px; border-radius: 0 3px 3px 0; background: #3a3a3e; }
+    .frame::before { top: 180px; height: 84px; }
+    .frame::after { top: 290px; height: 52px; }
     .screen { position: relative; height: 100%; border-radius: 49px; overflow: hidden; background: #fff; }
     .screen img { position: absolute; inset: 0; width: 100%; height: 100%; }
     .screen .dark { clip-path: polygon(100% 36%, 100% 100%, 0 100%, 0 64%); }
-  </style><div class="stage"><div class="phone"><div class="screen">
-    <img src="${uri(light)}" alt=""><img class="dark" src="${uri(dark)}" alt="">
-  </div></div></div>`);
-  await composer.waitForTimeout(300);
-  const box = await composer.locator('.phone').boundingBox(); // the tilted outline
-  const clip = { x: Math.max(0, box.x - 24), y: Math.max(0, box.y - 16), width: box.width + 48, height: box.height + 80 }; // room for the shadow
-  await composer.screenshot({ path: `${OUT}/phone-light-dark.png`, omitBackground: true, clip });
-  await composer.close();
-  console.log(`${OUT}/phone-light-dark.png`);
+  </style><div class="stage"><div class="frame"><div class="screen">
+    <img src="${light}" alt=""><img class="dark" src="${dark}" alt="">
+  </div></div></div>`, { side: 24, top: 16, bottom: 64 });
 }
-if (process.argv[2] === 'phone') {
-  // `node scripts/screenshots.mjs phone` retakes just this one.
+
+// The same split on a flat desktop window.
+{
+  const { light, dark } = await bothThemes({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 });
+  await compose('desktop-light-dark', { width: 1400, height: 920 }, `<style>
+    .stage { width: 1400px; height: 920px; display: grid; place-items: center; }
+    .frame {
+      position: relative; width: 1280px; height: 800px; border-radius: 12px; overflow: hidden;
+      box-shadow: 0 0 0 1px rgb(0 0 0 / 14%), 0 28px 48px -16px rgb(0 0 0 / 38%), 0 8px 16px -8px rgb(0 0 0 / 20%);
+    }
+    .frame img { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .frame .dark { clip-path: polygon(58% 0, 100% 0, 100% 100%, 42% 100%); }
+    /* A faint rim, so the dark half's edge still shows on a dark page. */
+    .frame::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%); }
+  </style><div class="stage"><div class="frame">
+    <img src="${light}" alt=""><img class="dark" src="${dark}" alt="">
+  </div></div>`, { side: 40, top: 24, bottom: 56 });
+}
+if (process.argv[2] === 'split') {
+  // `node scripts/screenshots.mjs split` retakes just the two split pictures.
   await browser.close();
   stopAll();
   process.exit(0);
 }
 
 await session('light', async (page) => {
-  await shot(page, 'list-light');
   await page.keyboard.press('Alt+2');
   await page.getByRole('grid').waitFor();
   // Fewer columns, so the table fits the shot without scrolling sideways.
