@@ -83,8 +83,8 @@ Reviews hold changes to these:
 ## Screenshots
 
 `npm run screenshots` retakes everything in `docs/screenshots/` from the mock server, so the
-pictures never show anyone's real library. `npm run screenshots -- phone` retakes just the phone
-picture, in a few seconds.
+pictures never show anyone's real library. `npm run screenshots -- split` retakes just the light and
+dark split pictures (desktop and phone), in a few seconds.
 
 ## Releasing (maintainers)
 

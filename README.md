@@ -27,13 +27,23 @@ Grouped by what needs you: problems first, then downloading, seeding, queued and
 
 A resizable sheet with the piece map, files and priorities, trackers, peers and web seeds.
 
-![The details sheet open on the Files tab, with episodes and priorities](docs/screenshots/details-files-dark.png)
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/details-dark.png" alt="The details sheet: overview with the piece map"><br><sub><b>Overview</b> with the piece map, transfer and options.</sub></td>
+<td width="50%"><img src="docs/screenshots/details-files-dark.png" alt="The details sheet open on the Files tab, with episodes and priorities"><br><sub><b>Files</b> with priorities, rename and folder collapse.</sub></td>
+</tr>
+</table>
 
 ## Light and dark
 
 It follows your system's theme, and the list fits a phone screen.
 
-<p align="center"><img src="docs/screenshots/phone-light-dark.png" alt="A tilted phone showing the torrent list, its screen split diagonally between the light theme and the dark theme" width="360"></p>
+<table>
+<tr>
+<td width="72%" valign="middle"><img src="docs/screenshots/desktop-light-dark.png" alt="The torrent list in a desktop window, split diagonally between the light theme and the dark theme"></td>
+<td width="28%" valign="middle"><img src="docs/screenshots/phone-light-dark.png" alt="A tilted phone showing the torrent list, its screen split diagonally between the light theme and the dark theme"></td>
+</tr>
+</table>
 
 ## Built for big libraries
 
@@ -45,10 +55,6 @@ It follows your system's theme, and the list fits a phone screen.
 <tr>
 <td width="50%"><img src="docs/screenshots/status-dark.png" alt="The status popover with a live speed graph"><br><sub><b>Live status</b>: speeds, limits, disk space, connection health.</sub></td>
 <td width="50%"><img src="docs/screenshots/preferences-light.png" alt="Preferences, Speed page"><br><sub><b>Every setting</b>, searchable, applied as you change it.</sub></td>
-</tr>
-<tr>
-<td width="50%"><img src="docs/screenshots/list-light.png" alt="The torrent list in the light theme"><br><sub><b>The light theme</b> on a wide screen.</sub></td>
-<td width="50%"><img src="docs/screenshots/details-dark.png" alt="The details sheet: overview with the piece map"><br><sub><b>Overview</b> with the piece map, transfer and options.</sub></td>
 </tr>
 </table>
 
